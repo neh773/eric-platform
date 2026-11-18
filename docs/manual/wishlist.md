@@ -1,4 +1,4 @@
-# Wishlist
+# Future features and wishlist
 
 This is the wishlist. The same list is in the repository at `docs/wishlist.md`. How an item gets funded is on [Funding and support](funding.md).
 

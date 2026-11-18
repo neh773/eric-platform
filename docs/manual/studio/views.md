@@ -28,3 +28,5 @@ The demo Overview view uses labels, a radial gauge, a button, and a power chart.
 ![Outline and canvas](../img/studio-selected.png)
 
 Changes show on the canvas at once and are saved with **Save** ([Find, diagnostics, save and preview](tools.md)).
+
+Every palette type and its main props are listed in the [component catalog](components.md).
