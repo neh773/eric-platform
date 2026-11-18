@@ -1,0 +1,23 @@
+{
+  "step": "B1",
+  "target": "ours",
+  "label": "container-size, not reference-size",
+  "dryRun": true,
+  "id": "B1",
+  "status": "ok",
+  "seconds": 0.1,
+  "startedMinute": null,
+  "notes": [],
+  "data": {
+    "checks": {
+      "dbImageCached": true,
+      "oipInstall": "gateway/server/build/install/server",
+      "oipInstallPresent": true,
+      "port8090Free": true,
+      "referenceContacted": false,
+      "taskset": true,
+      "noPullAttempted": true
+    },
+    "failed": []
+  }
+}

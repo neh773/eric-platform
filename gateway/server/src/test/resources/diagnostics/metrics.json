@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["intervalMs", "times", "metrics"],
+  "additionalProperties": false,
+  "properties": {
+    "intervalMs": {"type": "integer", "minimum": 1},
+    "times": {"type": "array", "items": {"type": "integer"}},
+    "metrics": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "label", "unit", "max", "value", "values"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {"type": "string"},
+          "label": {"type": "string"},
+          "unit": {"type": "string"},
+          "max": {"type": ["number", "null"]},
+          "value": {"type": ["number", "null"]},
+          "values": {"type": "array", "items": {"type": ["number", "null"]}}
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "step": "P1-03",
+  "target": "ours",
+  "label": "container-size, not reference-size",
+  "dryRun": true,
+  "id": "P1-03",
+  "status": "ok",
+  "seconds": 0.0,
+  "startedMinute": 9.86,
+  "notes": [],
+  "data": {
+    "gate": "parity-1",
+    "closes": [
+      "GAT-017"
+    ],
+    "prompt": [
+      "Change one logger level: does it apply without a restart?",
+      "Does a level on a parent logger cover its children (DIFFERENCES 47)?",
+      "Which files are in the log download?"
+    ],
+    "probes": [
+      {
+        "method": "GET",
+        "path": "/api/v1/logs",
+        "auth": "session",
+        "status": 200,
+        "ms": 4.9,
+        "shape": {
+          "type": "object",
+          "keys": [
+            "records"
+          ],
+          "lists": {
+            "records": {
+              "length": 1,
+              "itemKeys": [
+                "fields",
+                "level",
+                "logger",
+                "message",
+                "ts"
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "answer": null,
+    "note": "dry run: UI questions are for the reference product; our side is the probes"
+  }
+}

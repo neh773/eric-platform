@@ -1,0 +1,38 @@
+id: org.oip.driver-s7
+version: 0.1.0
+name: S7 Driver
+entrypoint: org.oip.s7.S7DriverModule
+dependencies: []
+permissions:
+  - device.connect
+configSchema:
+  type: object
+  properties:
+    defaultTimeoutMs:
+      type: integer
+      minimum: 1
+      maximum: 120000
+      default: 2000
+    defaultPduSize:
+      type: integer
+      minimum: 240
+      maximum: 960
+      default: 240
+    defaultRack:
+      type: integer
+      minimum: 0
+      maximum: 7
+      default: 0
+    defaultSlot:
+      type: integer
+      minimum: 0
+      maximum: 31
+      default: 2
+    reconnectInitialMs:
+      type: integer
+      minimum: 1
+      default: 500
+    reconnectMaxMs:
+      type: integer
+      minimum: 1
+      default: 30000

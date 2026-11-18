@@ -1,0 +1,12 @@
+apiVersion: oip/v1
+kind: HistorySettings
+metadata:
+  name: brownsville-stations-saltcedar-flow
+  module: historian
+  version: 1
+  modified: "2026-11-17T20:35:11.456230700Z"
+  modifiedBy: admin
+spec:
+  storageProvider: local
+  sampleMode: onChange
+  tagPath: "[default]Brownsville/Stations/SaltCedar/Flow"

@@ -1,0 +1,59 @@
+{
+  "step": "P1-12",
+  "target": "ours",
+  "label": "container-size, not reference-size",
+  "dryRun": true,
+  "id": "P1-12",
+  "status": "ok",
+  "seconds": 0.0,
+  "startedMinute": 10.64,
+  "notes": [],
+  "data": {
+    "gate": "parity-1",
+    "closes": [
+      "SEC-001",
+      "SEC-003"
+    ],
+    "prompt": [
+      "Exact action names for login, logout, failed login, config save, backup, log-level change and project import.",
+      "Does one user or role edit write one row or several?"
+    ],
+    "probes": [
+      {
+        "method": "GET",
+        "path": "/api/v1/audit",
+        "auth": "session",
+        "status": 200,
+        "ms": 4.3,
+        "shape": {
+          "type": "object",
+          "keys": [
+            "items",
+            "limit",
+            "offset",
+            "total"
+          ],
+          "lists": {
+            "items": {
+              "length": 100,
+              "itemKeys": [
+                "action",
+                "actor",
+                "actorHost",
+                "context",
+                "detail",
+                "origin",
+                "seq",
+                "status",
+                "target",
+                "timestamp"
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "answer": null,
+    "note": "dry run: UI questions are for the reference product; our side is the probes"
+  }
+}

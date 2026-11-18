@@ -1,0 +1,18 @@
+{
+  "image": "reference-platform:pinned",
+  "container": "reference",
+  "httpPort": 8088,
+  "opcuaPort": 62541,
+  "edition": "standard",
+  "adminUser": "admin",
+  "passwordFile": "secrets/reference-admin.txt",
+  "statusPath": "/StatusPing",
+  "trialMinutes": 120,
+  "procedureMinutes": 110,
+  "healthTimeoutSeconds": 600,
+  "defaultSize": "S2",
+  "tokenHeader": "X-Reference-API-Token",
+  "coreModule": "reference",
+  "opcuaModule": "com.reference.opcua",
+  "coreCollection": "core"
+}

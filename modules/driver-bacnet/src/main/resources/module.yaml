@@ -1,0 +1,10 @@
+id: org.oip.driver-bacnet
+version: 0.1.0
+name: BACnet/IP Driver
+entrypoint: org.oip.bacnet.BacnetDriverModule
+dependencies: []
+permissions:
+  - device.connect
+configSchema:
+  type: object
+  properties: {}

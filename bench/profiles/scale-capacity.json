@@ -1,0 +1,24 @@
+{
+  "name": "scale-capacity",
+  "description": "PRF-002 tag-capacity series S2/S4/S8/S16. 1 s scan, 10% changing. Efficiency is E(n) = (T(n) / T(baseline)) / (n / baseline), minimum 0.70, with T the last good tag count. EDGE is not a point on this series.",
+  "points": [10000, 20000, 40000, 80000, 160000, 320000, 640000, 1280000],
+  "periodMs": 1000,
+  "percentChanging": 10,
+  "protocols": ["modbus"],
+  "warmupSeconds": 10,
+  "sampleSeconds": 30,
+  "sampleIntervalSeconds": 10,
+  "sampleTags": 32,
+  "registersPerUnit": 10000,
+  "modbusExtraPorts": 3,
+  "tagBatch": 2000,
+  "maxWallSeconds": 3600,
+  "requireDevices": true,
+  "sizes": [
+    {"id": "S2", "cpus": 2, "memory": "4g", "ramGb": 4},
+    {"id": "S4", "cpus": 4, "memory": "8g", "ramGb": 8},
+    {"id": "S8", "cpus": 8, "memory": "16g", "ramGb": 16},
+    {"id": "S16", "cpus": 16, "memory": "32g", "ramGb": 32}
+  ],
+  "cutoffs": {"cpuPercent": 50, "memoryPercent": 50, "driftPercent": 10, "qualityErrorFraction": 0.01, "minReads": 4}
+}

@@ -1,0 +1,352 @@
+apiVersion: oip/v1
+kind: View
+metadata:
+  name: disinfection
+  module: designer
+  version: 1
+  modified: "2026-11-17T20:40:37.561613800Z"
+  modifiedBy: admin
+spec:
+  path: disinfection
+  document:
+    root:
+      id: root
+      name: Root
+      children:
+        -
+          id: h-a
+          name: h-a
+          style:
+            fontSize: 20
+            color: "#e8eef4"
+          type: label
+          kind: component
+          props:
+            text: Resaca Bend
+          frame:
+            y: 12
+            width: 240
+            height: 28
+            x: 16
+        -
+          id: h-b
+          name: h-b
+          style:
+            fontSize: 20
+            color: "#e8eef4"
+          type: label
+          kind: component
+          props:
+            text: Laguna Works
+          frame:
+            y: 12
+            width: 240
+            height: 28
+            x: 520
+        -
+          id: uv-a
+          name: uv-a
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          type: label
+          kind: component
+          props:
+            text: Effluent flow
+          frame:
+            y: 56
+            width: 200
+            height: 20
+            x: 16
+        -
+          props:
+            decimals: 0
+            suffix: " gpm"
+          frame:
+            y: 78
+            width: 200
+            height: 28
+            x: 16
+          style:
+            fontSize: 18
+            color: "#d7dee6"
+          id: uv-av
+          name: uv-av
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Plants/ResacaBend/EffluentFlow"
+              bidirectional: false
+              mode: direct
+              kind: tag
+        -
+          id: uv-b
+          name: uv-b
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          type: label
+          kind: component
+          props:
+            text: Effluent flow
+          frame:
+            y: 56
+            width: 200
+            height: 20
+            x: 520
+        -
+          props:
+            decimals: 0
+            suffix: " gpm"
+          frame:
+            y: 78
+            width: 200
+            height: 28
+            x: 520
+          style:
+            fontSize: 18
+            color: "#d7dee6"
+          id: uv-bv
+          name: uv-bv
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Plants/LagunaWorks/EffluentFlow"
+              bidirectional: false
+              mode: direct
+              kind: tag
+        -
+          id: cl2-a
+          name: cl2-a
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          type: label
+          kind: component
+          props:
+            text: Chlorine residual
+          frame:
+            y: 134
+            width: 200
+            height: 20
+            x: 16
+        -
+          props:
+            decimals: 2
+            suffix: " mg/L"
+          frame:
+            y: 156
+            width: 200
+            height: 28
+            x: 16
+          style:
+            fontSize: 18
+            color: "#d7dee6"
+          id: cl2-av
+          name: cl2-av
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Plants/ResacaBend/ChlorineResidual"
+              bidirectional: false
+              mode: direct
+              kind: tag
+        -
+          id: cl2-b
+          name: cl2-b
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          type: label
+          kind: component
+          props:
+            text: Chlorine residual
+          frame:
+            y: 134
+            width: 200
+            height: 20
+            x: 520
+        -
+          props:
+            decimals: 2
+            suffix: " mg/L"
+          frame:
+            y: 156
+            width: 200
+            height: 28
+            x: 520
+          style:
+            fontSize: 18
+            color: "#d7dee6"
+          id: cl2-bv
+          name: cl2-bv
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Plants/LagunaWorks/ChlorineResidual"
+              bidirectional: false
+              mode: direct
+              kind: tag
+        -
+          id: turb-a
+          name: turb-a
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          type: label
+          kind: component
+          props:
+            text: Effluent turbidity
+          frame:
+            y: 212
+            width: 200
+            height: 20
+            x: 16
+        -
+          props:
+            decimals: 2
+            suffix: " NTU"
+          frame:
+            y: 234
+            width: 200
+            height: 28
+            x: 16
+          style:
+            fontSize: 18
+            color: "#d7dee6"
+          id: turb-av
+          name: turb-av
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Plants/ResacaBend/Turbidity"
+              bidirectional: false
+              mode: direct
+              kind: tag
+        -
+          id: turb-b
+          name: turb-b
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          type: label
+          kind: component
+          props:
+            text: Effluent turbidity
+          frame:
+            y: 212
+            width: 200
+            height: 20
+            x: 520
+        -
+          props:
+            decimals: 2
+            suffix: " NTU"
+          frame:
+            y: 234
+            width: 200
+            height: 28
+            x: 520
+          style:
+            fontSize: 18
+            color: "#d7dee6"
+          id: turb-bv
+          name: turb-bv
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Plants/LagunaWorks/Turbidity"
+              bidirectional: false
+              mode: direct
+              kind: tag
+        -
+          id: ph-a
+          name: ph-a
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          type: label
+          kind: component
+          props:
+            text: Effluent pH
+          frame:
+            y: 290
+            width: 200
+            height: 20
+            x: 16
+        -
+          props:
+            decimals: 2
+            suffix: ""
+          frame:
+            y: 312
+            width: 200
+            height: 28
+            x: 16
+          style:
+            fontSize: 18
+            color: "#d7dee6"
+          id: ph-av
+          name: ph-av
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Plants/ResacaBend/Ph"
+              bidirectional: false
+              mode: direct
+              kind: tag
+        -
+          id: ph-b
+          name: ph-b
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          type: label
+          kind: component
+          props:
+            text: Effluent pH
+          frame:
+            y: 290
+            width: 200
+            height: 20
+            x: 520
+        -
+          props:
+            decimals: 2
+            suffix: ""
+          frame:
+            y: 312
+            width: 200
+            height: 28
+            x: 520
+          style:
+            fontSize: 18
+            color: "#d7dee6"
+          id: ph-bv
+          name: ph-bv
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Plants/LagunaWorks/Ph"
+              bidirectional: false
+              mode: direct
+              kind: tag
+      layout: coordinate
+      style:
+        background: "#12171c"
+        color: "#d7dee6"
+      kind: container
+      props:
+        mode: fixed
+    params: {}
+    width: 980
+    height: 392
+  title: Disinfection

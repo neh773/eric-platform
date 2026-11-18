@@ -1,0 +1,26 @@
+{
+  "step": "B3",
+  "target": "ours",
+  "label": "container-size, not reference-size",
+  "dryRun": true,
+  "id": "B3",
+  "status": "ok",
+  "seconds": 1.0,
+  "startedMinute": null,
+  "notes": [],
+  "data": {
+    "instances": [
+      {
+        "modbusPort": 25020,
+        "httpPort": 28080
+      },
+      {
+        "modbusPort": 25021,
+        "httpPort": 28081
+      }
+    ],
+    "points": 320000,
+    "healthy": true,
+    "fanout": false
+  }
+}

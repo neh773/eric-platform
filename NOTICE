@@ -1,0 +1,13 @@
+ERIC (Engineered Runtime Interface & Control)
+Copyright (C) 2026 Nick Hepburn
+
+This product is licensed under the GNU Affero General Public License,
+version 3 or later, with the additional permission in LICENSE-EXCEPTION.md
+(AGPL-3.0-or-later WITH LicenseRef-ERIC-EPL-Linking-Exception). See LICENSE.
+
+The names ERIC and Control Canvas, and the product logos, are trademarks
+of Nick Hepburn. The license does not grant a right to use those names
+or logos. See TRADEMARKS.md.
+
+Third-party components are listed in THIRD_PARTY_LICENSES.md. Their
+licenses remain in force for those components.

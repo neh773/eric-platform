@@ -1,0 +1,24 @@
+name: Feedback survey
+description: You tried the first-hour path in TESTING.md.
+title: "[feedback] "
+labels: []
+body:
+  - type: textarea
+    id: tried
+    attributes:
+      label: What you tried
+      description: Install, first project, Brownsville import, Modbus, Structured Text, a screen.
+    validations:
+      required: true
+  - type: textarea
+    id: stuck
+    attributes:
+      label: Where you got stuck
+    validations:
+      required: true
+  - type: textarea
+    id: keep
+    attributes:
+      label: What you would keep
+    validations:
+      required: false

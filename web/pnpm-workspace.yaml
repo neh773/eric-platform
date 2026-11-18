@@ -1,0 +1,5 @@
+packages:
+  - "hmi-runtime"
+  - "components"
+  - "designer"
+  - "admin"

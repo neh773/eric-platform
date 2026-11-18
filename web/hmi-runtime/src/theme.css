@@ -1,0 +1,312 @@
+/* Session surface. Colors come from CSS variables set by the active theme.
+   The shared token sheet is imported by the admin and Studio shells. The HMI applies the same
+   values as inline properties, so this file does not pull the sheet onto the tag-to-screen path. */
+
+.oip-session {
+  background: var(--oip-color-canvas);
+  color: var(--oip-color-ink);
+  font-family: var(--oip-font-ui);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.oip-coordinate,
+.oip-flex,
+.oip-column {
+  box-sizing: border-box;
+}
+
+.oip-node {
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 0;
+}
+
+.oip-node[data-quality="uncertain"],
+.oip-node[data-quality="bad"] {
+  outline: 1px dashed var(--oip-color-warning);
+  outline-offset: -1px;
+}
+
+.oip-node[data-quality="bad"] {
+  outline-color: var(--oip-color-alarm);
+}
+
+/* Quality overlay (HMP-111): covers the component while a binding's quality is not Good. */
+.oip-quality-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  border: 2px dashed var(--oip-color-warning);
+  border-radius: inherit;
+}
+
+.oip-quality-overlay[data-quality="bad"] {
+  border-style: solid;
+  border-color: var(--oip-color-alarm);
+  background: repeating-linear-gradient(135deg, transparent 0 6px, color-mix(in srgb, var(--oip-color-alarm) 18%, transparent) 6px 9px);
+}
+
+/* Error (a gateway Error_ quality, TAG-002): the bad overlay with a cross-hatch, so it reads apart from comms loss. */
+.oip-quality-overlay[data-level="error"] {
+  background:
+    repeating-linear-gradient(45deg, transparent 0 6px, color-mix(in srgb, var(--oip-color-alarm) 18%, transparent) 6px 9px),
+    repeating-linear-gradient(135deg, transparent 0 6px, color-mix(in srgb, var(--oip-color-alarm) 18%, transparent) 6px 9px);
+}
+
+.oip-quality-flag {
+  position: absolute;
+  right: 4px;
+  top: 4px;
+  z-index: 2;
+  padding: 0 4px;
+  border-radius: 4px;
+  background: var(--oip-color-surface);
+  color: var(--oip-color-alarm);
+  font-family: var(--oip-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.oip-node[data-quality="uncertain"] .oip-quality-flag {
+  color: var(--oip-color-warning);
+}
+
+.oip-unknown {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border: 1px dashed var(--oip-color-alarm);
+  color: var(--oip-color-alarm);
+  background: var(--oip-color-surface);
+  font-size: 12px;
+}
+
+.oip-session {
+  position: relative;
+}
+
+.oip-page {
+  min-height: 320px;
+  background: var(--oip-color-canvas);
+  color: var(--oip-color-ink);
+}
+
+.oip-page-grid {
+  min-height: 320px;
+}
+
+.oip-page-center {
+  min-width: 0;
+  min-height: 0;
+}
+
+.oip-dock-slot {
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 0;
+}
+
+.oip-dock {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  background: var(--oip-color-surface);
+  color: var(--oip-color-ink);
+  border: 1px solid var(--oip-color-line);
+}
+
+.oip-dock-handle,
+.oip-dock-resize,
+.oip-popup-resize {
+  border: 1px solid var(--oip-color-line);
+  background: var(--oip-color-surface);
+  color: var(--oip-color-ink);
+  font-family: var(--oip-font-ui);
+}
+
+.oip-dock-handle {
+  position: absolute;
+  z-index: 5;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 6px 10px;
+  font-size: 22px;
+  line-height: 1;
+}
+
+.oip-dock-handle-left { left: 0; top: 8px; }
+.oip-dock-handle-right { right: 0; top: 8px; }
+.oip-dock-handle-top { top: 0; left: 8px; }
+.oip-dock-handle-bottom { bottom: 0; left: 8px; }
+
+.oip-dock-resize {
+  position: absolute;
+  padding: 0;
+}
+
+.oip-dock-resize-left { top: 0; right: 0; width: 6px; height: 100%; cursor: ew-resize; }
+.oip-dock-resize-right { top: 0; left: 0; width: 6px; height: 100%; cursor: ew-resize; }
+.oip-dock-resize-top { left: 0; bottom: 0; width: 100%; height: 6px; cursor: ns-resize; }
+.oip-dock-resize-bottom { left: 0; top: 0; width: 100%; height: 6px; cursor: ns-resize; }
+
+.oip-popup-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  pointer-events: none;
+}
+
+.oip-popup-backdrop {
+  position: absolute;
+  inset: 0;
+  pointer-events: auto;
+  border: 0;
+  background: color-mix(in srgb, var(--oip-color-ink) 32%, transparent);
+}
+
+.oip-popup {
+  position: absolute;
+  z-index: 7;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  pointer-events: auto;
+  overflow: hidden;
+  background: var(--oip-color-surface);
+  color: var(--oip-color-ink);
+  border: 1px solid var(--oip-color-line);
+  border-radius: var(--oip-radius);
+  box-shadow: 0 12px 32px color-mix(in srgb, var(--oip-color-ink) 18%, transparent);
+}
+
+.oip-popup-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--oip-color-canvas);
+  color: var(--oip-color-ink);
+  cursor: grab;
+}
+
+.oip-popup-title button,
+.oip-tab button {
+  border: 1px solid var(--oip-color-line);
+  background: var(--oip-color-surface);
+  color: var(--oip-color-ink);
+  font-family: var(--oip-font-ui);
+}
+
+.oip-popup-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.oip-popup-resize {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  width: 14px;
+  height: 14px;
+  cursor: nwse-resize;
+}
+
+@media (max-width: 760px) {
+  .oip-page-center { padding-left: 52px; }
+  .oip-popup {
+    left: 0 !important;
+    right: 0 !important;
+    top: auto !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    height: min(82vh, 680px) !important;
+    border-radius: 14px 14px 0 0;
+  }
+}
+
+.oip-tab {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  background: var(--oip-color-canvas);
+  color: var(--oip-color-ink);
+}
+
+.oip-tab [role="tablist"] {
+  flex: none;
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--oip-color-surface);
+}
+
+.oip-tab [role="tab"][aria-selected="true"] {
+  background: var(--oip-color-accent);
+  color: var(--oip-color-accent-ink);
+  border-color: var(--oip-color-accent);
+}
+
+/* The panel takes the height left under the strip; its child fills it (childStyle in ViewRenderer).
+   The basis is auto, not 0: a tab with no definite height (in a column container, say) grows to its panel's
+   content instead of collapsing to its strip. */
+.oip-tab [role="tabpanel"] {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+}
+
+.oip-embedded {
+  box-sizing: border-box;
+  background: var(--oip-color-canvas);
+  color: var(--oip-color-ink);
+}
+
+/* Brand bar (HMP-085): logo, name and graphic of the session theme's brand. */
+.oip-brand {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 6px 16px;
+  overflow: hidden;
+  box-sizing: border-box;
+  background: var(--oip-color-surface);
+  color: var(--oip-color-ink);
+  border-bottom: 2px solid var(--oip-color-accent);
+}
+.oip-brand-graphic {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.35;
+  pointer-events: none;
+}
+.oip-brand-logo { position: relative; max-height: 36px; max-width: 200px; object-fit: contain; }
+.oip-brand-name { position: relative; font-weight: 600; font-size: 16px; }
+
+/* Touchscreen mode (HMV-126): the on-screen keyboard docks to the bottom of the window. */
+.oip-osk { position: fixed; left: 0; right: 0; bottom: 0; z-index: 1000; display: flex; flex-direction: column; gap: 6px; padding: 8px; background: var(--oip-color-surface); border-top: 1px solid var(--oip-color-line); box-sizing: border-box; }
+.oip-osk-row { display: flex; justify-content: center; gap: 6px; }
+.oip-osk-key { flex: 1 1 0; max-width: 72px; min-height: 48px; font: inherit; font-size: 1.1rem; border: 1px solid var(--oip-color-line); border-radius: 6px; background: var(--oip-color-canvas); color: inherit; touch-action: manipulation; }
+.oip-osk-key[data-wide="true"] { flex-grow: 1.6; max-width: 120px; }
+.oip-osk-key[aria-pressed="true"] { background: var(--oip-color-accent); color: var(--oip-color-accent-ink); }

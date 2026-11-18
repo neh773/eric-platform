@@ -1,0 +1,45 @@
+{
+ "name": "core-curves",
+ "description": "Core curves at 1, 2 and 4 CPUs with 2 GB per CPU. 100% changing every 1000 ms, Modbus TCP, OPC UA reads, local history off. Step ramp from 10,000 to 320,000 points. Cutoffs, windows and sampling copied unchanged from oip-edge.",
+ "points": [
+  10000,
+  20000,
+  30000,
+  40000,
+  60000,
+  80000,
+  100000,
+  120000,
+  160000,
+  200000,
+  240000,
+  280000,
+  320000
+ ],
+ "periodMs": 1000,
+ "percentChanging": 100,
+ "protocols": [
+  "modbus"
+ ],
+ "warmupSeconds": 15,
+ "sampleSeconds": 45,
+ "sampleIntervalSeconds": 1,
+ "sampleTags": 32,
+ "registersPerUnit": 10000,
+ "metricsPerDevice": 500,
+ "modbusExtraPorts": 0,
+ "tagBatch": 2000,
+ "maxWallSeconds": 7200,
+ "cutoffs": {
+  "cpuPercent": 50,
+  "memoryPercent": 50,
+  "driftPercent": 10,
+  "qualityErrorFraction": 0.01,
+  "minReads": 8
+ },
+ "oip": {
+  "opcuaReadEndpoint": "opc.tcp://127.0.0.1:4840/oip",
+  "opcuaNodeId": "ns=2;s=Tags/{provider}/{path}",
+  "readViaOpcUa": true
+ }
+}

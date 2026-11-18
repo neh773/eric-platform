@@ -1,0 +1,1980 @@
+apiVersion: oip/v1
+kind: View
+metadata:
+  name: overview
+  module: designer
+  version: 1
+  modified: "2026-11-17T20:40:37.269401300Z"
+  modifiedBy: admin
+spec:
+  path: overview
+  document:
+    root:
+      id: root
+      name: Root
+      children:
+        -
+          id: title
+          name: title
+          style:
+            fontSize: 22
+            color: "#e8eef4"
+          type: label
+          kind: component
+          props:
+            text: Brownsville collection
+          frame:
+            y: 12
+            width: 420
+            height: 32
+            x: 16
+        -
+          id: fiction
+          name: fiction
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          type: label
+          kind: component
+          props:
+            text: Fictional demonstration city. No utility data.
+          frame:
+            y: 44
+            width: 420
+            height: 20
+            x: 16
+        -
+          id: inflow-label
+          name: inflow-label
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          type: label
+          kind: component
+          props:
+            text: City inflow
+          frame:
+            y: 16
+            width: 120
+            height: 20
+            x: 520
+        -
+          props:
+            decimals: 0
+            suffix: " gpm"
+          frame:
+            y: 12
+            width: 140
+            height: 28
+            x: 640
+          style:
+            fontSize: 18
+            color: "#d7dee6"
+          id: inflow
+          name: inflow
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/TotalInflow"
+              bidirectional: false
+              mode: direct
+              kind: tag
+        -
+          id: storm-label
+          name: storm-label
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          type: label
+          kind: component
+          props:
+            text: Storm factor
+          frame:
+            y: 16
+            width: 120
+            height: 20
+            x: 820
+        -
+          props:
+            decimals: 2
+          frame:
+            y: 12
+            width: 80
+            height: 28
+            x: 940
+          style:
+            fontSize: 18
+            color: "#e2c16b"
+          id: storm
+          name: storm
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Storm"
+              bidirectional: false
+              mode: direct
+              kind: tag
+        -
+          id: CinderFlat-name
+          name: CinderFlat-name
+          style:
+            fontSize: 16
+            color: "#e8eef4"
+          type: label
+          kind: component
+          props:
+            text: CinderFlat
+          frame:
+            y: 84
+            width: 180
+            height: 22
+            x: 16
+        -
+          id: CinderFlat-district
+          name: CinderFlat-district
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          type: label
+          kind: component
+          props:
+            text: North Levee
+          frame:
+            y: 84
+            width: 120
+            height: 20
+            x: 166
+        -
+          id: CinderFlat-well
+          name: CinderFlat-well
+          bindings:
+            level:
+              path: "[default]Brownsville/Stations/CinderFlat/Level"
+              bidirectional: false
+              mode: direct
+              kind: tag
+          type: cylindrical-tank
+          kind: component
+          props:
+            label: Well
+            decimals: 1
+            min: 0
+            unit: ft
+            max: 18
+          frame:
+            y: 110
+            width: 70
+            height: 90
+            x: 16
+        -
+          id: CinderFlat-p1
+          name: CinderFlat-p1
+          bindings:
+            state:
+              path: "[default]Brownsville/Stations/CinderFlat/P1/Run"
+              bidirectional: false
+              mode: direct
+              kind: tag
+          type: pump
+          kind: component
+          props:
+            label: "1"
+          frame:
+            y: 112
+            width: 36
+            height: 36
+            x: 100
+        -
+          id: CinderFlat-p2
+          name: CinderFlat-p2
+          bindings:
+            state:
+              path: "[default]Brownsville/Stations/CinderFlat/P2/Run"
+              bidirectional: false
+              mode: direct
+              kind: tag
+          type: pump
+          kind: component
+          props:
+            label: "2"
+          frame:
+            y: 112
+            width: 36
+            height: 36
+            x: 142
+        -
+          props:
+            decimals: 0
+            suffix: " gpm"
+          frame:
+            y: 154
+            width: 120
+            height: 24
+            x: 100
+          style:
+            color: "#d7dee6"
+          id: CinderFlat-flow
+          name: CinderFlat-flow
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Stations/CinderFlat/Flow"
+              bidirectional: false
+              mode: direct
+              kind: tag
+        -
+          id: CinderFlat-open
+          name: CinderFlat-open
+          style:
+            color: "#9ec9ef"
+          type: link
+          kind: component
+          props:
+            text: Detail
+            url: /station/CinderFlat
+          frame:
+            y: 112
+            width: 70
+            height: 22
+            x: 226
+        -
+          id: SaltCedar-name
+          name: SaltCedar-name
+          style:
+            fontSize: 16
+            color: "#e8eef4"
+          type: label
+          kind: component
+          props:
+            text: SaltCedar
+          frame:
+            y: 84
+            width: 180
+            height: 22
+            x: 316
+        -
+          id: SaltCedar-district
+          name: SaltCedar-district
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          type: label
+          kind: component
+          props:
+            text: North Levee
+          frame:
+            y: 84
+            width: 120
+            height: 20
+            x: 466
+        -
+          id: SaltCedar-well
+          name: SaltCedar-well
+          bindings:
+            level:
+              path: "[default]Brownsville/Stations/SaltCedar/Level"
+              bidirectional: false
+              mode: direct
+              kind: tag
+          type: cylindrical-tank
+          kind: component
+          props:
+            label: Well
+            decimals: 1
+            min: 0
+            unit: ft
+            max: 18
+          frame:
+            y: 110
+            width: 70
+            height: 90
+            x: 316
+        -
+          id: SaltCedar-p1
+          name: SaltCedar-p1
+          bindings:
+            state:
+              path: "[default]Brownsville/Stations/SaltCedar/P1/Run"
+              bidirectional: false
+              mode: direct
+              kind: tag
+          type: pump
+          kind: component
+          props:
+            label: "1"
+          frame:
+            y: 112
+            width: 36
+            height: 36
+            x: 400
+        -
+          id: SaltCedar-p2
+          name: SaltCedar-p2
+          bindings:
+            state:
+              path: "[default]Brownsville/Stations/SaltCedar/P2/Run"
+              bidirectional: false
+              mode: direct
+              kind: tag
+          type: pump
+          kind: component
+          props:
+            label: "2"
+          frame:
+            y: 112
+            width: 36
+            height: 36
+            x: 442
+        -
+          props:
+            decimals: 0
+            suffix: " gpm"
+          frame:
+            y: 154
+            width: 120
+            height: 24
+            x: 400
+          style:
+            color: "#d7dee6"
+          id: SaltCedar-flow
+          name: SaltCedar-flow
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Stations/SaltCedar/Flow"
+              bidirectional: false
+              mode: direct
+              kind: tag
+        -
+          id: SaltCedar-open
+          name: SaltCedar-open
+          style:
+            color: "#9ec9ef"
+          type: link
+          kind: component
+          props:
+            text: Detail
+            url: /station/SaltCedar
+          frame:
+            y: 112
+            width: 70
+            height: 22
+            x: 526
+        -
+          id: MileMarker-name
+          name: MileMarker-name
+          style:
+            fontSize: 16
+            color: "#e8eef4"
+          type: label
+          kind: component
+          props:
+            text: MileMarker
+          frame:
+            y: 84
+            width: 180
+            height: 22
+            x: 616
+        -
+          id: MileMarker-district
+          name: MileMarker-district
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          type: label
+          kind: component
+          props:
+            text: West Drain
+          frame:
+            y: 84
+            width: 120
+            height: 20
+            x: 766
+        -
+          id: MileMarker-well
+          name: MileMarker-well
+          bindings:
+            level:
+              path: "[default]Brownsville/Stations/MileMarker/Level"
+              bidirectional: false
+              mode: direct
+              kind: tag
+          type: cylindrical-tank
+          kind: component
+          props:
+            label: Well
+            decimals: 1
+            min: 0
+            unit: ft
+            max: 18
+          frame:
+            y: 110
+            width: 70
+            height: 90
+            x: 616
+        -
+          id: MileMarker-p1
+          name: MileMarker-p1
+          bindings:
+            state:
+              path: "[default]Brownsville/Stations/MileMarker/P1/Run"
+              bidirectional: false
+              mode: direct
+              kind: tag
+          type: pump
+          kind: component
+          props:
+            label: "1"
+          frame:
+            y: 112
+            width: 36
+            height: 36
+            x: 700
+        -
+          id: MileMarker-p2
+          name: MileMarker-p2
+          bindings:
+            state:
+              path: "[default]Brownsville/Stations/MileMarker/P2/Run"
+              bidirectional: false
+              mode: direct
+              kind: tag
+          type: pump
+          kind: component
+          props:
+            label: "2"
+          frame:
+            y: 112
+            width: 36
+            height: 36
+            x: 742
+        -
+          props:
+            decimals: 0
+            suffix: " gpm"
+          frame:
+            y: 154
+            width: 120
+            height: 24
+            x: 700
+          style:
+            color: "#d7dee6"
+          id: MileMarker-flow
+          name: MileMarker-flow
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Stations/MileMarker/Flow"
+              bidirectional: false
+              mode: direct
+              kind: tag
+        -
+          id: MileMarker-open
+          name: MileMarker-open
+          style:
+            color: "#9ec9ef"
+          type: link
+          kind: component
+          props:
+            text: Detail
+            url: /station/MileMarker
+          frame:
+            y: 112
+            width: 70
+            height: 22
+            x: 826
+        -
+          id: OldLevee-name
+          name: OldLevee-name
+          style:
+            fontSize: 16
+            color: "#e8eef4"
+          type: label
+          kind: component
+          props:
+            text: OldLevee
+          frame:
+            y: 84
+            width: 180
+            height: 22
+            x: 916
+        -
+          id: OldLevee-district
+          name: OldLevee-district
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          type: label
+          kind: component
+          props:
+            text: West Drain
+          frame:
+            y: 84
+            width: 120
+            height: 20
+            x: 1066
+        -
+          id: OldLevee-well
+          name: OldLevee-well
+          bindings:
+            level:
+              path: "[default]Brownsville/Stations/OldLevee/Level"
+              bidirectional: false
+              mode: direct
+              kind: tag
+          type: cylindrical-tank
+          kind: component
+          props:
+            label: Well
+            decimals: 1
+            min: 0
+            unit: ft
+            max: 18
+          frame:
+            y: 110
+            width: 70
+            height: 90
+            x: 916
+        -
+          id: OldLevee-p1
+          name: OldLevee-p1
+          bindings:
+            state:
+              path: "[default]Brownsville/Stations/OldLevee/P1/Run"
+              bidirectional: false
+              mode: direct
+              kind: tag
+          type: pump
+          kind: component
+          props:
+            label: "1"
+          frame:
+            y: 112
+            width: 36
+            height: 36
+            x: 1000
+        -
+          id: OldLevee-p2
+          name: OldLevee-p2
+          bindings:
+            state:
+              path: "[default]Brownsville/Stations/OldLevee/P2/Run"
+              bidirectional: false
+              mode: direct
+              kind: tag
+          type: pump
+          kind: component
+          props:
+            label: "2"
+          frame:
+            y: 112
+            width: 36
+            height: 36
+            x: 1042
+        -
+          props:
+            decimals: 0
+            suffix: " gpm"
+          frame:
+            y: 154
+            width: 120
+            height: 24
+            x: 1000
+          style:
+            color: "#d7dee6"
+          id: OldLevee-flow
+          name: OldLevee-flow
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Stations/OldLevee/Flow"
+              bidirectional: false
+              mode: direct
+              kind: tag
+        -
+          id: OldLevee-open
+          name: OldLevee-open
+          style:
+            color: "#9ec9ef"
+          type: link
+          kind: component
+          props:
+            text: Detail
+            url: /station/OldLevee
+          frame:
+            y: 112
+            width: 70
+            height: 22
+            x: 1126
+        -
+          id: CanalStreet-name
+          name: CanalStreet-name
+          style:
+            fontSize: 16
+            color: "#e8eef4"
+          type: label
+          kind: component
+          props:
+            text: CanalStreet
+          frame:
+            y: 234
+            width: 180
+            height: 22
+            x: 16
+        -
+          id: CanalStreet-district
+          name: CanalStreet-district
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          type: label
+          kind: component
+          props:
+            text: Midtown
+          frame:
+            y: 234
+            width: 120
+            height: 20
+            x: 166
+        -
+          id: CanalStreet-well
+          name: CanalStreet-well
+          bindings:
+            level:
+              path: "[default]Brownsville/Stations/CanalStreet/Level"
+              bidirectional: false
+              mode: direct
+              kind: tag
+          type: cylindrical-tank
+          kind: component
+          props:
+            label: Well
+            decimals: 1
+            min: 0
+            unit: ft
+            max: 18
+          frame:
+            y: 260
+            width: 70
+            height: 90
+            x: 16
+        -
+          id: CanalStreet-p1
+          name: CanalStreet-p1
+          bindings:
+            state:
+              path: "[default]Brownsville/Stations/CanalStreet/P1/Run"
+              bidirectional: false
+              mode: direct
+              kind: tag
+          type: pump
+          kind: component
+          props:
+            label: "1"
+          frame:
+            y: 262
+            width: 36
+            height: 36
+            x: 100
+        -
+          id: CanalStreet-p2
+          name: CanalStreet-p2
+          bindings:
+            state:
+              path: "[default]Brownsville/Stations/CanalStreet/P2/Run"
+              bidirectional: false
+              mode: direct
+              kind: tag
+          type: pump
+          kind: component
+          props:
+            label: "2"
+          frame:
+            y: 262
+            width: 36
+            height: 36
+            x: 142
+        -
+          props:
+            decimals: 0
+            suffix: " gpm"
+          frame:
+            y: 304
+            width: 120
+            height: 24
+            x: 100
+          style:
+            color: "#d7dee6"
+          id: CanalStreet-flow
+          name: CanalStreet-flow
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Stations/CanalStreet/Flow"
+              bidirectional: false
+              mode: direct
+              kind: tag
+        -
+          id: CanalStreet-open
+          name: CanalStreet-open
+          style:
+            color: "#9ec9ef"
+          type: link
+          kind: component
+          props:
+            text: Detail
+            url: /station/CanalStreet
+          frame:
+            y: 262
+            width: 70
+            height: 22
+            x: 226
+        -
+          id: EastGate-name
+          name: EastGate-name
+          style:
+            fontSize: 16
+            color: "#e8eef4"
+          type: label
+          kind: component
+          props:
+            text: EastGate
+          frame:
+            y: 234
+            width: 180
+            height: 22
+            x: 316
+        -
+          id: EastGate-district
+          name: EastGate-district
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          type: label
+          kind: component
+          props:
+            text: Midtown
+          frame:
+            y: 234
+            width: 120
+            height: 20
+            x: 466
+        -
+          id: EastGate-well
+          name: EastGate-well
+          bindings:
+            level:
+              path: "[default]Brownsville/Stations/EastGate/Level"
+              bidirectional: false
+              mode: direct
+              kind: tag
+          type: cylindrical-tank
+          kind: component
+          props:
+            label: Well
+            decimals: 1
+            min: 0
+            unit: ft
+            max: 18
+          frame:
+            y: 260
+            width: 70
+            height: 90
+            x: 316
+        -
+          id: EastGate-p1
+          name: EastGate-p1
+          bindings:
+            state:
+              path: "[default]Brownsville/Stations/EastGate/P1/Run"
+              bidirectional: false
+              mode: direct
+              kind: tag
+          type: pump
+          kind: component
+          props:
+            label: "1"
+          frame:
+            y: 262
+            width: 36
+            height: 36
+            x: 400
+        -
+          id: EastGate-p2
+          name: EastGate-p2
+          bindings:
+            state:
+              path: "[default]Brownsville/Stations/EastGate/P2/Run"
+              bidirectional: false
+              mode: direct
+              kind: tag
+          type: pump
+          kind: component
+          props:
+            label: "2"
+          frame:
+            y: 262
+            width: 36
+            height: 36
+            x: 442
+        -
+          props:
+            decimals: 0
+            suffix: " gpm"
+          frame:
+            y: 304
+            width: 120
+            height: 24
+            x: 400
+          style:
+            color: "#d7dee6"
+          id: EastGate-flow
+          name: EastGate-flow
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Stations/EastGate/Flow"
+              bidirectional: false
+              mode: direct
+              kind: tag
+        -
+          id: EastGate-open
+          name: EastGate-open
+          style:
+            color: "#9ec9ef"
+          type: link
+          kind: component
+          props:
+            text: Detail
+            url: /station/EastGate
+          frame:
+            y: 262
+            width: 70
+            height: 22
+            x: 526
+        -
+          id: WestDrain-name
+          name: WestDrain-name
+          style:
+            fontSize: 16
+            color: "#e8eef4"
+          type: label
+          kind: component
+          props:
+            text: WestDrain
+          frame:
+            y: 234
+            width: 180
+            height: 22
+            x: 616
+        -
+          id: WestDrain-district
+          name: WestDrain-district
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          type: label
+          kind: component
+          props:
+            text: West Drain
+          frame:
+            y: 234
+            width: 120
+            height: 20
+            x: 766
+        -
+          id: WestDrain-well
+          name: WestDrain-well
+          bindings:
+            level:
+              path: "[default]Brownsville/Stations/WestDrain/Level"
+              bidirectional: false
+              mode: direct
+              kind: tag
+          type: cylindrical-tank
+          kind: component
+          props:
+            label: Well
+            decimals: 1
+            min: 0
+            unit: ft
+            max: 18
+          frame:
+            y: 260
+            width: 70
+            height: 90
+            x: 616
+        -
+          id: WestDrain-p1
+          name: WestDrain-p1
+          bindings:
+            state:
+              path: "[default]Brownsville/Stations/WestDrain/P1/Run"
+              bidirectional: false
+              mode: direct
+              kind: tag
+          type: pump
+          kind: component
+          props:
+            label: "1"
+          frame:
+            y: 262
+            width: 36
+            height: 36
+            x: 700
+        -
+          id: WestDrain-p2
+          name: WestDrain-p2
+          bindings:
+            state:
+              path: "[default]Brownsville/Stations/WestDrain/P2/Run"
+              bidirectional: false
+              mode: direct
+              kind: tag
+          type: pump
+          kind: component
+          props:
+            label: "2"
+          frame:
+            y: 262
+            width: 36
+            height: 36
+            x: 742
+        -
+          props:
+            decimals: 0
+            suffix: " gpm"
+          frame:
+            y: 304
+            width: 120
+            height: 24
+            x: 700
+          style:
+            color: "#d7dee6"
+          id: WestDrain-flow
+          name: WestDrain-flow
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Stations/WestDrain/Flow"
+              bidirectional: false
+              mode: direct
+              kind: tag
+        -
+          id: WestDrain-open
+          name: WestDrain-open
+          style:
+            color: "#9ec9ef"
+          type: link
+          kind: component
+          props:
+            text: Detail
+            url: /station/WestDrain
+          frame:
+            y: 262
+            width: 70
+            height: 22
+            x: 826
+        -
+          id: NorthDitch-name
+          name: NorthDitch-name
+          style:
+            fontSize: 16
+            color: "#e8eef4"
+          type: label
+          kind: component
+          props:
+            text: NorthDitch
+          frame:
+            y: 234
+            width: 180
+            height: 22
+            x: 916
+        -
+          id: NorthDitch-district
+          name: NorthDitch-district
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          type: label
+          kind: component
+          props:
+            text: Harbor
+          frame:
+            y: 234
+            width: 120
+            height: 20
+            x: 1066
+        -
+          id: NorthDitch-well
+          name: NorthDitch-well
+          bindings:
+            level:
+              path: "[default]Brownsville/Stations/NorthDitch/Level"
+              bidirectional: false
+              mode: direct
+              kind: tag
+          type: cylindrical-tank
+          kind: component
+          props:
+            label: Well
+            decimals: 1
+            min: 0
+            unit: ft
+            max: 18
+          frame:
+            y: 260
+            width: 70
+            height: 90
+            x: 916
+        -
+          id: NorthDitch-p1
+          name: NorthDitch-p1
+          bindings:
+            state:
+              path: "[default]Brownsville/Stations/NorthDitch/P1/Run"
+              bidirectional: false
+              mode: direct
+              kind: tag
+          type: pump
+          kind: component
+          props:
+            label: "1"
+          frame:
+            y: 262
+            width: 36
+            height: 36
+            x: 1000
+        -
+          id: NorthDitch-p2
+          name: NorthDitch-p2
+          bindings:
+            state:
+              path: "[default]Brownsville/Stations/NorthDitch/P2/Run"
+              bidirectional: false
+              mode: direct
+              kind: tag
+          type: pump
+          kind: component
+          props:
+            label: "2"
+          frame:
+            y: 262
+            width: 36
+            height: 36
+            x: 1042
+        -
+          props:
+            decimals: 0
+            suffix: " gpm"
+          frame:
+            y: 304
+            width: 120
+            height: 24
+            x: 1000
+          style:
+            color: "#d7dee6"
+          id: NorthDitch-flow
+          name: NorthDitch-flow
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Stations/NorthDitch/Flow"
+              bidirectional: false
+              mode: direct
+              kind: tag
+        -
+          id: NorthDitch-open
+          name: NorthDitch-open
+          style:
+            color: "#9ec9ef"
+          type: link
+          kind: component
+          props:
+            text: Detail
+            url: /station/NorthDitch
+          frame:
+            y: 262
+            width: 70
+            height: 22
+            x: 1126
+        -
+          id: SouthFlume-name
+          name: SouthFlume-name
+          style:
+            fontSize: 16
+            color: "#e8eef4"
+          type: label
+          kind: component
+          props:
+            text: SouthFlume
+          frame:
+            y: 384
+            width: 180
+            height: 22
+            x: 16
+        -
+          id: SouthFlume-district
+          name: SouthFlume-district
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          type: label
+          kind: component
+          props:
+            text: Harbor
+          frame:
+            y: 384
+            width: 120
+            height: 20
+            x: 166
+        -
+          id: SouthFlume-well
+          name: SouthFlume-well
+          bindings:
+            level:
+              path: "[default]Brownsville/Stations/SouthFlume/Level"
+              bidirectional: false
+              mode: direct
+              kind: tag
+          type: cylindrical-tank
+          kind: component
+          props:
+            label: Well
+            decimals: 1
+            min: 0
+            unit: ft
+            max: 18
+          frame:
+            y: 410
+            width: 70
+            height: 90
+            x: 16
+        -
+          id: SouthFlume-p1
+          name: SouthFlume-p1
+          bindings:
+            state:
+              path: "[default]Brownsville/Stations/SouthFlume/P1/Run"
+              bidirectional: false
+              mode: direct
+              kind: tag
+          type: pump
+          kind: component
+          props:
+            label: "1"
+          frame:
+            y: 412
+            width: 36
+            height: 36
+            x: 100
+        -
+          id: SouthFlume-p2
+          name: SouthFlume-p2
+          bindings:
+            state:
+              path: "[default]Brownsville/Stations/SouthFlume/P2/Run"
+              bidirectional: false
+              mode: direct
+              kind: tag
+          type: pump
+          kind: component
+          props:
+            label: "2"
+          frame:
+            y: 412
+            width: 36
+            height: 36
+            x: 142
+        -
+          props:
+            decimals: 0
+            suffix: " gpm"
+          frame:
+            y: 454
+            width: 120
+            height: 24
+            x: 100
+          style:
+            color: "#d7dee6"
+          id: SouthFlume-flow
+          name: SouthFlume-flow
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Stations/SouthFlume/Flow"
+              bidirectional: false
+              mode: direct
+              kind: tag
+        -
+          id: SouthFlume-open
+          name: SouthFlume-open
+          style:
+            color: "#9ec9ef"
+          type: link
+          kind: component
+          props:
+            text: Detail
+            url: /station/SouthFlume
+          frame:
+            y: 412
+            width: 70
+            height: 22
+            x: 226
+        -
+          id: MidtownVault-name
+          name: MidtownVault-name
+          style:
+            fontSize: 16
+            color: "#e8eef4"
+          type: label
+          kind: component
+          props:
+            text: MidtownVault
+          frame:
+            y: 384
+            width: 180
+            height: 22
+            x: 316
+        -
+          id: MidtownVault-district
+          name: MidtownVault-district
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          type: label
+          kind: component
+          props:
+            text: Midtown
+          frame:
+            y: 384
+            width: 120
+            height: 20
+            x: 466
+        -
+          id: MidtownVault-well
+          name: MidtownVault-well
+          bindings:
+            level:
+              path: "[default]Brownsville/Stations/MidtownVault/Level"
+              bidirectional: false
+              mode: direct
+              kind: tag
+          type: cylindrical-tank
+          kind: component
+          props:
+            label: Well
+            decimals: 1
+            min: 0
+            unit: ft
+            max: 18
+          frame:
+            y: 410
+            width: 70
+            height: 90
+            x: 316
+        -
+          id: MidtownVault-p1
+          name: MidtownVault-p1
+          bindings:
+            state:
+              path: "[default]Brownsville/Stations/MidtownVault/P1/Run"
+              bidirectional: false
+              mode: direct
+              kind: tag
+          type: pump
+          kind: component
+          props:
+            label: "1"
+          frame:
+            y: 412
+            width: 36
+            height: 36
+            x: 400
+        -
+          id: MidtownVault-p2
+          name: MidtownVault-p2
+          bindings:
+            state:
+              path: "[default]Brownsville/Stations/MidtownVault/P2/Run"
+              bidirectional: false
+              mode: direct
+              kind: tag
+          type: pump
+          kind: component
+          props:
+            label: "2"
+          frame:
+            y: 412
+            width: 36
+            height: 36
+            x: 442
+        -
+          props:
+            decimals: 0
+            suffix: " gpm"
+          frame:
+            y: 454
+            width: 120
+            height: 24
+            x: 400
+          style:
+            color: "#d7dee6"
+          id: MidtownVault-flow
+          name: MidtownVault-flow
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Stations/MidtownVault/Flow"
+              bidirectional: false
+              mode: direct
+              kind: tag
+        -
+          id: MidtownVault-open
+          name: MidtownVault-open
+          style:
+            color: "#9ec9ef"
+          type: link
+          kind: component
+          props:
+            text: Detail
+            url: /station/MidtownVault
+          frame:
+            y: 412
+            width: 70
+            height: 22
+            x: 526
+        -
+          id: RailroadSpur-name
+          name: RailroadSpur-name
+          style:
+            fontSize: 16
+            color: "#e8eef4"
+          type: label
+          kind: component
+          props:
+            text: RailroadSpur
+          frame:
+            y: 384
+            width: 180
+            height: 22
+            x: 616
+        -
+          id: RailroadSpur-district
+          name: RailroadSpur-district
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          type: label
+          kind: component
+          props:
+            text: South Flats
+          frame:
+            y: 384
+            width: 120
+            height: 20
+            x: 766
+        -
+          id: RailroadSpur-well
+          name: RailroadSpur-well
+          bindings:
+            level:
+              path: "[default]Brownsville/Stations/RailroadSpur/Level"
+              bidirectional: false
+              mode: direct
+              kind: tag
+          type: cylindrical-tank
+          kind: component
+          props:
+            label: Well
+            decimals: 1
+            min: 0
+            unit: ft
+            max: 18
+          frame:
+            y: 410
+            width: 70
+            height: 90
+            x: 616
+        -
+          id: RailroadSpur-p1
+          name: RailroadSpur-p1
+          bindings:
+            state:
+              path: "[default]Brownsville/Stations/RailroadSpur/P1/Run"
+              bidirectional: false
+              mode: direct
+              kind: tag
+          type: pump
+          kind: component
+          props:
+            label: "1"
+          frame:
+            y: 412
+            width: 36
+            height: 36
+            x: 700
+        -
+          id: RailroadSpur-p2
+          name: RailroadSpur-p2
+          bindings:
+            state:
+              path: "[default]Brownsville/Stations/RailroadSpur/P2/Run"
+              bidirectional: false
+              mode: direct
+              kind: tag
+          type: pump
+          kind: component
+          props:
+            label: "2"
+          frame:
+            y: 412
+            width: 36
+            height: 36
+            x: 742
+        -
+          props:
+            decimals: 0
+            suffix: " gpm"
+          frame:
+            y: 454
+            width: 120
+            height: 24
+            x: 700
+          style:
+            color: "#d7dee6"
+          id: RailroadSpur-flow
+          name: RailroadSpur-flow
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Stations/RailroadSpur/Flow"
+              bidirectional: false
+              mode: direct
+              kind: tag
+        -
+          id: RailroadSpur-open
+          name: RailroadSpur-open
+          style:
+            color: "#9ec9ef"
+          type: link
+          kind: component
+          props:
+            text: Detail
+            url: /station/RailroadSpur
+          frame:
+            y: 412
+            width: 70
+            height: 22
+            x: 826
+        -
+          id: BayouEnd-name
+          name: BayouEnd-name
+          style:
+            fontSize: 16
+            color: "#e8eef4"
+          type: label
+          kind: component
+          props:
+            text: BayouEnd
+          frame:
+            y: 384
+            width: 180
+            height: 22
+            x: 916
+        -
+          id: BayouEnd-district
+          name: BayouEnd-district
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          type: label
+          kind: component
+          props:
+            text: South Flats
+          frame:
+            y: 384
+            width: 120
+            height: 20
+            x: 1066
+        -
+          id: BayouEnd-well
+          name: BayouEnd-well
+          bindings:
+            level:
+              path: "[default]Brownsville/Stations/BayouEnd/Level"
+              bidirectional: false
+              mode: direct
+              kind: tag
+          type: cylindrical-tank
+          kind: component
+          props:
+            label: Well
+            decimals: 1
+            min: 0
+            unit: ft
+            max: 18
+          frame:
+            y: 410
+            width: 70
+            height: 90
+            x: 916
+        -
+          id: BayouEnd-p1
+          name: BayouEnd-p1
+          bindings:
+            state:
+              path: "[default]Brownsville/Stations/BayouEnd/P1/Run"
+              bidirectional: false
+              mode: direct
+              kind: tag
+          type: pump
+          kind: component
+          props:
+            label: "1"
+          frame:
+            y: 412
+            width: 36
+            height: 36
+            x: 1000
+        -
+          id: BayouEnd-p2
+          name: BayouEnd-p2
+          bindings:
+            state:
+              path: "[default]Brownsville/Stations/BayouEnd/P2/Run"
+              bidirectional: false
+              mode: direct
+              kind: tag
+          type: pump
+          kind: component
+          props:
+            label: "2"
+          frame:
+            y: 412
+            width: 36
+            height: 36
+            x: 1042
+        -
+          props:
+            decimals: 0
+            suffix: " gpm"
+          frame:
+            y: 454
+            width: 120
+            height: 24
+            x: 1000
+          style:
+            color: "#d7dee6"
+          id: BayouEnd-flow
+          name: BayouEnd-flow
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Stations/BayouEnd/Flow"
+              bidirectional: false
+              mode: direct
+              kind: tag
+        -
+          id: BayouEnd-open
+          name: BayouEnd-open
+          style:
+            color: "#9ec9ef"
+          type: link
+          kind: component
+          props:
+            text: Detail
+            url: /station/BayouEnd
+          frame:
+            y: 412
+            width: 70
+            height: 22
+            x: 1126
+        -
+          id: NorthBasin-name
+          name: NorthBasin-name
+          style:
+            fontSize: 16
+            color: "#e8eef4"
+          type: label
+          kind: component
+          props:
+            text: NorthBasin
+          frame:
+            y: 560
+            width: 160
+            height: 22
+            x: 16
+        -
+          id: NorthBasin-vessel
+          name: NorthBasin-vessel
+          bindings:
+            level:
+              path: "[default]Brownsville/Tanks/NorthBasin/Level"
+              bidirectional: false
+              mode: direct
+              kind: tag
+          type: vessel
+          kind: component
+          props:
+            label: EQ
+            decimals: 1
+            min: 0
+            unit: ft
+            max: 16
+          frame:
+            y: 586
+            width: 70
+            height: 90
+            x: 16
+        -
+          props:
+            decimals: 0
+            suffix: " gpm"
+          frame:
+            y: 600
+            width: 120
+            height: 24
+            x: 96
+          style:
+            color: "#d7dee6"
+          id: NorthBasin-flow
+          name: NorthBasin-flow
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Tanks/NorthBasin/Outflow"
+              bidirectional: false
+              mode: direct
+              kind: tag
+        -
+          id: NorthBasin-open
+          name: NorthBasin-open
+          style:
+            color: "#9ec9ef"
+          type: link
+          kind: component
+          props:
+            text: Basin
+            url: /tank/NorthBasin
+          frame:
+            y: 632
+            width: 80
+            height: 22
+            x: 96
+        -
+          id: CentralBasin-name
+          name: CentralBasin-name
+          style:
+            fontSize: 16
+            color: "#e8eef4"
+          type: label
+          kind: component
+          props:
+            text: CentralBasin
+          frame:
+            y: 560
+            width: 160
+            height: 22
+            x: 266
+        -
+          id: CentralBasin-vessel
+          name: CentralBasin-vessel
+          bindings:
+            level:
+              path: "[default]Brownsville/Tanks/CentralBasin/Level"
+              bidirectional: false
+              mode: direct
+              kind: tag
+          type: vessel
+          kind: component
+          props:
+            label: EQ
+            decimals: 1
+            min: 0
+            unit: ft
+            max: 16
+          frame:
+            y: 586
+            width: 70
+            height: 90
+            x: 266
+        -
+          props:
+            decimals: 0
+            suffix: " gpm"
+          frame:
+            y: 600
+            width: 120
+            height: 24
+            x: 346
+          style:
+            color: "#d7dee6"
+          id: CentralBasin-flow
+          name: CentralBasin-flow
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Tanks/CentralBasin/Outflow"
+              bidirectional: false
+              mode: direct
+              kind: tag
+        -
+          id: CentralBasin-open
+          name: CentralBasin-open
+          style:
+            color: "#9ec9ef"
+          type: link
+          kind: component
+          props:
+            text: Basin
+            url: /tank/CentralBasin
+          frame:
+            y: 632
+            width: 80
+            height: 22
+            x: 346
+        -
+          id: PortBasin-name
+          name: PortBasin-name
+          style:
+            fontSize: 16
+            color: "#e8eef4"
+          type: label
+          kind: component
+          props:
+            text: PortBasin
+          frame:
+            y: 560
+            width: 160
+            height: 22
+            x: 516
+        -
+          id: PortBasin-vessel
+          name: PortBasin-vessel
+          bindings:
+            level:
+              path: "[default]Brownsville/Tanks/PortBasin/Level"
+              bidirectional: false
+              mode: direct
+              kind: tag
+          type: vessel
+          kind: component
+          props:
+            label: EQ
+            decimals: 1
+            min: 0
+            unit: ft
+            max: 16
+          frame:
+            y: 586
+            width: 70
+            height: 90
+            x: 516
+        -
+          props:
+            decimals: 0
+            suffix: " gpm"
+          frame:
+            y: 600
+            width: 120
+            height: 24
+            x: 596
+          style:
+            color: "#d7dee6"
+          id: PortBasin-flow
+          name: PortBasin-flow
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Tanks/PortBasin/Outflow"
+              bidirectional: false
+              mode: direct
+              kind: tag
+        -
+          id: PortBasin-open
+          name: PortBasin-open
+          style:
+            color: "#9ec9ef"
+          type: link
+          kind: component
+          props:
+            text: Basin
+            url: /tank/PortBasin
+          frame:
+            y: 632
+            width: 80
+            height: 22
+            x: 596
+        -
+          id: ResacaBend-name
+          name: ResacaBend-name
+          style:
+            fontSize: 16
+            color: "#e8eef4"
+          type: label
+          kind: component
+          props:
+            text: ResacaBend
+          frame:
+            y: 560
+            width: 180
+            height: 22
+            x: 780
+        -
+          props:
+            decimals: 0
+            suffix: " gpm in"
+          frame:
+            y: 590
+            width: 160
+            height: 24
+            x: 780
+          style:
+            color: "#d7dee6"
+          id: ResacaBend-in
+          name: ResacaBend-in
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Plants/ResacaBend/InfluentFlow"
+              bidirectional: false
+              mode: direct
+              kind: tag
+        -
+          props:
+            decimals: 2
+            suffix: " mg/L DO"
+          frame:
+            y: 618
+            width: 160
+            height: 24
+            x: 780
+          style:
+            color: "#d7dee6"
+          id: ResacaBend-do
+          name: ResacaBend-do
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Plants/ResacaBend/Do"
+              bidirectional: false
+              mode: direct
+              kind: tag
+        -
+          id: ResacaBend-open
+          name: ResacaBend-open
+          style:
+            color: "#9ec9ef"
+          type: link
+          kind: component
+          props:
+            text: Plant
+            url: /plant/ResacaBend
+          frame:
+            y: 648
+            width: 80
+            height: 22
+            x: 780
+        -
+          id: LagunaWorks-name
+          name: LagunaWorks-name
+          style:
+            fontSize: 16
+            color: "#e8eef4"
+          type: label
+          kind: component
+          props:
+            text: LagunaWorks
+          frame:
+            y: 560
+            width: 180
+            height: 22
+            x: 1020
+        -
+          props:
+            decimals: 0
+            suffix: " gpm in"
+          frame:
+            y: 590
+            width: 160
+            height: 24
+            x: 1020
+          style:
+            color: "#d7dee6"
+          id: LagunaWorks-in
+          name: LagunaWorks-in
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Plants/LagunaWorks/InfluentFlow"
+              bidirectional: false
+              mode: direct
+              kind: tag
+        -
+          props:
+            decimals: 2
+            suffix: " mg/L DO"
+          frame:
+            y: 618
+            width: 160
+            height: 24
+            x: 1020
+          style:
+            color: "#d7dee6"
+          id: LagunaWorks-do
+          name: LagunaWorks-do
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Plants/LagunaWorks/Do"
+              bidirectional: false
+              mode: direct
+              kind: tag
+        -
+          id: LagunaWorks-open
+          name: LagunaWorks-open
+          style:
+            color: "#9ec9ef"
+          type: link
+          kind: component
+          props:
+            text: Plant
+            url: /plant/LagunaWorks
+          frame:
+            y: 648
+            width: 80
+            height: 22
+            x: 1020
+      layout: coordinate
+      style:
+        background: "#12171c"
+        color: "#d7dee6"
+      kind: container
+      props:
+        mode: fixed
+    params: {}
+    width: 1240
+    height: 760
+  title: City

@@ -1,0 +1,147 @@
+/* C-15 containers and embedding. Original styling; every color is a theme token. */
+
+.oip-split-bar { background: var(--oip-color-line); }
+.oip-split-bar:hover,
+.oip-split-bar:focus-visible { background: var(--oip-color-accent); outline: none; }
+.oip-split-bar[hidden] { display: none; }
+
+.oip-repeater { box-sizing: border-box; width: 100%; height: 100%; gap: 0; }
+.oip-repeater-item { box-sizing: border-box; }
+.oip-template-canvas { box-sizing: border-box; width: 100%; height: 100%; }
+.oip-template-item { box-sizing: border-box; overflow: hidden; }
+
+.oip-carousel {
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  color: var(--oip-color-ink);
+  font-family: var(--oip-font-ui);
+}
+.oip-carousel-pane { width: 100%; height: 100%; }
+.oip-carousel-empty { margin: 0; padding: 12px; color: var(--oip-color-muted); }
+.oip-carousel-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--oip-color-line);
+  border-radius: 50%;
+  background: var(--oip-color-surface);
+  color: var(--oip-color-ink);
+  cursor: pointer;
+}
+.oip-carousel-arrow[data-dir="previous"] { left: 6px; }
+.oip-carousel-arrow[data-dir="next"] { right: 6px; }
+.oip-carousel-arrow svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.oip-carousel-dots { position: absolute; bottom: 6px; left: 0; right: 0; display: flex; justify-content: center; gap: 6px; }
+.oip-carousel-dot {
+  width: 10px;
+  height: 10px;
+  padding: 0;
+  border: 1px solid var(--oip-color-muted);
+  border-radius: 50%;
+  background: var(--oip-color-surface);
+  cursor: pointer;
+}
+.oip-carousel-dot[aria-current="true"] { background: var(--oip-color-accent); border-color: var(--oip-color-accent); }
+
+.oip-accordion { box-sizing: border-box; width: 100%; color: var(--oip-color-ink); font-family: var(--oip-font-ui); font-size: 14px; }
+.oip-accordion-item { border-bottom: 1px solid var(--oip-color-line); }
+.oip-accordion-header { display: flex; align-items: center; gap: 8px; background: var(--oip-color-surface); }
+.oip-accordion-header > button {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 0 10px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.oip-accordion-toggle { width: 12px; height: 12px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; transition: transform 120ms ease; }
+.oip-accordion-item[data-expanded="true"] .oip-accordion-toggle { transform: rotate(90deg); }
+.oip-accordion-body { overflow: auto; }
+
+/* Dashboard (HMP-019) */
+.oip-dashboard {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  color: var(--oip-color-ink);
+}
+.oip-dashboard-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.oip-dashboard-widget {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  border: 1px solid var(--oip-color-line);
+  background: var(--oip-color-surface);
+}
+.oip-dashboard[data-editing="true"] .oip-dashboard-widget {
+  border-style: dashed;
+  border-color: var(--oip-color-accent);
+}
+.oip-dashboard-tools {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 4px;
+  border-bottom: 1px solid var(--oip-color-line);
+  font-size: 12px;
+}
+.oip-dashboard-tools span {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.oip-dashboard-handle {
+  cursor: grab;
+  touch-action: none;
+}
+.oip-dashboard-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+.oip-dashboard-resize {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 14px;
+  height: 14px;
+  padding: 0;
+  border: 0;
+  background: linear-gradient(135deg, transparent 50%, var(--oip-color-accent) 50%);
+  cursor: nwse-resize;
+  touch-action: none;
+}
+.oip-dashboard-empty {
+  color: var(--oip-color-muted);
+  padding: 8px;
+}
+.oip-pipe { box-sizing: border-box; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.oip-pipe svg { overflow: visible; pointer-events: none; }
+.oip-pipe-flow { animation: oip-pipe-flow 1s linear infinite; }
+@keyframes oip-pipe-flow { to { stroke-dashoffset: calc(var(--oip-pipe-cycle, 16px) * -1); } }
+@media (prefers-reduced-motion: reduce) { .oip-pipe-flow { animation: none; } }

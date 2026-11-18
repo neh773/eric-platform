@@ -1,0 +1,19 @@
+{
+  "name": "reference-trial",
+  "description": "One Modbus device, unit ids in the item path, sized to finish sampling inside a 2-hour the reference platform trial. The ramp stops earlier if CPU, memory or drift cross the cutoff.",
+  "points": [2000, 5000, 10000, 20000, 40000, 80000, 120000],
+  "periodMs": 1000,
+  "percentChanging": 10,
+  "protocols": ["modbus"],
+  "warmupSeconds": 15,
+  "sampleSeconds": 45,
+  "sampleIntervalSeconds": 1,
+  "sampleTags": 32,
+  "registersPerUnit": 10000,
+  "metricsPerDevice": 500,
+  "modbusExtraPorts": 0,
+  "tagBatch": 2000,
+  "maxWallSeconds": 6600,
+  "reference": {"provider": "default", "opcuaReadEndpoint": "opc.tcp://127.0.0.1:62541"},
+  "cutoffs": {"cpuPercent": 50, "memoryPercent": 50, "driftPercent": 10, "qualityErrorFraction": 0.01, "minReads": 8}
+}

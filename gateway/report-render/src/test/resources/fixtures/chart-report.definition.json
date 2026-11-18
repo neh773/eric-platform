@@ -1,0 +1,77 @@
+{
+  "apiVersion": "oip/v1",
+  "kind": "Report",
+  "metadata": {
+    "name": "line1-temperatures",
+    "module": "reporting"
+  },
+  "spec": {
+    "title": "Line 1 temperatures",
+    "parameters": [
+      {
+        "name": "range",
+        "type": "timeRange",
+        "default": {
+          "last": "24h"
+        }
+      }
+    ],
+    "dataSources": [
+      {
+        "name": "temps",
+        "type": "tagHistory",
+        "mode": "raw",
+        "tags": [
+          {
+            "path": "[default]Line1/OvenTemp",
+            "label": "Oven",
+            "unit": "degC"
+          },
+          {
+            "path": "[default]Line1/CoolerTemp",
+            "label": "Cooler",
+            "unit": "degC"
+          }
+        ],
+        "range": {
+          "param": "range"
+        }
+      },
+      {
+        "name": "byLine",
+        "type": "namedQuery",
+        "query": "production-by-line"
+      }
+    ],
+    "layout": {
+      "layoutVersion": 1,
+      "page": {
+        "size": "A4",
+        "orientation": "landscape"
+      },
+      "timezone": "UTC",
+      "components": [
+        {
+          "type": "timeSeries",
+          "title": "Oven and cooler temperature",
+          "dataset": "temps",
+          "height": 240,
+          "yAxis": {
+            "label": "degC"
+          }
+        },
+        {
+          "type": "bar",
+          "title": "Production by line",
+          "dataset": "byLine",
+          "category": "line",
+          "values": [
+            "good",
+            "scrap"
+          ],
+          "height": 200
+        }
+      ]
+    }
+  }
+}

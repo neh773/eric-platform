@@ -1,0 +1,16 @@
+# Optional. Tag reads through an OPC UA server (the reference platform 8.3.10, and our gateway
+# when --read-via-opcua is set). Not installed by CI. Not linked into the gateway.
+# asyncua is LGPL-3.0-or-later; see THIRD_PARTY.md.
+asyncua==2.1.0
+aiosqlite==0.22.1
+anyio==4.15.1
+cffi==2.1.1
+cryptography==50.0.2
+idna==3.20
+pycparser==3.12
+python-dateutil==3.0.0
+pytz==2026.5
+six==1.17.0
+sortedcontainers==2.4.0
+typing_extensions==4.16.0
+tzdata==2026.5

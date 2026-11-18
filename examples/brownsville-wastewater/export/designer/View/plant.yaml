@@ -1,0 +1,711 @@
+apiVersion: oip/v1
+kind: View
+metadata:
+  name: plant
+  module: designer
+  version: 1
+  modified: "2026-11-17T20:40:37.407822200Z"
+  modifiedBy: admin
+spec:
+  path: plant
+  document:
+    root:
+      id: root
+      name: Root
+      children:
+        -
+          props:
+            text: ""
+          frame:
+            y: 12
+            width: 360
+            height: 32
+            x: 16
+          style:
+            fontSize: 22
+            color: "#e8eef4"
+          id: title
+          name: title
+          type: label
+          kind: component
+          bindings:
+            text:
+              kind: expression
+              expression: "{view.params.name}"
+        -
+          id: influent-label
+          name: influent-label
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          type: label
+          kind: component
+          props:
+            text: Influent
+          frame:
+            y: 64
+            width: 200
+            height: 18
+            x: 16
+        -
+          props:
+            decimals: 0
+            suffix: " gpm"
+          frame:
+            y: 82
+            width: 200
+            height: 26
+            x: 16
+          style:
+            fontSize: 18
+            color: "#d7dee6"
+          id: influent
+          name: influent
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Plants/{name}/InfluentFlow"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: false
+              mode: indirect
+              kind: tag
+        -
+          id: screen-label
+          name: screen-label
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          type: label
+          kind: component
+          props:
+            text: Bar screen
+          frame:
+            y: 64
+            width: 200
+            height: 18
+            x: 230
+        -
+          props:
+            decimals: 2
+            suffix: " psi"
+          frame:
+            y: 82
+            width: 200
+            height: 26
+            x: 230
+          style:
+            fontSize: 18
+            color: "#d7dee6"
+          id: screen
+          name: screen
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Plants/{name}/BarScreenDp"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: false
+              mode: indirect
+              kind: tag
+        -
+          id: grit-label
+          name: grit-label
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          type: label
+          kind: component
+          props:
+            text: Grit
+          frame:
+            y: 64
+            width: 200
+            height: 18
+            x: 444
+        -
+          props:
+            decimals: 0
+            suffix: " gpm"
+          frame:
+            y: 82
+            width: 200
+            height: 26
+            x: 444
+          style:
+            fontSize: 18
+            color: "#d7dee6"
+          id: grit
+          name: grit
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Plants/{name}/GritFlow"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: false
+              mode: indirect
+              kind: tag
+        -
+          id: primary-label
+          name: primary-label
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          type: label
+          kind: component
+          props:
+            text: Primary clarifier
+          frame:
+            y: 130
+            width: 200
+            height: 18
+            x: 16
+        -
+          props:
+            decimals: 1
+            suffix: " ft"
+          frame:
+            y: 148
+            width: 200
+            height: 26
+            x: 16
+          style:
+            fontSize: 18
+            color: "#d7dee6"
+          id: primary
+          name: primary
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Plants/{name}/PrimaryLevel"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: false
+              mode: indirect
+              kind: tag
+        -
+          id: do-label
+          name: do-label
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          type: label
+          kind: component
+          props:
+            text: Dissolved oxygen
+          frame:
+            y: 130
+            width: 200
+            height: 18
+            x: 230
+        -
+          props:
+            decimals: 2
+            suffix: " mg/L"
+          frame:
+            y: 148
+            width: 200
+            height: 26
+            x: 230
+          style:
+            fontSize: 18
+            color: "#d7dee6"
+          id: do
+          name: do
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Plants/{name}/Do"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: false
+              mode: indirect
+              kind: tag
+        -
+          id: air-label
+          name: air-label
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          type: label
+          kind: component
+          props:
+            text: Blower
+          frame:
+            y: 130
+            width: 200
+            height: 18
+            x: 444
+        -
+          props:
+            decimals: 0
+            suffix: " %"
+          frame:
+            y: 148
+            width: 200
+            height: 26
+            x: 444
+          style:
+            fontSize: 18
+            color: "#d7dee6"
+          id: air
+          name: air
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Plants/{name}/BlowerSpeed"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: false
+              mode: indirect
+              kind: tag
+        -
+          id: ras-label
+          name: ras-label
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          type: label
+          kind: component
+          props:
+            text: RAS
+          frame:
+            y: 196
+            width: 200
+            height: 18
+            x: 16
+        -
+          props:
+            decimals: 0
+            suffix: " gpm"
+          frame:
+            y: 214
+            width: 200
+            height: 26
+            x: 16
+          style:
+            fontSize: 18
+            color: "#d7dee6"
+          id: ras
+          name: ras
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Plants/{name}/RasFlow"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: false
+              mode: indirect
+              kind: tag
+        -
+          id: was-label
+          name: was-label
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          type: label
+          kind: component
+          props:
+            text: WAS
+          frame:
+            y: 196
+            width: 200
+            height: 18
+            x: 230
+        -
+          props:
+            decimals: 0
+            suffix: " gpm"
+          frame:
+            y: 214
+            width: 200
+            height: 26
+            x: 230
+          style:
+            fontSize: 18
+            color: "#d7dee6"
+          id: was
+          name: was
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Plants/{name}/WasFlow"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: false
+              mode: indirect
+              kind: tag
+        -
+          id: sec-label
+          name: sec-label
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          type: label
+          kind: component
+          props:
+            text: Secondary clarifier
+          frame:
+            y: 196
+            width: 200
+            height: 18
+            x: 444
+        -
+          props:
+            decimals: 1
+            suffix: " ft"
+          frame:
+            y: 214
+            width: 200
+            height: 26
+            x: 444
+          style:
+            fontSize: 18
+            color: "#d7dee6"
+          id: sec
+          name: sec
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Plants/{name}/SecondaryLevel"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: false
+              mode: indirect
+              kind: tag
+        -
+          id: cl2-label
+          name: cl2-label
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          type: label
+          kind: component
+          props:
+            text: Chlorine residual
+          frame:
+            y: 262
+            width: 200
+            height: 18
+            x: 16
+        -
+          props:
+            decimals: 2
+            suffix: " mg/L"
+          frame:
+            y: 280
+            width: 200
+            height: 26
+            x: 16
+          style:
+            fontSize: 18
+            color: "#d7dee6"
+          id: cl2
+          name: cl2
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Plants/{name}/ChlorineResidual"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: false
+              mode: indirect
+              kind: tag
+        -
+          id: turb-label
+          name: turb-label
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          type: label
+          kind: component
+          props:
+            text: Turbidity
+          frame:
+            y: 262
+            width: 200
+            height: 18
+            x: 230
+        -
+          props:
+            decimals: 2
+            suffix: " NTU"
+          frame:
+            y: 280
+            width: 200
+            height: 26
+            x: 230
+          style:
+            fontSize: 18
+            color: "#d7dee6"
+          id: turb
+          name: turb
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Plants/{name}/Turbidity"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: false
+              mode: indirect
+              kind: tag
+        -
+          id: ph-label
+          name: ph-label
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          type: label
+          kind: component
+          props:
+            text: pH
+          frame:
+            y: 262
+            width: 200
+            height: 18
+            x: 444
+        -
+          props:
+            decimals: 2
+            suffix: ""
+          frame:
+            y: 280
+            width: 200
+            height: 26
+            x: 444
+          style:
+            fontSize: 18
+            color: "#d7dee6"
+          id: ph
+          name: ph
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Plants/{name}/Ph"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: false
+              mode: indirect
+              kind: tag
+        -
+          id: eff-label
+          name: eff-label
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          type: label
+          kind: component
+          props:
+            text: Effluent
+          frame:
+            y: 328
+            width: 200
+            height: 18
+            x: 16
+        -
+          props:
+            decimals: 0
+            suffix: " gpm"
+          frame:
+            y: 346
+            width: 200
+            height: 26
+            x: 16
+          style:
+            fontSize: 18
+            color: "#d7dee6"
+          id: eff
+          name: eff
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Plants/{name}/EffluentFlow"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: false
+              mode: indirect
+              kind: tag
+        -
+          id: blower
+          name: blower
+          bindings:
+            state:
+              path: "[default]Brownsville/Plants/{name}/BlowerRun"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: false
+              mode: indirect
+              kind: tag
+          type: pump
+          kind: component
+          props:
+            label: Air
+          frame:
+            y: 120
+            width: 56
+            height: 56
+            x: 680
+        -
+          id: uv
+          name: uv
+          bindings:
+            value:
+              path: "[default]Brownsville/Plants/{name}/UvRun"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: false
+              mode: indirect
+              kind: tag
+          type: indicator
+          kind: component
+          props:
+            label: UV
+            onText: On
+            offText: Off
+          frame:
+            y: 200
+            width: 120
+            height: 32
+            x: 680
+        -
+          id: alarm
+          name: alarm
+          bindings:
+            value:
+              path: "[default]Brownsville/Plants/{name}/PlantAlarm"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: false
+              mode: indirect
+              kind: tag
+          type: indicator
+          kind: component
+          props:
+            label: Plant
+            onText: Alarm
+            offText: Normal
+          frame:
+            y: 250
+            width: 140
+            height: 32
+            x: 680
+        -
+          id: to-head
+          name: to-head
+          style:
+            color: "#9ec9ef"
+          type: link
+          kind: component
+          props:
+            text: Headworks
+            url: /headworks
+          frame:
+            y: 400
+            width: 120
+            height: 24
+            x: 16
+        -
+          id: to-air
+          name: to-air
+          style:
+            color: "#9ec9ef"
+          type: link
+          kind: component
+          props:
+            text: Aeration
+            url: /aeration
+          frame:
+            y: 400
+            width: 120
+            height: 24
+            x: 150
+        -
+          id: to-clar
+          name: to-clar
+          style:
+            color: "#9ec9ef"
+          type: link
+          kind: component
+          props:
+            text: Clarifiers
+            url: /clarifiers
+          frame:
+            y: 400
+            width: 120
+            height: 24
+            x: 280
+        -
+          id: to-dis
+          name: to-dis
+          style:
+            color: "#9ec9ef"
+          type: link
+          kind: component
+          props:
+            text: Disinfection
+            url: /disinfection
+          frame:
+            y: 400
+            width: 120
+            height: 24
+            x: 420
+      layout: coordinate
+      style:
+        background: "#12171c"
+        color: "#d7dee6"
+      kind: container
+      props:
+        mode: fixed
+    params:
+      name:
+        value: ResacaBend
+        direction: input
+    width: 900
+    height: 450
+  title: Treatment plant

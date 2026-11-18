@@ -1,0 +1,14 @@
+period_ms = 10
+fifo_priority = 50
+mlock = true
+max_consecutive_overruns = 3
+bridge_timeout_ms = 100
+shm_path = "/dev/shm/eric-plc-sealin"
+program = "build/libsealin.so"
+entry = "SealIn"
+instance = "SealIn_instance"
+hwmap = "build/hwmap.json"
+mapping = "mapping.json"
+status_path = "build/status.json"
+label = "container-size, not reference"
+stop_safe = true

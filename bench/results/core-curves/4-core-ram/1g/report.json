@@ -1,0 +1,97 @@
+{
+  "kind": "ramp",
+  "bench": "oip-load-ramp",
+  "version": 2,
+  "target": "oip",
+  "profile": "core-curves-ram",
+  "description": "Lowest clean RAM at 4 CPUs: one fixed step of 100,000 points, run at 8, 4, 2 and 1 GB. Every other setting, and the cutoffs, copied unchanged from core-curves (and so from oip-edge).",
+  "stoppedBecause": "memory",
+  "error": null,
+  "elapsedSeconds": 77.106,
+  "maxWallSeconds": 7200.0,
+  "profileMaxWallSeconds": 7200.0,
+  "trialSecondsLeft": null,
+  "plannedSeconds": 60.0,
+  "limits": {
+    "cpuPercent": 50.0,
+    "memoryPercent": 50.0,
+    "driftPercent": 10.0,
+    "qualityErrorFraction": 0.01
+  },
+  "formula": {
+    "percentChanging": 100.0,
+    "registersPerUnit": 10000,
+    "epochMs": 1794293041701,
+    "value": "(index % 1000 + tick) % 30000 when (index % 100) < percent, else index % 1000"
+  },
+  "steps": [
+    {
+      "points": 100000,
+      "previousPoints": 0,
+      "protocol": "modbus",
+      "periodMs": 1000,
+      "percentChanging": 100.0,
+      "sampleIndexes": [
+        0,
+        6250,
+        12500,
+        18750,
+        25000,
+        31250,
+        37500,
+        43750,
+        50000,
+        56250,
+        62500,
+        68750,
+        75000,
+        81250,
+        87500,
+        93750
+      ],
+      "reads": 176,
+      "qualityErrors": 0,
+      "mismatches": 0,
+      "valuesPerSec": 90273.51342864159,
+      "expectedValuesPerSec": 100000.0,
+      "latencyMs": {
+        "p50": 879.0,
+        "p95": 1750.0,
+        "max": 1974.0
+      },
+      "driftPercent": -4.625655698617067,
+      "referenceDriftGaugeMs": null,
+      "referenceDriftPercent": null,
+      "cpuPercentOfQuota": {
+        "avg": 3.7693181818181816,
+        "max": 5.67
+      },
+      "memoryPercent": {
+        "avg": 65.98181818181818,
+        "max": 66.27
+      },
+      "rssBytes": {
+        "avg": 708475140.0909091,
+        "max": 711563673.0
+      },
+      "heapBytes": {
+        "avg": 288578610.1818182,
+        "max": 322741568.0
+      },
+      "simCpuPercent": {
+        "avg": 57.76909090909091,
+        "max": 96.27
+      },
+      "simSaturated": true,
+      "clockDriftPercent": 0.015034400000000002,
+      "error": null,
+      "cutoff": "memory",
+      "budgetRemainingSeconds": 7199.938992342999
+    }
+  ],
+  "notes": [
+    "At 100000 points the simulator CPU exceeded 80% of one core. A gateway cutoff in this step may be the simulator falling behind."
+  ],
+  "simHost": "172.17.0.1",
+  "gateway": "http://127.0.0.1:8090"
+}

@@ -1,0 +1,61 @@
+{
+  "step": "P1-05",
+  "target": "ours",
+  "label": "container-size, not reference-size",
+  "dryRun": true,
+  "id": "P1-05",
+  "status": "ok",
+  "seconds": 0.0,
+  "startedMinute": 9.86,
+  "notes": [],
+  "data": {
+    "gate": "parity-1",
+    "closes": [
+      "SEC-012"
+    ],
+    "prompt": [
+      "In a private browser window, sign in as parity-ro (type a wrong password once first, for the audit check).",
+      "Can parity-ro see other users' password data or user-source internals?",
+      "Can parity-ro change a role membership?",
+      "Which pages and actions open for each access level (read, write, status)?"
+    ],
+    "probes": [
+      {
+        "method": "GET",
+        "path": "/api/v1/security/users",
+        "auth": "none",
+        "status": 401,
+        "ms": 4.2,
+        "shape": {
+          "type": "object",
+          "keys": [
+            "detail",
+            "instance",
+            "status",
+            "title",
+            "type"
+          ]
+        }
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/diagnostics",
+        "auth": "none",
+        "status": 401,
+        "ms": 2.3,
+        "shape": {
+          "type": "object",
+          "keys": [
+            "detail",
+            "instance",
+            "status",
+            "title",
+            "type"
+          ]
+        }
+      }
+    ],
+    "answer": null,
+    "note": "dry run: UI questions are for the reference product; our side is the probes"
+  }
+}

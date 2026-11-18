@@ -1,0 +1,236 @@
+apiVersion: oip/v1
+kind: View
+metadata:
+  name: tank
+  module: designer
+  version: 1
+  modified: "2026-11-17T20:40:37.362840800Z"
+  modifiedBy: admin
+spec:
+  path: tank
+  document:
+    root:
+      id: root
+      name: Root
+      children:
+        -
+          props:
+            text: ""
+          frame:
+            y: 12
+            width: 360
+            height: 32
+            x: 16
+          style:
+            fontSize: 22
+            color: "#e8eef4"
+          id: title
+          name: title
+          type: label
+          kind: component
+          bindings:
+            text:
+              kind: expression
+              expression: "{view.params.name}"
+        -
+          id: role
+          name: role
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          type: label
+          kind: component
+          props:
+            text: Equalization basin
+          frame:
+            y: 46
+            width: 240
+            height: 20
+            x: 16
+        -
+          id: vessel
+          name: vessel
+          bindings:
+            level:
+              path: "[default]Brownsville/Tanks/{name}/Level"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: false
+              mode: indirect
+              kind: tag
+          type: vessel
+          kind: component
+          props:
+            label: Basin
+            decimals: 1
+            min: 0
+            unit: ft
+            max: 16
+          frame:
+            y: 84
+            width: 140
+            height: 220
+            x: 16
+        -
+          props:
+            decimals: 0
+            suffix: " gal"
+          frame:
+            y: 100
+            width: 180
+            height: 28
+            x: 180
+          style:
+            fontSize: 18
+            color: "#d7dee6"
+          id: volume
+          name: volume
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Tanks/{name}/Volume"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: false
+              mode: indirect
+              kind: tag
+        -
+          props:
+            decimals: 0
+            suffix: " gpm in"
+          frame:
+            y: 150
+            width: 180
+            height: 28
+            x: 180
+          style:
+            fontSize: 18
+            color: "#d7dee6"
+          id: inflow
+          name: inflow
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Tanks/{name}/Inflow"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: false
+              mode: indirect
+              kind: tag
+        -
+          props:
+            decimals: 0
+            suffix: " gpm out"
+          frame:
+            y: 200
+            width: 180
+            height: 28
+            x: 180
+          style:
+            fontSize: 18
+            color: "#d7dee6"
+          id: outflow
+          name: outflow
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Tanks/{name}/Outflow"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: false
+              mode: indirect
+              kind: tag
+        -
+          id: inlet
+          name: inlet
+          bindings:
+            state:
+              path: "[default]Brownsville/Tanks/{name}/InletValve"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: false
+              mode: indirect
+              kind: tag
+          type: valve
+          kind: component
+          props:
+            label: Inlet
+          frame:
+            y: 110
+            width: 64
+            height: 64
+            x: 420
+        -
+          id: outlet
+          name: outlet
+          bindings:
+            state:
+              path: "[default]Brownsville/Tanks/{name}/OutletValve"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: false
+              mode: indirect
+              kind: tag
+          type: valve
+          kind: component
+          props:
+            label: Outlet
+          frame:
+            y: 110
+            width: 64
+            height: 64
+            x: 520
+        -
+          props:
+            text: ""
+          frame:
+            y: 250
+            width: 240
+            height: 24
+            x: 180
+          style:
+            fontSize: 16
+            color: "#9ec9ef"
+          id: plant
+          name: plant
+          type: label
+          kind: component
+          bindings:
+            text:
+              path: "[default]Brownsville/Tanks/{name}/Plant"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: false
+              mode: indirect
+              kind: tag
+      layout: coordinate
+      style:
+        background: "#12171c"
+        color: "#d7dee6"
+      kind: container
+      props:
+        mode: fixed
+    params:
+      name:
+        value: NorthBasin
+        direction: input
+    width: 900
+    height: 420
+  title: Holding tank

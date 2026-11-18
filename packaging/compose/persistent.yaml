@@ -1,0 +1,26 @@
+# Persistent gateway: all state (configuration, secrets key, history, audit, backups) is on the named volume
+# gateway-data, so the container can be removed, upgraded and recreated without losing anything.
+#   OIP_ADMIN_PASSWORD=... docker compose -f packaging/compose/persistent.yaml up -d
+#   docker compose -f packaging/compose/persistent.yaml down        # keeps the volume
+#   docker compose -f packaging/compose/persistent.yaml down -v     # deletes it
+# Doc source: FEATURES GAT-009. See docs/ops/container-recipes.md.
+services:
+  gateway:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    image: oip-gateway:local
+    ports:
+      - "${OIP_PUBLISH_PORT:-8088}:8088"
+    environment:
+      OIP_DATA_DIR: /data
+      OIP_PROFILE: ${OIP_PROFILE:-standard}
+      OIP_HTTP_HOST: 0.0.0.0
+      OIP_HTTP_PORT: "8088"
+      OIP_ADMIN_PASSWORD: "${OIP_ADMIN_PASSWORD:-}"
+    volumes:
+      - gateway-data:/data
+    restart: unless-stopped
+
+volumes:
+  gateway-data:

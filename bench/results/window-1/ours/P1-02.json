@@ -1,0 +1,126 @@
+{
+  "step": "P1-02",
+  "target": "ours",
+  "label": "container-size, not reference-size",
+  "dryRun": true,
+  "id": "P1-02",
+  "status": "ok",
+  "seconds": 0.0,
+  "startedMinute": 9.86,
+  "notes": [],
+  "data": {
+    "gate": "parity-1",
+    "closes": [
+      "GAT-019",
+      "GAT-020",
+      "GAT-026"
+    ],
+    "prompt": [
+      "Scheduled-task columns (rate, last duration, state?).",
+      "Thread view columns and dump download.",
+      "Performance page fields and time span."
+    ],
+    "probes": [
+      {
+        "method": "GET",
+        "path": "/api/v1/diagnostics/tasks",
+        "auth": "session",
+        "status": 200,
+        "ms": 4.9,
+        "shape": {
+          "type": "object",
+          "keys": [
+            "tasks"
+          ],
+          "lists": {
+            "tasks": {
+              "length": 2,
+              "itemKeys": [
+                "lastDurationMillis",
+                "lastError",
+                "name",
+                "rateMs",
+                "runs",
+                "state"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/diagnostics/threads",
+        "auth": "session",
+        "status": 200,
+        "ms": 5.8,
+        "shape": {
+          "type": "object",
+          "keys": [
+            "threads"
+          ],
+          "lists": {
+            "threads": {
+              "length": 49,
+              "itemKeys": [
+                "blockedCount",
+                "cpuNanos",
+                "daemon",
+                "id",
+                "name",
+                "state",
+                "waitedCount"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/diagnostics/performance",
+        "auth": "session",
+        "status": 200,
+        "ms": 3.0,
+        "shape": {
+          "type": "object",
+          "keys": [
+            "clockDrift",
+            "cpuLoad",
+            "disk",
+            "heapMaxBytes",
+            "heapUsedBytes",
+            "processCpuLoad",
+            "samples"
+          ],
+          "lists": {
+            "samples": {
+              "length": 60,
+              "itemKeys": [
+                "clockDrift",
+                "cpuLoad",
+                "diskUsableBytes",
+                "heapUsedBytes"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/diagnostics/memory",
+        "auth": "session",
+        "status": 200,
+        "ms": 2.0,
+        "shape": {
+          "type": "object",
+          "keys": [
+            "heap",
+            "nonHeap",
+            "processors"
+          ]
+        }
+      }
+    ],
+    "answer": null,
+    "note": "dry run: UI questions are for the reference product; our side is the probes"
+  }
+}

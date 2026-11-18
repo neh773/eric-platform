@@ -1,0 +1,12 @@
+# Words that stay because they name a protocol or a PLC family, not a competing product.
+rockwell
+allen-bradley
+ethernet/ip
+modbus
+opc ua
+mqtt
+sparkplug
+siemens
+s7
+bacnet
+dnp3

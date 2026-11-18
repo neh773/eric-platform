@@ -1,0 +1,22 @@
+# Ephemeral test gateway: state lives in memory (tmpfs) and is gone when the container is removed.
+# Use it for tests and demos where every run must start from nothing.
+#   OIP_ADMIN_PASSWORD=... docker compose -f packaging/compose/ephemeral.yaml up -d
+#   docker compose -f packaging/compose/ephemeral.yaml down
+# OIP_PUBLISH_PORT chooses the host port (default 8088). Do not commit a password. See docs/ops/container-recipes.md.
+# Doc source: FEATURES GAT-009.
+services:
+  gateway:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    image: oip-gateway:local
+    ports:
+      - "${OIP_PUBLISH_PORT:-8088}:8088"
+    environment:
+      OIP_DATA_DIR: /data
+      OIP_PROFILE: ${OIP_PROFILE:-standard}
+      OIP_HTTP_HOST: 0.0.0.0
+      OIP_HTTP_PORT: "8088"
+      OIP_ADMIN_PASSWORD: "${OIP_ADMIN_PASSWORD:-}"
+    tmpfs:
+      - /data:uid=10001,gid=10001,mode=0755,size=256m

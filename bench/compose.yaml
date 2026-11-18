@@ -1,0 +1,44 @@
+# High-point simulator only. It does not start a gateway.
+# Host ports stay off the functional simulator stack in test-infra/compose.yaml.
+#   Modbus TCP  25020-25023  (container 5020-5023, every port serves every unit id)
+#   OPC UA      24840
+#   MQTT        21883
+#   HTTP        28080  (/health, /expected, /control)
+# The simulator is capped at 1 vCPU and 384 MB so a gateway under test can use the rest.
+
+name: oip-bench
+
+services:
+  # Container name is oip-bench-points-1 (project oip-bench, service points, replica 1).
+  points:
+    image: oip-bench-points:local
+    build:
+      context: .
+      dockerfile: sim/Dockerfile
+    ports:
+      - "25020:5020"
+      - "25021:5021"
+      - "25022:5022"
+      - "25023:5023"
+      - "24840:4840"
+      - "21883:1883"
+      - "28080:8080"
+    environment:
+      POINTS: ${BENCH_POINTS:-1000}
+      PERCENT_CHANGING: ${BENCH_PERCENT:-10}
+      PERIOD_MS: ${BENCH_PERIOD_MS:-1000}
+      REGISTERS_PER_UNIT: ${BENCH_REGISTERS_PER_UNIT:-10000}
+      METRICS_PER_DEVICE: ${BENCH_METRICS_PER_DEVICE:-500}
+      MODBUS_PORT: "5020"
+      MODBUS_EXTRA_PORTS: "3"
+      OPCUA_PORT: "4840"
+      MQTT_PORT: "1883"
+      HTTP_PORT: "8080"
+    cpus: "1.0"
+    mem_limit: 384m
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=2)"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+      start_period: 5s

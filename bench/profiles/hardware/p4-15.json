@@ -1,0 +1,14 @@
+{
+  "plan": "P4-15",
+  "scenarios": ["gate-4"],
+  "targets": ["oip", "comparison"],
+  "requires": ["P4-01", "P4-14"],
+  "greenMainRunsRequired": 3,
+  "cannotPassFromDryRun": true,
+  "trialMinutes": 120,
+  "procedureCapMinutes": 110,
+  "resetTrial": "manual",
+  "oneRunPerTrial": true,
+  "dryRunIsGate": false,
+  "command": "python3 -m bench hardware P4-15 --dry-run"
+}

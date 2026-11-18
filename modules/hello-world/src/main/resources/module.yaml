@@ -1,0 +1,15 @@
+id: org.oip.hello-world
+version: 0.1.0
+name: Hello World
+entrypoint: org.oip.hello.HelloWorldModule
+dependencies: []
+permissions:
+  - log.write
+configSchema:
+  type: object
+  properties:
+    greeting:
+      type: string
+      minLength: 1
+      maxLength: 200
+      default: "Hello, world!"

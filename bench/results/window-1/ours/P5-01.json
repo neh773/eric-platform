@@ -1,0 +1,210 @@
+{
+  "step": "P5-01",
+  "target": "ours",
+  "label": "container-size, not reference-size",
+  "dryRun": true,
+  "id": "P5-01",
+  "status": "ok",
+  "seconds": 35.8,
+  "startedMinute": 10.03,
+  "notes": [],
+  "data": {
+    "gate": "parity-5",
+    "closes": [
+      "DAT-015"
+    ],
+    "prompt": [
+      "Connections > Databases: add a PostgreSQL connection 'window-db' to host.docker.internal:25432 (password in secrets/window-db.txt). Record the status.",
+      "When you end this answer, the runner stops the database for 30 s and starts it again. Keep the status page open."
+    ],
+    "probes": [
+      {
+        "method": "POST",
+        "path": "/api/v1/db/connections",
+        "auth": "session",
+        "status": 201,
+        "ms": 343.3,
+        "shape": {
+          "type": "object",
+          "keys": [
+            "activeConnections",
+            "activeQueries",
+            "allowBrowserWrites",
+            "defaultConnection",
+            "description",
+            "driver",
+            "driverId",
+            "enabled",
+            "error",
+            "failoverConnection",
+            "failoverMode",
+            "idleConnections",
+            "maxConnections",
+            "name",
+            "passwordSet",
+            "queriesPerSecond",
+            "status",
+            "translator",
+            "url",
+            "usedBy",
+            "username",
+            "validationQuery",
+            "version"
+          ],
+          "lists": {
+            "usedBy": {
+              "length": 0,
+              "itemKeys": null
+            }
+          }
+        }
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/db/connections/window-db",
+        "auth": "session",
+        "status": 200,
+        "ms": 20.0,
+        "shape": {
+          "type": "object",
+          "keys": [
+            "activeConnections",
+            "activeQueries",
+            "allowBrowserWrites",
+            "defaultConnection",
+            "description",
+            "driver",
+            "driverId",
+            "enabled",
+            "error",
+            "failoverConnection",
+            "failoverMode",
+            "idleConnections",
+            "maxConnections",
+            "name",
+            "passwordSet",
+            "queriesPerSecond",
+            "status",
+            "translator",
+            "url",
+            "usedBy",
+            "username",
+            "validationQuery",
+            "version"
+          ],
+          "lists": {
+            "usedBy": {
+              "length": 0,
+              "itemKeys": null
+            }
+          }
+        },
+        "fields": {
+          "status": "Valid",
+          "enabled": true
+        }
+      }
+    ],
+    "answer": null,
+    "note": "dry run: UI questions are for the reference product; our side is the probes",
+    "dbFault": {
+      "stoppedAfterSeconds": 0.2,
+      "duringOutage": [
+        {
+          "method": "GET",
+          "path": "/api/v1/db/connections/window-db",
+          "auth": "session",
+          "status": 200,
+          "ms": 20.3,
+          "shape": {
+            "type": "object",
+            "keys": [
+              "activeConnections",
+              "activeQueries",
+              "allowBrowserWrites",
+              "defaultConnection",
+              "description",
+              "driver",
+              "driverId",
+              "enabled",
+              "error",
+              "failoverConnection",
+              "failoverMode",
+              "idleConnections",
+              "maxConnections",
+              "name",
+              "passwordSet",
+              "queriesPerSecond",
+              "status",
+              "translator",
+              "url",
+              "usedBy",
+              "username",
+              "validationQuery",
+              "version"
+            ],
+            "lists": {
+              "usedBy": {
+                "length": 0,
+                "itemKeys": null
+              }
+            }
+          },
+          "fields": {
+            "status": "Faulted",
+            "enabled": true
+          }
+        }
+      ],
+      "databaseReadySeconds": 30.4,
+      "databaseReady": true,
+      "afterRecovery": [
+        {
+          "method": "GET",
+          "path": "/api/v1/db/connections/window-db",
+          "auth": "session",
+          "status": 200,
+          "ms": 22.2,
+          "shape": {
+            "type": "object",
+            "keys": [
+              "activeConnections",
+              "activeQueries",
+              "allowBrowserWrites",
+              "defaultConnection",
+              "description",
+              "driver",
+              "driverId",
+              "enabled",
+              "error",
+              "failoverConnection",
+              "failoverMode",
+              "idleConnections",
+              "maxConnections",
+              "name",
+              "passwordSet",
+              "queriesPerSecond",
+              "status",
+              "translator",
+              "url",
+              "usedBy",
+              "username",
+              "validationQuery",
+              "version"
+            ],
+            "lists": {
+              "usedBy": {
+                "length": 0,
+                "itemKeys": null
+              }
+            }
+          },
+          "fields": {
+            "status": "Valid",
+            "enabled": true
+          }
+        }
+      ]
+    }
+  }
+}

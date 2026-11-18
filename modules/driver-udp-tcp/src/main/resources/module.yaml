@@ -1,0 +1,15 @@
+id: org.oip.driver-udp-tcp
+version: 0.1.0
+name: UDP and TCP Driver
+entrypoint: org.oip.udptcp.UdpTcpDriverModule
+dependencies: []
+permissions:
+  - device.connect
+configSchema:
+  type: object
+  properties:
+    defaultMaxMessageBytes:
+      type: integer
+      minimum: 1
+      maximum: 65536
+      default: 4096

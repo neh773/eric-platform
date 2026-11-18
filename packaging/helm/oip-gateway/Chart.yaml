@@ -1,0 +1,7 @@
+apiVersion: v2
+name: oip-gateway
+description: ERIC gateway on Kubernetes, with persistent storage for the data directory
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+kubeVersion: ">=1.25.0-0"

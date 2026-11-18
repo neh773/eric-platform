@@ -1,0 +1,1289 @@
+{
+  "kind": "window",
+  "plan": "window-1",
+  "target": "ours",
+  "dryRun": true,
+  "label": "container-size, not reference-size",
+  "phase": "window",
+  "budgetMinutes": 110,
+  "elapsedMinutes": 10.66,
+  "results": [
+    {
+      "id": "B1",
+      "status": "ok",
+      "seconds": 0.1,
+      "startedMinute": null,
+      "notes": [],
+      "data": {
+        "checks": {
+          "dbImageCached": true,
+          "oipInstall": "gateway/server/build/install/server",
+          "oipInstallPresent": true,
+          "port8090Free": true,
+          "referenceContacted": false,
+          "taskset": true,
+          "noPullAttempted": true
+        },
+        "failed": []
+      }
+    },
+    {
+      "id": "B2",
+      "status": "ok",
+      "seconds": 6.2,
+      "startedMinute": null,
+      "notes": [],
+      "data": {
+        "container": "oip-window-db",
+        "port": 25432,
+        "secretCreated": false,
+        "ready": true
+      }
+    },
+    {
+      "id": "B3",
+      "status": "ok",
+      "seconds": 1.0,
+      "startedMinute": null,
+      "notes": [],
+      "data": {
+        "instances": [
+          {
+            "modbusPort": 25020,
+            "httpPort": 28080
+          },
+          {
+            "modbusPort": 25021,
+            "httpPort": 28081
+          }
+        ],
+        "points": 320000,
+        "healthy": true,
+        "fanout": false
+      }
+    },
+    {
+      "id": "W01",
+      "status": "ok",
+      "seconds": 5.1,
+      "startedMinute": null,
+      "notes": [],
+      "data": {
+        "gateway": "http://127.0.0.1:8090",
+        "pid": 1977,
+        "secretCreated": false,
+        "healthy": true,
+        "cpuList": "0,1",
+        "heapMb": 2048
+      }
+    },
+    {
+      "id": "W02",
+      "status": "ok",
+      "seconds": 0.0,
+      "startedMinute": 0.09,
+      "notes": [],
+      "data": {
+        "prompt": [
+          "Sign in to the web UI as the admin user (password in secrets/reference-admin.txt).",
+          "Platform > Security > API Keys: create key 'bench' with full access. Save the secret, one line, mode 0600, to secrets/reference-api-token.txt.",
+          "Create key 'parity-ro' with read-only access. Save it to secrets/reference-api-token-2.txt. Record whether each secret was shown once.",
+          "Connections > OPC UA > Server Settings: write the current values here, then set bind 0.0.0.0, port 62541, add policy None, anonymous access on, expose tag providers on.",
+          "Turn the gateway audit profile on (record the default retention).",
+          "Do not open any trial or licensing action."
+        ],
+        "answer": null,
+        "note": "dry run: the prompt is shown for the reference product only; nothing to do on our gateway"
+      }
+    },
+    {
+      "id": "W03",
+      "status": "ok",
+      "seconds": 0.1,
+      "startedMinute": 0.09,
+      "notes": [],
+      "data": {
+        "simHealthy": true,
+        "elapsedMinutes": 0.09,
+        "minutesNeeded": 89.0,
+        "windowFits": true,
+        "loginAccepted": true
+      }
+    },
+    {
+      "id": "W04",
+      "status": "ok",
+      "seconds": 586.5,
+      "startedMinute": 0.09,
+      "notes": [],
+      "data": {
+        "stoppedBecause": "completed",
+        "lastGoodLoad": {
+          "points": 320000,
+          "periodMs": 1000,
+          "percentChanging": 10.0,
+          "protocol": "modbus",
+          "valuesPerSec": 31990.858256088428,
+          "goodQualityTags": 320000,
+          "cutoffReached": false,
+          "cutoff": null
+        },
+        "steps": 7,
+        "wallCapSeconds": 1680.0,
+        "report": "W04-prf001-s2/report.json"
+      }
+    },
+    {
+      "id": "W05",
+      "status": "ok",
+      "seconds": 0.0,
+      "startedMinute": 9.86,
+      "notes": [],
+      "data": {
+        "simHealthy": true,
+        "stoppedBecause": "completed",
+        "notes": [
+          "Wall-clock cap is the remaining trial (1680s), tighter than the profile cap of 6600s."
+        ]
+      }
+    },
+    {
+      "id": "P1-01",
+      "status": "ok",
+      "seconds": 0.0,
+      "startedMinute": 9.86,
+      "notes": [],
+      "data": {
+        "gate": "parity-1",
+        "closes": [
+          "GAT-016",
+          "GAT-034"
+        ],
+        "prompt": [
+          "List the top-level sections and their pages.",
+          "Which status banners show (trial, HTTPS, other)?",
+          "Does a global search exist and what does it find?"
+        ],
+        "probes": [
+          {
+            "method": "GET",
+            "path": "/api/v1/health",
+            "auth": "session",
+            "status": 200,
+            "ms": 1.9,
+            "shape": {
+              "type": "object",
+              "keys": [
+                "modules",
+                "profile",
+                "startedAt",
+                "status",
+                "version",
+                "warnings"
+              ],
+              "lists": {
+                "warnings": {
+                  "length": 1,
+                  "itemKeys": null
+                }
+              }
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/v1/modules",
+            "auth": "session",
+            "status": 200,
+            "ms": 10.9,
+            "shape": {
+              "type": "object",
+              "keys": [
+                "available",
+                "items"
+              ],
+              "lists": {
+                "items": {
+                  "length": 7,
+                  "itemKeys": [
+                    "dependencies",
+                    "error",
+                    "id",
+                    "name",
+                    "permissions",
+                    "state",
+                    "version"
+                  ]
+                },
+                "available": {
+                  "length": 0,
+                  "itemKeys": null
+                }
+              }
+            }
+          }
+        ],
+        "answer": null,
+        "note": "dry run: UI questions are for the reference product; our side is the probes"
+      }
+    },
+    {
+      "id": "P1-02",
+      "status": "ok",
+      "seconds": 0.0,
+      "startedMinute": 9.86,
+      "notes": [],
+      "data": {
+        "gate": "parity-1",
+        "closes": [
+          "GAT-019",
+          "GAT-020",
+          "GAT-026"
+        ],
+        "prompt": [
+          "Scheduled-task columns (rate, last duration, state?).",
+          "Thread view columns and dump download.",
+          "Performance page fields and time span."
+        ],
+        "probes": [
+          {
+            "method": "GET",
+            "path": "/api/v1/diagnostics/tasks",
+            "auth": "session",
+            "status": 200,
+            "ms": 4.9,
+            "shape": {
+              "type": "object",
+              "keys": [
+                "tasks"
+              ],
+              "lists": {
+                "tasks": {
+                  "length": 2,
+                  "itemKeys": [
+                    "lastDurationMillis",
+                    "lastError",
+                    "name",
+                    "rateMs",
+                    "runs",
+                    "state"
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/v1/diagnostics/threads",
+            "auth": "session",
+            "status": 200,
+            "ms": 5.8,
+            "shape": {
+              "type": "object",
+              "keys": [
+                "threads"
+              ],
+              "lists": {
+                "threads": {
+                  "length": 49,
+                  "itemKeys": [
+                    "blockedCount",
+                    "cpuNanos",
+                    "daemon",
+                    "id",
+                    "name",
+                    "state",
+                    "waitedCount"
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/v1/diagnostics/performance",
+            "auth": "session",
+            "status": 200,
+            "ms": 3.0,
+            "shape": {
+              "type": "object",
+              "keys": [
+                "clockDrift",
+                "cpuLoad",
+                "disk",
+                "heapMaxBytes",
+                "heapUsedBytes",
+                "processCpuLoad",
+                "samples"
+              ],
+              "lists": {
+                "samples": {
+                  "length": 60,
+                  "itemKeys": [
+                    "clockDrift",
+                    "cpuLoad",
+                    "diskUsableBytes",
+                    "heapUsedBytes"
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/v1/diagnostics/memory",
+            "auth": "session",
+            "status": 200,
+            "ms": 2.0,
+            "shape": {
+              "type": "object",
+              "keys": [
+                "heap",
+                "nonHeap",
+                "processors"
+              ]
+            }
+          }
+        ],
+        "answer": null,
+        "note": "dry run: UI questions are for the reference product; our side is the probes"
+      }
+    },
+    {
+      "id": "P1-03",
+      "status": "ok",
+      "seconds": 0.0,
+      "startedMinute": 9.86,
+      "notes": [],
+      "data": {
+        "gate": "parity-1",
+        "closes": [
+          "GAT-017"
+        ],
+        "prompt": [
+          "Change one logger level: does it apply without a restart?",
+          "Does a level on a parent logger cover its children (DIFFERENCES 47)?",
+          "Which files are in the log download?"
+        ],
+        "probes": [
+          {
+            "method": "GET",
+            "path": "/api/v1/logs",
+            "auth": "session",
+            "status": 200,
+            "ms": 4.9,
+            "shape": {
+              "type": "object",
+              "keys": [
+                "records"
+              ],
+              "lists": {
+                "records": {
+                  "length": 1,
+                  "itemKeys": [
+                    "fields",
+                    "level",
+                    "logger",
+                    "message",
+                    "ts"
+                  ]
+                }
+              }
+            }
+          }
+        ],
+        "answer": null,
+        "note": "dry run: UI questions are for the reference product; our side is the probes"
+      }
+    },
+    {
+      "id": "P1-04",
+      "status": "ok",
+      "seconds": 0.0,
+      "startedMinute": 9.86,
+      "notes": [],
+      "data": {
+        "gate": "parity-1",
+        "closes": [
+          "SEC-009"
+        ],
+        "prompt": [
+          "Default length, complexity, history and maximum age of the internal user source.",
+          "Create user parity-ro with a read-only role and user parity-lock with no role."
+        ],
+        "probes": [
+          {
+            "method": "GET",
+            "path": "/api/v1/security/users",
+            "auth": "session",
+            "status": 200,
+            "ms": 8.1,
+            "shape": {
+              "type": "object",
+              "keys": [
+                "items"
+              ],
+              "lists": {
+                "items": {
+                  "length": 1,
+                  "itemKeys": [
+                    "displayName",
+                    "email",
+                    "enabled",
+                    "passwordChangedAt",
+                    "passwordExpired",
+                    "phone",
+                    "roles",
+                    "username",
+                    "version"
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/v1/security/roles",
+            "auth": "session",
+            "status": 200,
+            "ms": 2.8,
+            "shape": {
+              "type": "object",
+              "keys": [
+                "items"
+              ],
+              "lists": {
+                "items": {
+                  "length": 3,
+                  "itemKeys": [
+                    "description",
+                    "name",
+                    "permissions",
+                    "version"
+                  ]
+                }
+              }
+            }
+          }
+        ],
+        "answer": null,
+        "note": "dry run: UI questions are for the reference product; our side is the probes"
+      }
+    },
+    {
+      "id": "P1-05",
+      "status": "ok",
+      "seconds": 0.0,
+      "startedMinute": 9.86,
+      "notes": [],
+      "data": {
+        "gate": "parity-1",
+        "closes": [
+          "SEC-012"
+        ],
+        "prompt": [
+          "In a private browser window, sign in as parity-ro (type a wrong password once first, for the audit check).",
+          "Can parity-ro see other users' password data or user-source internals?",
+          "Can parity-ro change a role membership?",
+          "Which pages and actions open for each access level (read, write, status)?"
+        ],
+        "probes": [
+          {
+            "method": "GET",
+            "path": "/api/v1/security/users",
+            "auth": "none",
+            "status": 401,
+            "ms": 4.2,
+            "shape": {
+              "type": "object",
+              "keys": [
+                "detail",
+                "instance",
+                "status",
+                "title",
+                "type"
+              ]
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/v1/diagnostics",
+            "auth": "none",
+            "status": 401,
+            "ms": 2.3,
+            "shape": {
+              "type": "object",
+              "keys": [
+                "detail",
+                "instance",
+                "status",
+                "title",
+                "type"
+              ]
+            }
+          }
+        ],
+        "answer": null,
+        "note": "dry run: UI questions are for the reference product; our side is the probes"
+      }
+    },
+    {
+      "id": "P1-06",
+      "status": "ok",
+      "seconds": 0.0,
+      "startedMinute": 9.86,
+      "notes": [],
+      "data": {
+        "gate": "parity-1",
+        "closes": [
+          "SEC-005"
+        ],
+        "prompt": [
+          "The probes with key parity-ro have run. Now disable key parity-ro in the UI; ending this answer runs the disabled-key probe.",
+          "Is a rotate action offered, and does it return a new secret?",
+          "Record the header name the API expects (DIFFERENCES 28)."
+        ],
+        "probes": [
+          {
+            "method": "GET",
+            "path": "/api/v1/security/api-keys",
+            "auth": "session",
+            "status": 200,
+            "ms": 3.2,
+            "shape": {
+              "type": "object",
+              "keys": [
+                "items"
+              ],
+              "lists": {
+                "items": {
+                  "length": 0,
+                  "itemKeys": null
+                }
+              }
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/v1/diagnostics",
+            "auth": "bogus-bearer",
+            "status": 401,
+            "ms": 8.6
+          }
+        ],
+        "answer": null,
+        "note": "dry run: UI questions are for the reference product; our side is the probes"
+      }
+    },
+    {
+      "id": "P1-10",
+      "status": "ok",
+      "seconds": 9.9,
+      "startedMinute": 9.86,
+      "notes": [],
+      "data": {
+        "gate": "parity-1",
+        "closes": [
+          "PRO-003"
+        ],
+        "prompt": [
+          "Create project parity-a in the web UI, export it, import it again.",
+          "Which conflict choices are offered (overwrite, skip, rename, other)?",
+          "Is an inherited parent included? Is the import audited?"
+        ],
+        "probes": [
+          {
+            "method": "GET",
+            "path": "/api/v1/projects",
+            "auth": "session",
+            "status": 200,
+            "ms": 9939.9,
+            "shape": {
+              "type": "object",
+              "keys": [
+                "items",
+                "projects"
+              ],
+              "lists": {
+                "projects": {
+                  "length": 0,
+                  "itemKeys": null
+                },
+                "items": {
+                  "length": 0,
+                  "itemKeys": null
+                }
+              }
+            }
+          }
+        ],
+        "answer": null,
+        "note": "dry run: UI questions are for the reference product; our side is the probes"
+      }
+    },
+    {
+      "id": "P5-01",
+      "status": "ok",
+      "seconds": 35.8,
+      "startedMinute": 10.03,
+      "notes": [],
+      "data": {
+        "gate": "parity-5",
+        "closes": [
+          "DAT-015"
+        ],
+        "prompt": [
+          "Connections > Databases: add a PostgreSQL connection 'window-db' to host.docker.internal:25432 (password in secrets/window-db.txt). Record the status.",
+          "When you end this answer, the runner stops the database for 30 s and starts it again. Keep the status page open."
+        ],
+        "probes": [
+          {
+            "method": "POST",
+            "path": "/api/v1/db/connections",
+            "auth": "session",
+            "status": 201,
+            "ms": 343.3,
+            "shape": {
+              "type": "object",
+              "keys": [
+                "activeConnections",
+                "activeQueries",
+                "allowBrowserWrites",
+                "defaultConnection",
+                "description",
+                "driver",
+                "driverId",
+                "enabled",
+                "error",
+                "failoverConnection",
+                "failoverMode",
+                "idleConnections",
+                "maxConnections",
+                "name",
+                "passwordSet",
+                "queriesPerSecond",
+                "status",
+                "translator",
+                "url",
+                "usedBy",
+                "username",
+                "validationQuery",
+                "version"
+              ],
+              "lists": {
+                "usedBy": {
+                  "length": 0,
+                  "itemKeys": null
+                }
+              }
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/v1/db/connections/window-db",
+            "auth": "session",
+            "status": 200,
+            "ms": 20.0,
+            "shape": {
+              "type": "object",
+              "keys": [
+                "activeConnections",
+                "activeQueries",
+                "allowBrowserWrites",
+                "defaultConnection",
+                "description",
+                "driver",
+                "driverId",
+                "enabled",
+                "error",
+                "failoverConnection",
+                "failoverMode",
+                "idleConnections",
+                "maxConnections",
+                "name",
+                "passwordSet",
+                "queriesPerSecond",
+                "status",
+                "translator",
+                "url",
+                "usedBy",
+                "username",
+                "validationQuery",
+                "version"
+              ],
+              "lists": {
+                "usedBy": {
+                  "length": 0,
+                  "itemKeys": null
+                }
+              }
+            },
+            "fields": {
+              "status": "Valid",
+              "enabled": true
+            }
+          }
+        ],
+        "answer": null,
+        "note": "dry run: UI questions are for the reference product; our side is the probes",
+        "dbFault": {
+          "stoppedAfterSeconds": 0.2,
+          "duringOutage": [
+            {
+              "method": "GET",
+              "path": "/api/v1/db/connections/window-db",
+              "auth": "session",
+              "status": 200,
+              "ms": 20.3,
+              "shape": {
+                "type": "object",
+                "keys": [
+                  "activeConnections",
+                  "activeQueries",
+                  "allowBrowserWrites",
+                  "defaultConnection",
+                  "description",
+                  "driver",
+                  "driverId",
+                  "enabled",
+                  "error",
+                  "failoverConnection",
+                  "failoverMode",
+                  "idleConnections",
+                  "maxConnections",
+                  "name",
+                  "passwordSet",
+                  "queriesPerSecond",
+                  "status",
+                  "translator",
+                  "url",
+                  "usedBy",
+                  "username",
+                  "validationQuery",
+                  "version"
+                ],
+                "lists": {
+                  "usedBy": {
+                    "length": 0,
+                    "itemKeys": null
+                  }
+                }
+              },
+              "fields": {
+                "status": "Faulted",
+                "enabled": true
+              }
+            }
+          ],
+          "databaseReadySeconds": 30.4,
+          "databaseReady": true,
+          "afterRecovery": [
+            {
+              "method": "GET",
+              "path": "/api/v1/db/connections/window-db",
+              "auth": "session",
+              "status": 200,
+              "ms": 22.2,
+              "shape": {
+                "type": "object",
+                "keys": [
+                  "activeConnections",
+                  "activeQueries",
+                  "allowBrowserWrites",
+                  "defaultConnection",
+                  "description",
+                  "driver",
+                  "driverId",
+                  "enabled",
+                  "error",
+                  "failoverConnection",
+                  "failoverMode",
+                  "idleConnections",
+                  "maxConnections",
+                  "name",
+                  "passwordSet",
+                  "queriesPerSecond",
+                  "status",
+                  "translator",
+                  "url",
+                  "usedBy",
+                  "username",
+                  "validationQuery",
+                  "version"
+                ],
+                "lists": {
+                  "usedBy": {
+                    "length": 0,
+                    "itemKeys": null
+                  }
+                }
+              },
+              "fields": {
+                "status": "Valid",
+                "enabled": true
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "P6-01",
+      "status": "ok",
+      "seconds": 0.0,
+      "startedMinute": 10.63,
+      "notes": [],
+      "data": {
+        "gate": "parity-6",
+        "closes": [
+          "GAN-001",
+          "GAN-003"
+        ],
+        "prompt": [
+          "Defaults: require SSL, incoming connection approval policy, port.",
+          "Certificate list: approve, deny and regenerate actions present?"
+        ],
+        "probes": [
+          {
+            "method": "GET",
+            "path": "/api/v1/gateway-network",
+            "auth": "session",
+            "status": 200,
+            "ms": 3.9,
+            "shape": {
+              "type": "object",
+              "keys": [
+                "certificate",
+                "enabled",
+                "gatewayName",
+                "incoming",
+                "listening",
+                "outgoing",
+                "policies",
+                "port",
+                "protocolVersion",
+                "protocols",
+                "providers",
+                "tasks"
+              ],
+              "lists": {
+                "protocols": {
+                  "length": 2,
+                  "itemKeys": null
+                },
+                "tasks": {
+                  "length": 0,
+                  "itemKeys": null
+                },
+                "incoming": {
+                  "length": 0,
+                  "itemKeys": null
+                },
+                "outgoing": {
+                  "length": 0,
+                  "itemKeys": null
+                },
+                "policies": {
+                  "length": 0,
+                  "itemKeys": null
+                },
+                "providers": {
+                  "length": 0,
+                  "itemKeys": null
+                }
+              }
+            }
+          }
+        ],
+        "answer": null,
+        "note": "dry run: UI questions are for the reference product; our side is the probes"
+      }
+    },
+    {
+      "id": "P6-02",
+      "status": "ok",
+      "seconds": 0.0,
+      "startedMinute": 10.63,
+      "notes": [],
+      "data": {
+        "gate": "parity-6",
+        "closes": [
+          "RED-002"
+        ],
+        "prompt": [
+          "Redundancy modes offered and the defaults (standby activity, failover timeout, sync)."
+        ],
+        "probes": [
+          {
+            "method": "GET",
+            "path": "/api/v1/redundancy",
+            "auth": "session",
+            "status": 200,
+            "ms": 8.2,
+            "shape": {
+              "type": "object",
+              "keys": [
+                "activeUptimeMillis",
+                "activeWindows",
+                "activityLevel",
+                "configRevision",
+                "connected",
+                "events",
+                "historyLogged",
+                "historyMode",
+                "historyPending",
+                "historyStore",
+                "isActive",
+                "isMaster",
+                "missedHeartbeats",
+                "peerId",
+                "providers",
+                "recoveryMode",
+                "role",
+                "runtimeRevision",
+                "splitBrain",
+                "standbyActivityLevel",
+                "useActiveUptime"
+              ],
+              "lists": {
+                "providers": {
+                  "length": 2,
+                  "itemKeys": [
+                    "name"
+                  ]
+                },
+                "events": {
+                  "length": 0,
+                  "itemKeys": null
+                },
+                "activeWindows": {
+                  "length": 0,
+                  "itemKeys": null
+                }
+              }
+            }
+          }
+        ],
+        "answer": null,
+        "note": "dry run: UI questions are for the reference product; our side is the probes"
+      }
+    },
+    {
+      "id": "P1-11",
+      "status": "ok",
+      "seconds": 1.2,
+      "startedMinute": 10.63,
+      "notes": [],
+      "data": {
+        "gate": "parity-1",
+        "closes": [
+          "GAT-014"
+        ],
+        "prompt": [
+          "As admin, create and download a gateway backup into bench/out/window-1/reference/ (never commit it). It is the restore input for window 2.",
+          "Can parity-ro create or download one?",
+          "Is there a password or encryption option?"
+        ],
+        "probes": [
+          {
+            "method": "POST",
+            "path": "/api/v1/backups",
+            "auth": "session",
+            "status": 200,
+            "ms": 1165.2,
+            "response": {
+              "contentType": "application/octet-stream",
+              "bytes": 5080006
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/v1/backups",
+            "auth": "session",
+            "status": 200,
+            "ms": 3.1,
+            "shape": {
+              "type": "object",
+              "keys": [
+                "backups"
+              ],
+              "lists": {
+                "backups": {
+                  "length": 1,
+                  "itemKeys": [
+                    "bytes",
+                    "encrypted",
+                    "name"
+                  ]
+                }
+              }
+            }
+          }
+        ],
+        "answer": null,
+        "note": "dry run: UI questions are for the reference product; our side is the probes"
+      }
+    },
+    {
+      "id": "P1-12",
+      "status": "ok",
+      "seconds": 0.0,
+      "startedMinute": 10.64,
+      "notes": [],
+      "data": {
+        "gate": "parity-1",
+        "closes": [
+          "SEC-001",
+          "SEC-003"
+        ],
+        "prompt": [
+          "Exact action names for login, logout, failed login, config save, backup, log-level change and project import.",
+          "Does one user or role edit write one row or several?"
+        ],
+        "probes": [
+          {
+            "method": "GET",
+            "path": "/api/v1/audit",
+            "auth": "session",
+            "status": 200,
+            "ms": 4.3,
+            "shape": {
+              "type": "object",
+              "keys": [
+                "items",
+                "limit",
+                "offset",
+                "total"
+              ],
+              "lists": {
+                "items": {
+                  "length": 100,
+                  "itemKeys": [
+                    "action",
+                    "actor",
+                    "actorHost",
+                    "context",
+                    "detail",
+                    "origin",
+                    "seq",
+                    "status",
+                    "target",
+                    "timestamp"
+                  ]
+                }
+              }
+            }
+          }
+        ],
+        "answer": null,
+        "note": "dry run: UI questions are for the reference product; our side is the probes"
+      }
+    },
+    {
+      "id": "P1-08",
+      "status": "ok",
+      "seconds": 0.0,
+      "startedMinute": 10.64,
+      "notes": [],
+      "data": {
+        "gate": "parity-1",
+        "closes": [
+          "SEC-024"
+        ],
+        "prompt": [
+          "How do IP, hostname and gateway-name rules combine, and how does a zone limit role permissions?"
+        ],
+        "probes": [
+          {
+            "method": "GET",
+            "path": "/api/v1/config?kind=SecurityZone",
+            "auth": "session",
+            "status": 200,
+            "ms": 12.6,
+            "shape": {
+              "type": "object",
+              "keys": [
+                "items"
+              ],
+              "lists": {
+                "items": {
+                  "length": 0,
+                  "itemKeys": null
+                }
+              }
+            }
+          }
+        ],
+        "answer": null,
+        "note": "dry run: UI questions are for the reference product; our side is the probes"
+      }
+    },
+    {
+      "id": "P1-09",
+      "status": "ok",
+      "seconds": 0.0,
+      "startedMinute": 10.65,
+      "notes": [],
+      "data": {
+        "gate": "parity-1",
+        "closes": [
+          "DIFFERENCES 26"
+        ],
+        "prompt": [
+          "With the inactivity timeout set to 0, does a session stay valid? Record the setting's allowed range."
+        ],
+        "probes": [
+          {
+            "method": "GET",
+            "path": "/api/v1/auth/session",
+            "auth": "session",
+            "status": 200,
+            "ms": 8.8,
+            "shape": {
+              "type": "object",
+              "keys": [
+                "csrfToken",
+                "expiresAt",
+                "kind",
+                "permissions",
+                "principal",
+                "roles",
+                "securityLevels",
+                "zone"
+              ],
+              "lists": {
+                "permissions": {
+                  "length": 13,
+                  "itemKeys": null
+                },
+                "securityLevels": {
+                  "length": 2,
+                  "itemKeys": null
+                },
+                "roles": {
+                  "length": 1,
+                  "itemKeys": null
+                }
+              }
+            }
+          }
+        ],
+        "answer": null,
+        "note": "dry run: UI questions are for the reference product; our side is the probes"
+      }
+    },
+    {
+      "id": "P1-07",
+      "status": "ok",
+      "seconds": 0.0,
+      "startedMinute": 10.65,
+      "notes": [],
+      "data": {
+        "gate": "parity-1",
+        "closes": [
+          "SEC-006"
+        ],
+        "prompt": [
+          "In a private window, sign in as parity-lock with a wrong password until a lock shows. Count the attempts.",
+          "Is the lock per account or per address? How long does it last? Does a later success clear it?"
+        ],
+        "probes": [
+          {
+            "method": "GET",
+            "path": "/api/v1/auth/session",
+            "auth": "session",
+            "status": 200,
+            "ms": 1.5,
+            "shape": {
+              "type": "object",
+              "keys": [
+                "csrfToken",
+                "expiresAt",
+                "kind",
+                "permissions",
+                "principal",
+                "roles",
+                "securityLevels",
+                "zone"
+              ],
+              "lists": {
+                "permissions": {
+                  "length": 13,
+                  "itemKeys": null
+                },
+                "securityLevels": {
+                  "length": 2,
+                  "itemKeys": null
+                },
+                "roles": {
+                  "length": 1,
+                  "itemKeys": null
+                }
+              }
+            }
+          }
+        ],
+        "answer": null,
+        "note": "dry run: UI questions are for the reference product; our side is the probes"
+      }
+    },
+    {
+      "id": "W90",
+      "status": "ok",
+      "seconds": 0.0,
+      "startedMinute": 10.65,
+      "notes": [],
+      "data": {
+        "elapsedMinutes": 10.65
+      }
+    },
+    {
+      "id": "W91",
+      "status": "ok",
+      "seconds": 0.8,
+      "startedMinute": 10.65,
+      "notes": [],
+      "data": {
+        "oipStopped": true,
+        "simStopped": 2,
+        "dbRemoved": true
+      }
+    },
+    {
+      "id": "W99",
+      "status": "slack",
+      "seconds": 0.0,
+      "startedMinute": 10.66,
+      "notes": [],
+      "data": {}
+    }
+  ],
+  "timingsSeconds": {
+    "B1": 0.1,
+    "B2": 6.2,
+    "B3": 1.0,
+    "W01": 5.1,
+    "W02": 0.0,
+    "W03": 0.1,
+    "W04": 586.5,
+    "W05": 0.0,
+    "P1-01": 0.0,
+    "P1-02": 0.0,
+    "P1-03": 0.0,
+    "P1-04": 0.0,
+    "P1-05": 0.0,
+    "P1-06": 0.0,
+    "P1-10": 9.9,
+    "P5-01": 35.8,
+    "P6-01": 0.0,
+    "P6-02": 0.0,
+    "P1-11": 1.2,
+    "P1-12": 0.0,
+    "P1-08": 0.0,
+    "P1-09": 0.0,
+    "P1-07": 0.0,
+    "W90": 0.0,
+    "W91": 0.8,
+    "W99": 0.0
+  },
+  "writtenAt": "2026-11-09T23:36:16.679709+00:00"
+}

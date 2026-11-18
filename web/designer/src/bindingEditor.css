@@ -1,0 +1,151 @@
+/* D-3 binding and transform editor. Sized for a 320-380px side column. */
+.oip-props { gap: 6px; }
+.oip-prop { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.oip-prop[data-drop-target="yes"] { outline: 2px dashed var(--studio-accent); outline-offset: 2px; border-radius: 6px; background: var(--oip-accent-subtle); }
+.oip-bound-value .oip-quality-dot { margin-right: 4px; vertical-align: middle; }
+.oip-binding-browse { flex: none; font-size: 12px; border: 1px solid var(--studio-line); background: var(--oip-surface-2); border-radius: 4px; padding: 2px 8px; cursor: pointer; }
+.oip-binding-pathrow { display: flex; gap: 4px; align-items: flex-end; min-width: 0; }
+.oip-binding-pathrow > label { flex: 1 1 auto; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.oip-prop-row { display: flex; align-items: flex-end; gap: 6px; min-width: 0; }
+.oip-prop-row:has(.oip-schema-check) { align-items: center; }
+.oip-prop-main { flex: 1 1 auto; min-width: 0; }
+.oip-prop-main > .oip-schema { gap: 4px; }
+.oip-bind-button {
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid var(--studio-line);
+  border-radius: 8px;
+  background: var(--oip-surface-2);
+  color: var(--studio-muted);
+  cursor: pointer;
+}
+.oip-bind-button[data-bound="yes"] { color: var(--studio-accent-ink); background: var(--studio-accent); border-color: var(--studio-accent); }
+.oip-bind-button[aria-expanded="true"] { box-shadow: 0 0 0 2px rgba(15, 110, 110, 0.3); }
+
+.oip-bound {
+  width: 100%;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas: "label kind kind" "summary summary value";
+  gap: 2px 6px;
+  align-items: center;
+  text-align: left;
+  font-size: 13px;
+  padding: 6px 8px;
+  border: 1px solid var(--studio-accent);
+  border-radius: 8px;
+  background: var(--oip-accent-subtle);
+  color: var(--studio-ink);
+  cursor: pointer;
+}
+.oip-bound-label { grid-area: label; font-weight: 600; }
+.oip-bound-kind {
+  grid-area: kind;
+  justify-self: start;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--studio-accent);
+  color: var(--studio-accent-ink);
+}
+.oip-bound-summary { grid-area: summary; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--studio-muted); font-size: 12px; }
+.oip-bound-value { grid-area: value; justify-self: end; font-variant-numeric: tabular-nums; font-weight: 600; max-width: 130px; padding-left: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.oip-binding-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--studio-line);
+  border-left: 3px solid var(--studio-accent);
+  border-radius: 8px;
+  background: var(--oip-surface-2);
+  font-size: 13px;
+  min-width: 0;
+}
+.oip-binding-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.oip-binding-head h3 { margin: 0; font-size: 14px; }
+.oip-binding-head button, .oip-transform-tools button, .oip-map-row > button, .oip-ref-row > button {
+  border: 1px solid var(--studio-line);
+  border-radius: 6px;
+  background: transparent;
+  min-width: 26px;
+  height: 26px;
+  cursor: pointer;
+}
+.oip-binding-kinds { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border: 1px solid var(--studio-line); border-radius: 8px; overflow: hidden; }
+.oip-binding-kinds button { border: 0; border-right: 1px solid var(--studio-line); background: transparent; padding: 6px 2px; font-size: 12px; cursor: pointer; }
+.oip-binding-kinds button:last-child { border-right: 0; }
+.oip-binding-kinds button[aria-checked="true"] { background: var(--studio-accent); color: var(--studio-accent-ink); }
+
+.oip-binding-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+.oip-script-builder { width: 100%; min-width: 0; }
+.oip-script-builder select,
+.oip-script-builder input,
+.oip-script-builder textarea {
+  width: 100%;
+  min-width: 16rem;
+  box-sizing: border-box;
+}
+.oip-binding-grid > label:not(.oip-schema-check) { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.oip-binding-wide { grid-column: 1 / -1; }
+.oip-binding-editor input[type="text"], .oip-binding-editor input[type="number"], .oip-binding-editor select, .oip-binding-editor textarea {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--studio-line);
+  border-radius: 6px;
+  padding: 5px 7px;
+  background: var(--oip-surface-2);
+  font: inherit;
+  font-size: 13px;
+}
+.oip-binding-editor textarea { font-family: ui-monospace, "SFMono-Regular", Menlo, monospace; resize: vertical; }
+.oip-binding-editor [aria-invalid="true"] { border-color: var(--oip-alarm-1); }
+.oip-binding-error { margin: 0; color: var(--oip-alarm-1); font-size: 12px; }
+.oip-binding-muted { margin: 0; color: var(--studio-muted); font-size: 12px; }
+.oip-binding-value { margin: 0; padding: 6px 8px; border-radius: 6px; background: var(--oip-surface-2); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.oip-binding-value[data-state="not_connected"], .oip-binding-value[data-state="failed"] { background: var(--oip-surface-2); color: var(--oip-alarm-2); }
+.oip-binding-remove { align-self: flex-start; border: 1px solid var(--oip-alarm-1); color: var(--oip-alarm-1); background: transparent; border-radius: 6px; padding: 5px 10px; cursor: pointer; }
+
+.oip-refs { display: flex; flex-direction: column; gap: 6px; }
+.oip-refs > button, .oip-map-foot > button, .oip-transform-add button {
+  align-self: flex-start;
+  border: 1px dashed var(--studio-line);
+  border-radius: 6px;
+  background: transparent;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+.oip-ref-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-width: 0; }
+.oip-ref-row > input, .oip-ref-row > select { flex: 1 1 90px; width: auto !important; }
+
+.oip-transforms h4 { margin: 4px 0; font-size: 13px; }
+.oip-transform-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.oip-transform { border: 1px solid var(--studio-line); border-radius: 8px; padding: 8px; display: flex; flex-direction: column; gap: 6px; background: var(--studio-panel); }
+.oip-transform-head { display: flex; align-items: center; justify-content: space-between; }
+.oip-transform-tools { display: inline-flex; gap: 4px; }
+.oip-transform-add { display: flex; gap: 6px; margin-top: 6px; }
+.oip-map { display: flex; flex-direction: column; gap: 6px; }
+.oip-map-row { display: grid; grid-template-columns: 78px minmax(0, 1fr) 26px; grid-template-areas: "itype input remove" "otype output ."; gap: 4px; align-items: start; }
+.oip-map-row > select:nth-of-type(1) { grid-area: itype; }
+.oip-map-row > :nth-child(2) { grid-area: input; }
+.oip-map-row > span[aria-hidden] { display: none; }
+.oip-map-row > select:nth-of-type(2) { grid-area: otype; }
+.oip-map-row > :nth-child(5) { grid-area: output; }
+.oip-map-row > button { grid-area: remove; }
+.oip-range { display: flex; flex-direction: column; gap: 2px; }
+.oip-range small { color: var(--oip-alarm-1); }
+.oip-map-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.oip-map-foot > input { flex: 1 1 100px; width: auto !important; }
+.oip-step { margin: 0; font-size: 12px; padding: 4px 6px; border-radius: 6px; background: var(--oip-surface-2); display: flex; flex-wrap: wrap; gap: 4px; font-variant-numeric: tabular-nums; }
+.oip-step[data-status="ok"] { color: var(--oip-ink); }
+.oip-step[data-status="error"], .oip-step[data-status="not_connected"] { background: var(--oip-surface-2); color: var(--oip-alarm-2); }
+.oip-step[data-status="skipped"], .oip-step[data-status="none"] { color: var(--studio-muted); }
+.oip-step-note { font-weight: 600; }
+.oip-binding-incomplete { margin: 0; padding: 4px 8px; border-radius: 6px; background: var(--oip-surface-2); color: var(--oip-alarm-3); font-size: 12px; }
+.oip-binding-authored { display: flex; flex-direction: column; gap: 2px; padding-top: 4px; border-top: 1px dashed var(--studio-line); }

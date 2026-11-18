@@ -1,0 +1,26 @@
+{
+  "name": "prf-008",
+  "description": "Sizes for HistorianSoakTest (PRF-008). full is the ADR 0010 floor: 10,000 changes/s for 3 h with a database cut in the middle, then the 30,000 changes/s stretch, recorded and not gating. ci is the Load bench job size: above the floor rate for a short window with a cut, then a short stretch. Change rule (index + scan) % 100 < percent at a 1 s scan.",
+  "sizes": {
+    "full": {
+      "tags": 100000,
+      "percent": 10,
+      "steadySeconds": 10800,
+      "cutAtSeconds": 5400,
+      "cutSeconds": 120,
+      "stretchPercent": 30,
+      "stretchSeconds": 1800,
+      "drainBudgetSeconds": 1800
+    },
+    "ci": {
+      "tags": 30000,
+      "percent": 34,
+      "steadySeconds": 90,
+      "cutAtSeconds": 35,
+      "cutSeconds": 20,
+      "stretchPercent": 100,
+      "stretchSeconds": 30,
+      "drainBudgetSeconds": 240
+    }
+  }
+}

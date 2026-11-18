@@ -1,0 +1,1000 @@
+apiVersion: oip/v1
+kind: View
+metadata:
+  name: station
+  module: designer
+  version: 1
+  modified: "2026-11-17T20:40:58.427589800Z"
+  modifiedBy: admin
+spec:
+  path: station
+  document:
+    root:
+      id: root
+      name: Root
+      children:
+        -
+          props:
+            text: ""
+          frame:
+            y: 12
+            width: 360
+            height: 32
+            x: 16
+          style:
+            fontSize: 22
+            color: "#e8eef4"
+          id: title
+          name: title
+          type: label
+          kind: component
+          bindings:
+            text:
+              kind: expression
+              expression: "{view.params.name}"
+        -
+          props:
+            text: ""
+          frame:
+            y: 46
+            width: 240
+            height: 22
+            x: 16
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          id: district
+          name: district
+          type: label
+          kind: component
+          bindings:
+            text:
+              path: "[default]Brownsville/Stations/{name}/District"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: false
+              mode: indirect
+              kind: tag
+        -
+          props:
+            text: ""
+          frame:
+            y: 46
+            width: 280
+            height: 22
+            x: 260
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          id: downstream
+          name: downstream
+          type: label
+          kind: component
+          bindings:
+            text:
+              path: "[default]Brownsville/Stations/{name}/Downstream"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: false
+              mode: indirect
+              kind: tag
+        -
+          id: well
+          name: well
+          bindings:
+            level:
+              path: "[default]Brownsville/Stations/{name}/Level"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: false
+              mode: indirect
+              kind: tag
+          type: cylindrical-tank
+          kind: component
+          props:
+            label: Wet well
+            decimals: 1
+            min: 0
+            unit: ft
+            max: 18
+          frame:
+            y: 84
+            width: 120
+            height: 200
+            x: 16
+        -
+          id: flow-l
+          name: flow-l
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          type: label
+          kind: component
+          props:
+            text: Discharge
+          frame:
+            y: 88
+            width: 120
+            height: 18
+            x: 160
+        -
+          props:
+            decimals: 0
+            suffix: " gpm"
+          frame:
+            y: 108
+            width: 150
+            height: 28
+            x: 160
+          style:
+            fontSize: 18
+            color: "#d7dee6"
+          id: flow
+          name: flow
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Stations/{name}/Flow"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: false
+              mode: indirect
+              kind: tag
+        -
+          id: pressure-l
+          name: pressure-l
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          type: label
+          kind: component
+          props:
+            text: Pressure
+          frame:
+            y: 144
+            width: 120
+            height: 18
+            x: 160
+        -
+          props:
+            decimals: 1
+            suffix: " psi"
+          frame:
+            y: 164
+            width: 150
+            height: 28
+            x: 160
+          style:
+            fontSize: 18
+            color: "#d7dee6"
+          id: pressure
+          name: pressure
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Stations/{name}/DischargePressure"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: false
+              mode: indirect
+              kind: tag
+        -
+          id: inflow-l
+          name: inflow-l
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          type: label
+          kind: component
+          props:
+            text: Inflow
+          frame:
+            y: 204
+            width: 120
+            height: 18
+            x: 160
+        -
+          props:
+            decimals: 0
+            suffix: " gpm"
+          frame:
+            y: 224
+            width: 150
+            height: 28
+            x: 160
+          style:
+            fontSize: 18
+            color: "#d7dee6"
+          id: inflow
+          name: inflow
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Stations/{name}/Inflow"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: false
+              mode: indirect
+              kind: tag
+        -
+          id: power
+          name: power
+          bindings:
+            value:
+              path: "[default]Brownsville/Stations/{name}/PowerOk"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: false
+              mode: indirect
+              kind: tag
+          type: indicator
+          kind: component
+          props:
+            label: Utility power
+            onText: On
+            offText: Off
+          frame:
+            y: 88
+            width: 150
+            height: 32
+            x: 340
+        -
+          id: gen
+          name: gen
+          bindings:
+            value:
+              path: "[default]Brownsville/Stations/{name}/Generator"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: false
+              mode: indirect
+              kind: tag
+          type: indicator
+          kind: component
+          props:
+            label: Generator
+            onText: Running
+            offText: Off
+          frame:
+            y: 128
+            width: 150
+            height: 32
+            x: 340
+        -
+          id: comms
+          name: comms
+          bindings:
+            value:
+              path: "[default]Brownsville/Stations/{name}/CommsOk"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: false
+              mode: indirect
+              kind: tag
+          type: indicator
+          kind: component
+          props:
+            label: Comms
+            onText: Ok
+            offText: Down
+          frame:
+            y: 168
+            width: 150
+            height: 32
+            x: 340
+        -
+          id: P1-symbol
+          name: P1-symbol
+          bindings:
+            state:
+              path: "[default]Brownsville/Stations/{name}/P1/Run"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: false
+              mode: indirect
+              kind: tag
+          type: pump
+          kind: component
+          props:
+            label: P1
+          frame:
+            y: 310
+            width: 64
+            height: 64
+            x: 16
+        -
+          id: P1-hoa
+          name: P1-hoa
+          bindings:
+            value:
+              path: "[default]Brownsville/Stations/{name}/P1/Hoa"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: true
+              mode: indirect
+              kind: tag
+          type: multi-state-button
+          kind: component
+          props:
+            states: "0:Off, 1:Hand, 2:Auto"
+            label: P1 HOA
+          frame:
+            y: 300
+            width: 210
+            height: 36
+            x: 88
+        -
+          id: P1-fault
+          name: P1-fault
+          bindings:
+            value:
+              path: "[default]Brownsville/Stations/{name}/P1/Fault"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: false
+              mode: indirect
+              kind: tag
+          type: indicator
+          kind: component
+          props:
+            label: Fault
+            onText: Fault
+            offText: Clear
+          frame:
+            y: 342
+            width: 120
+            height: 28
+            x: 88
+        -
+          props:
+            decimals: 0
+            suffix: " %"
+          frame:
+            y: 380
+            width: 90
+            height: 24
+            x: 16
+          style:
+            color: "#d7dee6"
+          id: P1-speed
+          name: P1-speed
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Stations/{name}/P1/Speed"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: false
+              mode: indirect
+              kind: tag
+        -
+          props:
+            decimals: 1
+            suffix: " A"
+          frame:
+            y: 380
+            width: 90
+            height: 24
+            x: 116
+          style:
+            color: "#d7dee6"
+          id: P1-amps
+          name: P1-amps
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Stations/{name}/P1/Amps"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: false
+              mode: indirect
+              kind: tag
+        -
+          props:
+            decimals: 0
+            suffix: " starts"
+          frame:
+            y: 424
+            width: 160
+            height: 24
+            x: 16
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          id: P1-starts
+          name: P1-starts
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Stations/{name}/P1/Starts"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: false
+              mode: indirect
+              kind: tag
+        -
+          props:
+            decimals: 1
+            suffix: " h"
+          frame:
+            y: 468
+            width: 160
+            height: 24
+            x: 16
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          id: P1-hours
+          name: P1-hours
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Stations/{name}/P1/Runtime"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: false
+              mode: indirect
+              kind: tag
+        -
+          id: P2-symbol
+          name: P2-symbol
+          bindings:
+            state:
+              path: "[default]Brownsville/Stations/{name}/P2/Run"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: false
+              mode: indirect
+              kind: tag
+          type: pump
+          kind: component
+          props:
+            label: P2
+          frame:
+            y: 310
+            width: 64
+            height: 64
+            x: 356
+        -
+          id: P2-hoa
+          name: P2-hoa
+          bindings:
+            value:
+              path: "[default]Brownsville/Stations/{name}/P2/Hoa"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: true
+              mode: indirect
+              kind: tag
+          type: multi-state-button
+          kind: component
+          props:
+            states: "0:Off, 1:Hand, 2:Auto"
+            label: P2 HOA
+          frame:
+            y: 300
+            width: 210
+            height: 36
+            x: 428
+        -
+          id: P2-fault
+          name: P2-fault
+          bindings:
+            value:
+              path: "[default]Brownsville/Stations/{name}/P2/Fault"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: false
+              mode: indirect
+              kind: tag
+          type: indicator
+          kind: component
+          props:
+            label: Fault
+            onText: Fault
+            offText: Clear
+          frame:
+            y: 342
+            width: 120
+            height: 28
+            x: 428
+        -
+          props:
+            decimals: 0
+            suffix: " %"
+          frame:
+            y: 380
+            width: 90
+            height: 24
+            x: 356
+          style:
+            color: "#d7dee6"
+          id: P2-speed
+          name: P2-speed
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Stations/{name}/P2/Speed"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: false
+              mode: indirect
+              kind: tag
+        -
+          props:
+            decimals: 1
+            suffix: " A"
+          frame:
+            y: 380
+            width: 90
+            height: 24
+            x: 456
+          style:
+            color: "#d7dee6"
+          id: P2-amps
+          name: P2-amps
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Stations/{name}/P2/Amps"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: false
+              mode: indirect
+              kind: tag
+        -
+          props:
+            decimals: 0
+            suffix: " starts"
+          frame:
+            y: 424
+            width: 160
+            height: 24
+            x: 356
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          id: P2-starts
+          name: P2-starts
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Stations/{name}/P2/Starts"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: false
+              mode: indirect
+              kind: tag
+        -
+          props:
+            decimals: 1
+            suffix: " h"
+          frame:
+            y: 468
+            width: 160
+            height: 24
+            x: 356
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          id: P2-hours
+          name: P2-hours
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Stations/{name}/P2/Runtime"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: false
+              mode: indirect
+              kind: tag
+        -
+          id: P3-symbol
+          name: P3-symbol
+          bindings:
+            state:
+              path: "[default]Brownsville/Stations/{name}/P3/Run"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: false
+              mode: indirect
+              kind: tag
+          type: pump
+          kind: component
+          props:
+            label: P3
+          frame:
+            y: 310
+            width: 64
+            height: 64
+            x: 696
+        -
+          id: P3-hoa
+          name: P3-hoa
+          bindings:
+            value:
+              path: "[default]Brownsville/Stations/{name}/P3/Hoa"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: true
+              mode: indirect
+              kind: tag
+          type: multi-state-button
+          kind: component
+          props:
+            states: "0:Off, 1:Hand, 2:Auto"
+            label: P3 HOA
+          frame:
+            y: 300
+            width: 210
+            height: 36
+            x: 768
+        -
+          id: P3-fault
+          name: P3-fault
+          bindings:
+            value:
+              path: "[default]Brownsville/Stations/{name}/P3/Fault"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: false
+              mode: indirect
+              kind: tag
+          type: indicator
+          kind: component
+          props:
+            label: Fault
+            onText: Fault
+            offText: Clear
+          frame:
+            y: 342
+            width: 120
+            height: 28
+            x: 768
+        -
+          props:
+            decimals: 0
+            suffix: " %"
+          frame:
+            y: 380
+            width: 90
+            height: 24
+            x: 696
+          style:
+            color: "#d7dee6"
+          id: P3-speed
+          name: P3-speed
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Stations/{name}/P3/Speed"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: false
+              mode: indirect
+              kind: tag
+        -
+          props:
+            decimals: 1
+            suffix: " A"
+          frame:
+            y: 380
+            width: 90
+            height: 24
+            x: 796
+          style:
+            color: "#d7dee6"
+          id: P3-amps
+          name: P3-amps
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Stations/{name}/P3/Amps"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: false
+              mode: indirect
+              kind: tag
+        -
+          props:
+            decimals: 0
+            suffix: " starts"
+          frame:
+            y: 424
+            width: 160
+            height: 24
+            x: 696
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          id: P3-starts
+          name: P3-starts
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Stations/{name}/P3/Starts"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: false
+              mode: indirect
+              kind: tag
+        -
+          props:
+            decimals: 1
+            suffix: " h"
+          frame:
+            y: 468
+            width: 160
+            height: 24
+            x: 696
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          id: P3-hours
+          name: P3-hours
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Stations/{name}/P3/Runtime"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: false
+              mode: indirect
+              kind: tag
+        -
+          id: lead-on
+          name: lead-on
+          bindings:
+            value:
+              path: "[default]Brownsville/Stations/{name}/LeadOn"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: true
+              mode: indirect
+              kind: tag
+          type: numeric-entry
+          kind: component
+          props:
+            label: Lead on
+            minimum: 0
+            suffix: " ft"
+            limitMin: true
+            maximum: 18
+            limitMax: true
+            decimals: 1
+          frame:
+            y: 530
+            width: 160
+            height: 52
+            x: 16
+        -
+          id: lead-off
+          name: lead-off
+          bindings:
+            value:
+              path: "[default]Brownsville/Stations/{name}/LeadOff"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: true
+              mode: indirect
+              kind: tag
+          type: numeric-entry
+          kind: component
+          props:
+            label: Lead off
+            minimum: 0
+            suffix: " ft"
+            limitMin: true
+            maximum: 18
+            limitMax: true
+            decimals: 1
+          frame:
+            y: 530
+            width: 160
+            height: 52
+            x: 186
+        -
+          id: lag-on
+          name: lag-on
+          bindings:
+            value:
+              path: "[default]Brownsville/Stations/{name}/LagOn"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: true
+              mode: indirect
+              kind: tag
+          type: numeric-entry
+          kind: component
+          props:
+            label: Lag on
+            minimum: 0
+            suffix: " ft"
+            limitMin: true
+            maximum: 18
+            limitMax: true
+            decimals: 1
+          frame:
+            y: 530
+            width: 160
+            height: 52
+            x: 356
+        -
+          id: lag-off
+          name: lag-off
+          bindings:
+            value:
+              path: "[default]Brownsville/Stations/{name}/LagOff"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: true
+              mode: indirect
+              kind: tag
+          type: numeric-entry
+          kind: component
+          props:
+            label: Lag off
+            minimum: 0
+            suffix: " ft"
+            limitMin: true
+            maximum: 18
+            limitMax: true
+            decimals: 1
+          frame:
+            y: 530
+            width: 160
+            height: 52
+            x: 526
+        -
+          id: standby-on
+          name: standby-on
+          bindings:
+            value:
+              path: "[default]Brownsville/Stations/{name}/StandbyOn"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: true
+              mode: indirect
+              kind: tag
+          type: numeric-entry
+          kind: component
+          props:
+            label: Standby on
+            minimum: 0
+            suffix: " ft"
+            limitMin: true
+            maximum: 18
+            limitMax: true
+            decimals: 1
+          frame:
+            y: 530
+            width: 160
+            height: 52
+            x: 696
+        -
+          id: standby-off
+          name: standby-off
+          bindings:
+            value:
+              path: "[default]Brownsville/Stations/{name}/StandbyOff"
+              references:
+                name:
+                  name: name
+                  source: param
+              bidirectional: true
+              mode: indirect
+              kind: tag
+          type: numeric-entry
+          kind: component
+          props:
+            label: Standby off
+            minimum: 0
+            suffix: " ft"
+            limitMin: true
+            maximum: 18
+            limitMax: true
+            decimals: 1
+          frame:
+            y: 530
+            width: 160
+            height: 52
+            x: 866
+      layout: coordinate
+      style:
+        background: "#12171c"
+        color: "#d7dee6"
+      kind: container
+      props:
+        mode: fixed
+    params:
+      name:
+        value: CinderFlat
+        direction: input
+    width: 1100
+    height: 680
+  title: Lift station

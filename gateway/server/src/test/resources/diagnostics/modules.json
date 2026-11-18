@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["modules"],
+  "additionalProperties": false,
+  "properties": {
+    "modules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "version", "name", "state", "error"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {"type": "string"},
+          "version": {"type": "string"},
+          "name": {"type": "string"},
+          "state": {"type": "string", "enum": ["INSTALLED", "RUNNING", "STOPPED", "UNINSTALL_FAILED"]},
+          "error": {"type": ["string", "null"]}
+        }
+      }
+    }
+  }
+}

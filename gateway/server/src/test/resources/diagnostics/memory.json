@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["heap", "nonHeap", "processors"],
+  "additionalProperties": false,
+  "properties": {
+    "heap": {
+      "type": "object",
+      "required": ["usedBytes", "committedBytes", "maxBytes"],
+      "additionalProperties": false,
+      "properties": {
+        "usedBytes": {"type": "integer", "minimum": 0},
+        "committedBytes": {"type": "integer", "minimum": 0},
+        "maxBytes": {"type": "integer"}
+      }
+    },
+    "nonHeap": {
+      "type": "object",
+      "required": ["usedBytes", "committedBytes"],
+      "additionalProperties": false,
+      "properties": {
+        "usedBytes": {"type": "integer", "minimum": 0},
+        "committedBytes": {"type": "integer", "minimum": 0}
+      }
+    },
+    "processors": {"type": "integer", "minimum": 1}
+  }
+}

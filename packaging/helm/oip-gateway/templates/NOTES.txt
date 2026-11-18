@@ -1,0 +1,9 @@
+The gateway is starting. Its data directory is {{ if .Values.persistence.enabled }}on the PersistentVolumeClaim {{ include "oip-gateway.claimName" . }}{{ else }}an emptyDir (lost when the pod moves){{ end }}.
+{{- if not .Values.admin.existingSecret }}
+
+No administrator is seeded: set admin.existingSecret to the name of a Secret that holds the password.
+{{- end }}
+
+Reach it from your machine:
+  kubectl port-forward svc/{{ include "oip-gateway.fullname" . }} {{ .Values.service.port }}:{{ .Values.service.port }}
+then open http://localhost:{{ .Values.service.port }}/admin

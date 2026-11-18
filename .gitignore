@@ -1,0 +1,18 @@
+.gradle/
+build/
+*.class
+.kotlin/
+__pycache__/
+
+# Secrets files (generated or supplied by a person)
+secrets/
+docs/agent/DIFFERENCES.generated.md
+
+# Laptop logs, tunnel output, and screenshot scratch. Not part of a release.
+logs/
+
+# PLC preview: RuSTy is downloaded at build time and is not vendored.
+plc/eric-plc/.cache/
+plc/eric-plc/target/
+plc/eric-plc/examples/sealin/build/
+plc/eric-plc/build/

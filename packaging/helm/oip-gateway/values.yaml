@@ -1,0 +1,97 @@
+# ERIC gateway. Every value has a default that starts a standalone gateway with no users:
+# set admin.existingSecret to seed the administrator on first start.
+
+image:
+  # Build the repository Dockerfile and push it to a registry your cluster can pull from.
+  repository: oip-gateway
+  tag: ""            # empty uses the chart appVersion
+  pullPolicy: IfNotPresent
+imagePullSecrets: []
+
+nameOverride: ""
+fullnameOverride: ""
+
+# Gateway profile: edge, standard or hub (ERIC_PROFILE). OIP_PROFILE still works and prints a warning.
+profile: standard
+
+admin:
+  # Name of an existing Secret in this namespace that holds the administrator password. The chart never creates or
+  # prints the password. The gateway seeds user "admin" from it only while its user source is empty.
+  # Create it first: kubectl create secret generic oip-admin --from-literal=password=... (use a Secret manager
+  # or a sealed secret in real clusters, not a shell history).
+  existingSecret: ""
+  secretKey: password
+
+# gateway.yaml: the YAML you put here is mounted from a ConfigMap and copied to <dataDir>/gateway.yaml on every
+# start, so the ConfigMap is the source of truth. Leave empty to let the gateway write its own default file.
+# Example:
+#   gatewayYaml: |
+#     logging:
+#       maxFileKb: 10240
+#       maxFiles: 8
+gatewayYaml: ""
+
+service:
+  type: ClusterIP    # ClusterIP, NodePort or LoadBalancer
+  port: 8088         # port the Service exposes
+  nodePort: null     # only used with type NodePort (or LoadBalancer when your cloud allows it)
+  annotations: {}
+
+# HTTP port the gateway listens on inside the pod (ERIC_HTTP_PORT). The Service targetPort follows it.
+httpPort: 8088
+
+# Gateway-network (gRPC) listener, off the Service unless enabled.
+gatewayNetwork:
+  enabled: false
+  port: 8060
+
+persistence:
+  enabled: true      # false uses an emptyDir: the data directory is lost when the pod is rescheduled
+  existingClaim: ""  # use this PersistentVolumeClaim instead of creating one
+  storageClass: ""   # empty uses the cluster default; "-" sets storageClassName to ""
+  accessModes:
+    - ReadWriteOnce
+  size: 10Gi
+  annotations: {}
+
+resources:
+  requests:
+    cpu: 500m
+    memory: 1Gi
+  limits:
+    memory: 2Gi
+
+# Extra environment variables for the gateway container, as a list of name/value or name/valueFrom entries.
+extraEnv: []
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+podAnnotations: {}
+podLabels: {}
+
+# The image runs as uid 10001 and writes only to /data.
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 10001
+  runAsGroup: 10001
+  fsGroup: 10001
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop: ["ALL"]
+
+# Probes call the unauthenticated health route.
+probes:
+  path: /api/v1/health
+  startup:
+    failureThreshold: 60
+    periodSeconds: 5
+  readiness:
+    periodSeconds: 10
+    timeoutSeconds: 3
+    failureThreshold: 3
+  liveness:
+    periodSeconds: 20
+    timeoutSeconds: 3
+    failureThreshold: 6

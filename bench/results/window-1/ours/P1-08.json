@@ -1,0 +1,43 @@
+{
+  "step": "P1-08",
+  "target": "ours",
+  "label": "container-size, not reference-size",
+  "dryRun": true,
+  "id": "P1-08",
+  "status": "ok",
+  "seconds": 0.0,
+  "startedMinute": 10.64,
+  "notes": [],
+  "data": {
+    "gate": "parity-1",
+    "closes": [
+      "SEC-024"
+    ],
+    "prompt": [
+      "How do IP, hostname and gateway-name rules combine, and how does a zone limit role permissions?"
+    ],
+    "probes": [
+      {
+        "method": "GET",
+        "path": "/api/v1/config?kind=SecurityZone",
+        "auth": "session",
+        "status": 200,
+        "ms": 12.6,
+        "shape": {
+          "type": "object",
+          "keys": [
+            "items"
+          ],
+          "lists": {
+            "items": {
+              "length": 0,
+              "itemKeys": null
+            }
+          }
+        }
+      }
+    ],
+    "answer": null,
+    "note": "dry run: UI questions are for the reference product; our side is the probes"
+  }
+}

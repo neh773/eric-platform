@@ -1,0 +1,73 @@
+{
+  "step": "P6-02",
+  "target": "ours",
+  "label": "container-size, not reference-size",
+  "dryRun": true,
+  "id": "P6-02",
+  "status": "ok",
+  "seconds": 0.0,
+  "startedMinute": 10.63,
+  "notes": [],
+  "data": {
+    "gate": "parity-6",
+    "closes": [
+      "RED-002"
+    ],
+    "prompt": [
+      "Redundancy modes offered and the defaults (standby activity, failover timeout, sync)."
+    ],
+    "probes": [
+      {
+        "method": "GET",
+        "path": "/api/v1/redundancy",
+        "auth": "session",
+        "status": 200,
+        "ms": 8.2,
+        "shape": {
+          "type": "object",
+          "keys": [
+            "activeUptimeMillis",
+            "activeWindows",
+            "activityLevel",
+            "configRevision",
+            "connected",
+            "events",
+            "historyLogged",
+            "historyMode",
+            "historyPending",
+            "historyStore",
+            "isActive",
+            "isMaster",
+            "missedHeartbeats",
+            "peerId",
+            "providers",
+            "recoveryMode",
+            "role",
+            "runtimeRevision",
+            "splitBrain",
+            "standbyActivityLevel",
+            "useActiveUptime"
+          ],
+          "lists": {
+            "providers": {
+              "length": 2,
+              "itemKeys": [
+                "name"
+              ]
+            },
+            "events": {
+              "length": 0,
+              "itemKeys": null
+            },
+            "activeWindows": {
+              "length": 0,
+              "itemKeys": null
+            }
+          }
+        }
+      }
+    ],
+    "answer": null,
+    "note": "dry run: UI questions are for the reference product; our side is the probes"
+  }
+}

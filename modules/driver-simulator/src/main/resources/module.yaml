@@ -1,0 +1,13 @@
+id: org.oip.driver-simulator
+version: 0.1.0
+name: Programmable Device Simulator
+entrypoint: org.oip.simulator.SimulatorDriverModule
+dependencies: []
+permissions:
+  - device.connect
+configSchema:
+  type: object
+  properties:
+    description:
+      type: string
+      default: ""

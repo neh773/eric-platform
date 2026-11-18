@@ -1,0 +1,83 @@
+{
+  "step": "P1-01",
+  "target": "ours",
+  "label": "container-size, not reference-size",
+  "dryRun": true,
+  "id": "P1-01",
+  "status": "ok",
+  "seconds": 0.0,
+  "startedMinute": 9.86,
+  "notes": [],
+  "data": {
+    "gate": "parity-1",
+    "closes": [
+      "GAT-016",
+      "GAT-034"
+    ],
+    "prompt": [
+      "List the top-level sections and their pages.",
+      "Which status banners show (trial, HTTPS, other)?",
+      "Does a global search exist and what does it find?"
+    ],
+    "probes": [
+      {
+        "method": "GET",
+        "path": "/api/v1/health",
+        "auth": "session",
+        "status": 200,
+        "ms": 1.9,
+        "shape": {
+          "type": "object",
+          "keys": [
+            "modules",
+            "profile",
+            "startedAt",
+            "status",
+            "version",
+            "warnings"
+          ],
+          "lists": {
+            "warnings": {
+              "length": 1,
+              "itemKeys": null
+            }
+          }
+        }
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/modules",
+        "auth": "session",
+        "status": 200,
+        "ms": 10.9,
+        "shape": {
+          "type": "object",
+          "keys": [
+            "available",
+            "items"
+          ],
+          "lists": {
+            "items": {
+              "length": 7,
+              "itemKeys": [
+                "dependencies",
+                "error",
+                "id",
+                "name",
+                "permissions",
+                "state",
+                "version"
+              ]
+            },
+            "available": {
+              "length": 0,
+              "itemKeys": null
+            }
+          }
+        }
+      }
+    ],
+    "answer": null,
+    "note": "dry run: UI questions are for the reference product; our side is the probes"
+  }
+}

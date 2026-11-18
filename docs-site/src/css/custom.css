@@ -1,0 +1,98 @@
+:root {
+  --ifm-color-primary: #3d8bff;
+  --ifm-color-primary-dark: #1a74ff;
+  --ifm-color-primary-darker: #0a66e0;
+  --ifm-color-primary-darkest: #084fae;
+  --ifm-color-primary-light: #6aa3ff;
+  --ifm-color-primary-lighter: #8bb6ff;
+  --ifm-color-primary-lightest: #c5dbff;
+  --ifm-font-family-base: Inter, "Segoe UI", system-ui, sans-serif;
+  --ifm-font-family-monospace: "JetBrains Mono", ui-monospace, "Cascadia Code", monospace;
+  --ifm-code-font-size: 95%;
+  --ifm-heading-font-weight: 600;
+  --oip-bg: #0b0d10;
+  --oip-surface: #14171c;
+  --oip-ink: #f2f4f7;
+  --oip-muted: #a3abb8;
+  --oip-line: #2a2f38;
+}
+
+[data-theme="dark"] {
+  --ifm-background-color: #0b0d10;
+  --ifm-background-surface-color: #14171c;
+  --ifm-navbar-background-color: #14171c;
+  --ifm-footer-background-color: #0b0d10;
+  --ifm-font-color-base: #f2f4f7;
+  --ifm-font-color-secondary: #a3abb8;
+  --ifm-toc-border-color: #2a2f38;
+  --ifm-color-emphasis-300: #2a2f38;
+  --ifm-hover-overlay: rgba(61, 139, 255, 0.16);
+}
+
+[data-theme="light"] {
+  --ifm-color-primary: #0a66e0;
+  --ifm-background-color: #f4f5f7;
+  --ifm-background-surface-color: #ffffff;
+  --ifm-navbar-background-color: #ffffff;
+  --ifm-footer-background-color: #f4f5f7;
+  --ifm-font-color-base: #0b0d10;
+  --ifm-font-color-secondary: #4a5260;
+  --ifm-toc-border-color: #e1e4e8;
+  --oip-bg: #f4f5f7;
+  --oip-surface: #ffffff;
+  --oip-ink: #0b0d10;
+  --oip-muted: #4a5260;
+  --oip-line: #e1e4e8;
+}
+
+.oip-hero {
+  background: var(--oip-bg);
+  color: var(--oip-ink);
+  padding: 64px 24px 48px;
+}
+
+.oip-hero h1 {
+  font-size: 40px;
+  letter-spacing: -0.02em;
+  margin: 0 0 12px;
+}
+
+.oip-hero p {
+  max-width: 40rem;
+  color: var(--oip-muted);
+  font-size: 18px;
+}
+
+.oip-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+  padding: 0 24px 64px;
+  background: var(--oip-bg);
+}
+
+.oip-card {
+  display: block;
+  background: var(--oip-surface);
+  color: var(--oip-ink);
+  border: 1px solid var(--oip-line);
+  border-radius: 10px;
+  padding: 16px;
+  text-decoration: none;
+}
+
+.oip-card:hover {
+  border-color: var(--ifm-color-primary);
+  text-decoration: none;
+  color: var(--oip-ink);
+}
+
+.oip-card strong {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.oip-card span {
+  color: var(--oip-muted);
+  font-size: 14px;
+}

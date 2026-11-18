@@ -1,0 +1,57 @@
+apiVersion: oip/v1
+kind: View
+metadata:
+  name: trends
+  module: designer
+  version: 1
+  modified: "2026-11-17T20:40:37.629943200Z"
+  modifiedBy: admin
+spec:
+  path: trends
+  document:
+    root:
+      id: root
+      name: Root
+      children:
+        -
+          id: title
+          name: title
+          style:
+            fontSize: 22
+            color: "#e8eef4"
+          type: label
+          kind: component
+          props:
+            text: Levels and flows
+          frame:
+            y: 12
+            width: 320
+            height: 28
+            x: 16
+        -
+          id: chart
+          name: chart
+          type: time-series-chart
+          kind: component
+          props:
+            historyPens: "[default]Brownsville/Stations/CinderFlat/Level,[default]Brownsville/Stations/OldLevee/Level,[default]Brownsville/Stations/BayouEnd/Level,[default]Brownsville/Tanks/NorthBasin/Level,[default]Brownsville/Tanks/PortBasin/Level,[default]Brownsville/Plants/ResacaBend/InfluentFlow,[default]Brownsville/Plants/LagunaWorks/InfluentFlow"
+            title: "Wet wells, basins, plant influent"
+            rangeSeconds: 600
+            decimals: 1
+            historyRefreshSeconds: 5
+          frame:
+            y: 52
+            width: 1080
+            height: 520
+            x: 16
+      layout: coordinate
+      style:
+        background: "#12171c"
+        color: "#d7dee6"
+      kind: container
+      props:
+        mode: fixed
+    params: {}
+    width: 1120
+    height: 600
+  title: Trends

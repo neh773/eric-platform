@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["connections"],
+  "additionalProperties": false,
+  "properties": {
+    "connections": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name", "enabled", "description", "endpointUrl", "state", "connected",
+          "serverState", "sessionId", "sessionName", "uptimeMs",
+          "subscriptionCount", "monitoredItemCount",
+          "samplingIntervalMs", "publishIntervalMs",
+          "requestCount", "errorCount", "timeoutCount", "averageResponseTimeMs",
+          "lastError", "subscriptions"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "name": {"type": "string"},
+          "enabled": {"type": "boolean"},
+          "description": {"type": "string"},
+          "endpointUrl": {"type": "string"},
+          "state": {"type": "string"},
+          "connected": {"type": "boolean"},
+          "serverState": {"type": ["string", "null"]},
+          "sessionId": {"type": ["string", "null"]},
+          "sessionName": {"type": ["string", "null"]},
+          "uptimeMs": {"type": ["integer", "null"]},
+          "subscriptionCount": {"type": "integer", "minimum": 0},
+          "monitoredItemCount": {"type": "integer", "minimum": 0},
+          "samplingIntervalMs": {"type": ["number", "null"]},
+          "publishIntervalMs": {"type": ["number", "null"]},
+          "requestCount": {"type": "integer", "minimum": 0},
+          "errorCount": {"type": "integer", "minimum": 0},
+          "timeoutCount": {"type": "integer", "minimum": 0},
+          "averageResponseTimeMs": {"type": ["number", "null"]},
+          "lastError": {"type": ["string", "null"]},
+          "subscriptions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "name", "samplingIntervalMs", "requestedPublishingIntervalMs",
+                "revisedPublishingIntervalMs", "monitoredItemCount"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "name": {"type": "string"},
+                "samplingIntervalMs": {"type": "number"},
+                "requestedPublishingIntervalMs": {"type": "number"},
+                "revisedPublishingIntervalMs": {"type": "number"},
+                "monitoredItemCount": {"type": "integer", "minimum": 0}
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,78 @@
+{
+  "step": "P1-04",
+  "target": "ours",
+  "label": "container-size, not reference-size",
+  "dryRun": true,
+  "id": "P1-04",
+  "status": "ok",
+  "seconds": 0.0,
+  "startedMinute": 9.86,
+  "notes": [],
+  "data": {
+    "gate": "parity-1",
+    "closes": [
+      "SEC-009"
+    ],
+    "prompt": [
+      "Default length, complexity, history and maximum age of the internal user source.",
+      "Create user parity-ro with a read-only role and user parity-lock with no role."
+    ],
+    "probes": [
+      {
+        "method": "GET",
+        "path": "/api/v1/security/users",
+        "auth": "session",
+        "status": 200,
+        "ms": 8.1,
+        "shape": {
+          "type": "object",
+          "keys": [
+            "items"
+          ],
+          "lists": {
+            "items": {
+              "length": 1,
+              "itemKeys": [
+                "displayName",
+                "email",
+                "enabled",
+                "passwordChangedAt",
+                "passwordExpired",
+                "phone",
+                "roles",
+                "username",
+                "version"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/security/roles",
+        "auth": "session",
+        "status": 200,
+        "ms": 2.8,
+        "shape": {
+          "type": "object",
+          "keys": [
+            "items"
+          ],
+          "lists": {
+            "items": {
+              "length": 3,
+              "itemKeys": [
+                "description",
+                "name",
+                "permissions",
+                "version"
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "answer": null,
+    "note": "dry run: UI questions are for the reference product; our side is the probes"
+  }
+}

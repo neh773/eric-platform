@@ -1,0 +1,6 @@
+# Edge profile: small footprint, local-only by default.
+http: { host: 127.0.0.1, port: 8090 }
+features: [edge]
+
+# Local resource caps for a small field device (0 = no cap). Override under limits: in gateway.yaml.
+limits: { maxDevices: 50, maxStorageMb: 2048 }

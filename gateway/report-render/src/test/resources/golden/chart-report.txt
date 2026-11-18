@@ -1,0 +1,24 @@
+Line 1 temperatures
+range: 2025-10-26 06:00 to 2025-10-27 06:00
+Generated 2025-10-27 06:00:00 UTC   run 0b3e7f12 (schedule, system, partial)
+Warning: temps: 6 samples of [default]Line1/CoolerTemp are Bad_NotConnected
+Oven and cooler temperature
+degC
+200
+150
+100
+50
+0
+06:00 09:00 12:00 15:00 18:00 21:00 00:00 03:00 06:00
+Oven (degC) Cooler (degC)
+Line 1 temperatures   2025-10-27 06:00:00 UTC Page 1 of 2
+Line 1 temperatures
+Production by line
+pcs
+15000
+10000
+5000
+0
+L1 L2 L3 L4
+good (pcs) scrap (pcs)
+Line 1 temperatures   2025-10-27 06:00:00 UTC Page 2 of 2

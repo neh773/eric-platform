@@ -1,0 +1,121 @@
+{
+  "apiVersion": "oip/v1",
+  "kind": "Report",
+  "metadata": {
+    "name": "line1-shift-production",
+    "module": "reporting"
+  },
+  "spec": {
+    "title": "Line 1 shift production",
+    "description": "Hourly counts, scrap and OEE for packaging line 1.",
+    "parameters": [
+      {
+        "name": "range",
+        "type": "timeRange",
+        "default": {
+          "last": "24h"
+        }
+      },
+      {
+        "name": "line",
+        "type": "string",
+        "default": "L1"
+      }
+    ],
+    "dataSources": [
+      {
+        "name": "production",
+        "type": "namedQuery",
+        "query": "line-production",
+        "parameters": {
+          "line": {
+            "param": "line"
+          },
+          "start": {
+            "param": "range",
+            "field": "from"
+          },
+          "end": {
+            "param": "range",
+            "field": "to"
+          }
+        }
+      }
+    ],
+    "layout": {
+      "layoutVersion": 1,
+      "page": {
+        "size": "A4",
+        "orientation": "portrait"
+      },
+      "timezone": "Europe/Berlin",
+      "header": {
+        "subtitle": "Packaging line 1, hourly production (Europe/Berlin)"
+      },
+      "components": [
+        {
+          "type": "table",
+          "title": "Hourly production",
+          "dataset": "production",
+          "columns": [
+            {
+              "field": "hour",
+              "label": "Hour",
+              "format": {
+                "type": "timestamp",
+                "pattern": "yyyy-MM-dd HH:mm"
+              },
+              "width": 1.6
+            },
+            {
+              "field": "line",
+              "label": "Line",
+              "width": 0.6
+            },
+            {
+              "field": "count",
+              "label": "Good",
+              "format": {
+                "type": "number",
+                "decimals": 0,
+                "grouping": true
+              }
+            },
+            {
+              "field": "scrap",
+              "label": "Scrap",
+              "format": {
+                "decimals": 0
+              }
+            },
+            {
+              "field": "scrapRate",
+              "label": "Scrap rate",
+              "unit": "%",
+              "format": {
+                "type": "number",
+                "decimals": 2
+              },
+              "width": 1.3
+            },
+            {
+              "field": "oee",
+              "label": "OEE",
+              "format": {
+                "type": "number",
+                "decimals": 3,
+                "nullText": "n/a"
+              }
+            },
+            {
+              "field": "running",
+              "label": "Running",
+              "align": "center",
+              "width": 0.8
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,454 @@
+:root {
+  --studio-paper: var(--oip-bg);
+  --studio-ink: var(--oip-ink);
+  --studio-muted: var(--oip-ink-2);
+  --studio-panel: var(--oip-surface-1);
+  --studio-line: var(--oip-line);
+  --studio-accent: var(--oip-accent);
+  --studio-accent-ink: #ffffff;
+  font-family: var(--oip-font-ui);
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root { height: 100%; margin: 0; }
+
+body {
+  background: var(--studio-paper);
+  color: var(--studio-ink);
+}
+
+button, input, select { font: inherit; }
+
+/* The browser's default checkbox margin (3px 3px 3px 4px) indents the box and lifts it off its label's text line.
+   Without it, a box sits flush with the fields above it and centred on its label (see .oip-schema-check).
+   HMI components on the canvas (inside .oip-session) keep their runtime look, so the canvas matches /hmi. */
+input:where([type="checkbox"], [type="radio"]):where(:not(.oip-session *)) {
+  flex: none;
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  accent-color: var(--studio-accent);
+}
+
+.oip-shell {
+  height: 100%;
+  display: grid;
+  grid-template-rows: 56px minmax(0, 1fr);
+}
+
+.oip-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 16px;
+  background: var(--oip-surface-1);
+  color: var(--oip-ink);
+  border-bottom: 1px solid var(--oip-line);
+}
+
+.oip-product, .oip-project-name { margin: 0; }
+.oip-product { font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--oip-ink-3); font-weight: 600; }
+.oip-project-name { font-size: 16px; }
+
+.oip-top-actions { display: flex; gap: 8px; align-items: center; }
+
+.oip-topbar button {
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.oip-topbar button[aria-pressed="true"] {
+  background: var(--oip-surface-3);
+  color: var(--oip-ink);
+}
+
+.oip-connection {
+  font-family: var(--oip-font-mono);
+  font-size: 12px;
+  color: var(--oip-ink-2);
+}
+
+.oip-body {
+  min-height: 0;
+  display: grid;
+  /* Left dock, canvas, right dock; the bottom dock spans all three. Fits 1280px with a 690px canvas by default. */
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-rows: minmax(0, 1fr) auto;
+}
+
+.oip-stage { grid-column: 2; grid-row: 1; }
+
+.oip-dock {
+  min-height: 0;
+  overflow: auto;
+  background: var(--studio-panel);
+  display: flex;
+  flex-direction: column;
+}
+.oip-dock-left { grid-column: 1; grid-row: 1; width: 300px; border-right: 1px solid var(--studio-line); }
+.oip-side { grid-column: 3; grid-row: 1; width: 360px; border-left: 1px solid var(--studio-line); }
+.oip-dock-bottom { grid-column: 1 / -1; grid-row: 2; flex-direction: row; height: 260px; border-top: 1px solid var(--studio-line); }
+.oip-dock-bottom .oip-dock-panel { flex: 1 1 0; min-width: 240px; overflow: auto; border-left: 1px solid var(--studio-line); }
+.oip-dock-bottom .oip-dock-panel:first-child { border-left: 0; }
+.oip-dock-bottom .oip-dock-panel[data-collapsed="yes"] { flex: 0 0 auto; min-width: 0; }
+.oip-dock-header { display: flex; align-items: center; justify-content: space-between; gap: 4px; padding: 2px 8px; border-bottom: 1px solid var(--studio-line); position: sticky; top: 0; background: var(--studio-panel); z-index: 1; }
+.oip-dock-header h2 { margin: 0; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--studio-muted); font-weight: 600; }
+.oip-dock-header [role="toolbar"] { display: flex; gap: 2px; }
+.oip-dock-header button { min-width: 22px; padding: 0 4px; line-height: 20px; border: 1px solid transparent; background: transparent; color: var(--studio-muted); cursor: pointer; border-radius: 4px; }
+.oip-dock-header button:hover { border-color: var(--studio-line); }
+.oip-dock-panel + .oip-dock-panel { border-top: 1px solid var(--studio-line); }
+.oip-panel-restore { display: flex; gap: 4px; }
+
+.oip-dock .oip-inspector { overflow: visible; }
+.oip-inspector { padding: 12px; }
+
+.oip-side-tabs { display: flex; min-height: 0; align-items: stretch; }
+.oip-side-tabs [role="tablist"] {
+  display: flex;
+  flex-direction: column;
+  flex: none;
+  width: 76px;
+  gap: 2px;
+  padding: 8px 4px;
+  border-right: 1px solid var(--studio-line);
+  overflow: auto;
+}
+.oip-side-tabs [role="tab"] {
+  flex: none;
+  width: 100%;
+  min-height: 48px;
+  white-space: normal;
+  border: 0;
+  border-radius: var(--oip-radius-sm);
+  background: transparent;
+  color: var(--oip-ink-3);
+  padding: 4px 2px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  cursor: pointer;
+}
+.oip-side-tabs [role="tab"][aria-selected="true"] { background: var(--oip-surface-3); color: var(--oip-ink); }
+.oip-side-tabs [role="tabpanel"] { flex: 1 1 auto; min-width: 0; overflow: auto; }
+.oip-side-tabs .oip-style-classes { border-top: 0; }
+
+.oip-tree, .oip-library { padding: 12px; }
+.oip-tree ul { list-style: none; margin: 0; padding: 0; }
+.oip-tree-project { display: block; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--studio-muted); margin-bottom: 8px; }
+.oip-tree-inherited { color: var(--studio-muted); font-style: italic; font-size: 12px; }
+.oip-inherited-banner { display: flex; gap: 12px; align-items: center; justify-content: space-between; padding: 8px 12px; margin-bottom: 8px; border: 1px dashed var(--studio-muted); border-radius: 6px; font-size: 13px; }
+.oip-tree button, .oip-library button {
+  display: block;
+  width: 100%;
+  text-align: start;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  padding: 6px 8px;
+  cursor: pointer;
+}
+.oip-tree button[aria-selected="true"] { background: var(--oip-accent-subtle); color: var(--oip-ink); box-shadow: inset 2px 0 0 var(--oip-accent); }
+.oip-library p { margin: 8px 0; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--studio-muted); }
+.oip-library button { border: 1px solid var(--studio-line); margin-bottom: 6px; background: var(--oip-surface-2); }
+.oip-library button:hover { border-color: var(--studio-accent); }
+
+/* The canvas column never paints outside its grid track: a view wider or taller than the column scrolls inside
+   .oip-canvas-scroll, and nothing in it (the artboard, the overlay, a selection badge) can cover the Inspector on
+   the left or the project column on the right. */
+.oip-stage { min-width: 0; min-height: 0; overflow: hidden; display: flex; flex-direction: column; padding: 12px; }
+
+[data-testid="live-preview"] { min-height: 0; overflow: auto; flex: 1; }
+.oip-canvas-scroll { min-width: 0; min-height: 0; overflow: auto; flex: 1; padding: 4px 4px 24px; isolation: isolate; }
+
+/* The live view in design mode, with the editing overlay stacked on top of it. */
+.oip-artboard {
+  position: relative;
+  border: 1px solid var(--studio-line);
+  background-color: var(--oip-bg);
+  background-image: radial-gradient(var(--oip-line-strong) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+.oip-artboard .oip-session {
+  background-image: radial-gradient(var(--oip-line-strong) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+.oip-stage { position: relative; }
+.oip-stage::before,
+.oip-stage::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  z-index: 2;
+}
+.oip-stage::before {
+  top: 0;
+  left: 16px;
+  right: 0;
+  height: 14px;
+  border-bottom: 1px solid var(--oip-line);
+  background: repeating-linear-gradient(to right, var(--oip-ink-3) 0 1px, transparent 1px 100px);
+}
+.oip-stage::after {
+  top: 14px;
+  left: 0;
+  bottom: 0;
+  width: 14px;
+  border-right: 1px solid var(--oip-line);
+  background: repeating-linear-gradient(to bottom, var(--oip-ink-3) 0 1px, transparent 1px 100px);
+}
+/* A definite height down to the view root, so percent-mode roots and their children get a real size. */
+.oip-canvas-render, .oip-canvas-render > .oip-session { height: 100%; }
+.oip-canvas-overlay { position: absolute; inset: 0; z-index: 1; cursor: default; outline: none; touch-action: none; }
+.oip-canvas-overlay:focus-visible { box-shadow: inset 0 0 0 2px var(--studio-accent); }
+.oip-canvas-overlay[data-dragging] { cursor: grabbing; }
+
+.oip-canvas-hover, .oip-canvas-selection { position: absolute; pointer-events: none; }
+.oip-canvas-hover { outline: 1px dashed var(--studio-accent); outline-offset: 1px; }
+.oip-canvas-selection { outline: 2px solid var(--studio-accent); outline-offset: 1px; }
+.oip-canvas-badge {
+  position: absolute;
+  left: -2px;
+  bottom: 100%;
+  margin-bottom: 3px;
+  padding: 1px 6px;
+  border-radius: 4px 4px 0 0;
+  background: var(--studio-accent);
+  color: var(--studio-accent-ink);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.oip-resize {
+  position: absolute;
+  right: -5px;
+  bottom: -5px;
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--studio-accent);
+  border-radius: 2px;
+  background: var(--oip-bg);
+  padding: 0;
+  cursor: nwse-resize;
+  pointer-events: auto;
+}
+.oip-handle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: var(--oip-bg);
+  border: 1.5px solid var(--studio-accent);
+  pointer-events: none;
+}
+.oip-handle-nw { top: -4px; left: -4px; }
+.oip-handle-ne { top: -4px; right: -4px; }
+.oip-handle-sw { bottom: -4px; left: -4px; }
+
+.oip-schema { border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.oip-schema legend { font-weight: 600; padding: 0; }
+.oip-schema-field, .oip-schema-check { display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
+.oip-schema-check { flex-direction: row; align-items: center; gap: 8px; }
+.oip-schema-field input, .oip-schema-field select {
+  border: 1px solid var(--studio-line);
+  border-radius: 8px;
+  background: var(--oip-surface-2);
+  color: var(--studio-ink);
+  padding: 6px 8px;
+}
+.oip-schema-field small { color: var(--oip-alarm-1); }
+.oip-schema-help, .oip-inspector-empty { color: var(--studio-muted); }
+
+.oip-style-classes { padding: 12px; border-top: 1px solid var(--studio-line); }
+.oip-style-classes h2 { margin: 0 0 8px; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--studio-muted); font-weight: 600; }
+.oip-style-class-list { list-style: none; margin: 0 0 8px; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.oip-style-class-list li { display: flex; align-items: center; gap: 4px; }
+.oip-style-class-list button[role="option"] {
+  flex: 1;
+  text-align: start;
+  border: 1px solid var(--studio-line);
+  border-radius: 8px;
+  background: var(--oip-surface-2);
+  color: inherit;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+.oip-style-class-list button[role="option"][aria-selected="true"] { border-color: var(--studio-accent); background: var(--oip-accent-subtle); }
+.oip-style-class-add { display: flex; align-items: end; gap: 6px; margin-bottom: 8px; }
+.oip-style-class-add label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; flex: 1; min-width: 0; }
+.oip-style-class-add input { min-width: 0; border: 1px solid var(--studio-line); border-radius: 8px; padding: 6px 8px; }
+.oip-style-class-add button { flex: none; white-space: nowrap; }
+.oip-style-class-editor { display: flex; flex-direction: column; gap: 12px; }
+
+.oip-style-class-picker { border: 1px solid var(--studio-line); border-radius: 8px; padding: 8px; margin-bottom: 12px; }
+.oip-style-class-picker legend { font-weight: 600; }
+.oip-style-class-picker ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.oip-style-class-picker li { display: flex; align-items: center; gap: 6px; }
+.oip-style-class-picker label { display: flex; align-items: center; gap: 8px; min-width: 0; font-size: 13px; }
+.oip-style-class-picker [data-missing-class] span { color: var(--oip-alarm-1); }
+.oip-style-class-error { margin: 0 0 8px; color: var(--oip-alarm-1); font-size: 13px; }
+
+.oip-probe { padding: 24px; }
+.oip-probe h1 { font-size: 18px; margin-top: 0; }
+
+button:focus-visible, [role="option"]:focus-visible {
+  outline: 2px solid var(--studio-accent);
+  outline-offset: 2px;
+}
+
+/* D-2 outline: the active view's node tree, in step with the canvas selection. */
+.oip-outline { border-top: 1px solid var(--studio-line); padding: 8px 12px 12px; }
+.oip-outline-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.oip-outline-head p { margin: 0; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--studio-muted); }
+.oip-outline-tools { display: flex; gap: 2px; }
+.oip-outline-tools button {
+  min-width: 24px;
+  height: 24px;
+  border: 1px solid var(--studio-line);
+  border-radius: 6px;
+  background: var(--oip-surface-2);
+  color: var(--studio-ink);
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+}
+.oip-outline-tools button:disabled { opacity: 0.4; cursor: default; }
+.oip-outline-tools button:not(:disabled):hover { border-color: var(--studio-accent); }
+.oip-outline-notice { margin: 4px 0 0; font-size: 12px; color: var(--oip-alarm-2); }
+.oip-outline-notice:empty { display: none; }
+.oip-outline-scroll { max-height: 320px; overflow: auto; margin-top: 6px; border: 1px solid var(--studio-line); border-radius: 8px; background: var(--oip-surface-2); }
+.oip-outline ul { list-style: none; margin: 0; padding: 0; }
+.oip-outline [role="tree"] { padding: 4px 0; }
+.oip-outline [role="treeitem"] { outline: none; }
+.oip-outline-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 24px;
+  padding-right: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  user-select: none;
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+}
+.oip-outline-row:hover { background: var(--oip-surface-3); }
+.oip-outline-row[data-selected="true"] { background: var(--oip-accent-subtle); color: var(--oip-ink); }
+.oip-outline [role="treeitem"]:focus-visible > .oip-outline-row { box-shadow: inset 0 0 0 2px var(--studio-accent); }
+.oip-outline-row[data-hidden-tab="true"] .oip-outline-name { font-style: italic; color: var(--studio-muted); }
+.oip-outline-row[data-drop="before"] { border-top-color: var(--studio-accent); }
+.oip-outline-row[data-drop="after"] { border-bottom-color: var(--studio-accent); }
+.oip-outline-row[data-drop="inside"] { background: var(--oip-accent-subtle); box-shadow: inset 0 0 0 1px var(--studio-accent); }
+.oip-outline-twisty { width: 14px; flex: none; text-align: center; color: var(--studio-muted); transition: transform 0.1s; }
+.oip-outline-twisty[data-expanded="true"] { transform: rotate(90deg); }
+.oip-outline-glyph {
+  flex: none;
+  min-width: 22px;
+  padding: 0 3px;
+  border-radius: 4px;
+  font-family: ui-monospace, "Cascadia Code", monospace;
+  font-size: 10px;
+  line-height: 16px;
+  text-align: center;
+  background: var(--oip-surface-3);
+  color: var(--oip-ink);
+}
+.oip-outline-glyph[data-kind="container"] { background: var(--oip-surface-2); color: var(--oip-ink-2); }
+.oip-outline-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.oip-outline-type { flex: none; max-width: 40%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; color: var(--studio-muted); }
+.oip-outline-confirm { margin-top: 6px; padding: 8px; border: 1px solid var(--oip-alarm-2); border-radius: 8px; background: var(--oip-surface-2); font-size: 13px; }
+.oip-outline-confirm p { margin: 0 0 6px; }
+.oip-outline-confirm button { margin-right: 6px; border: 1px solid var(--studio-line); border-radius: 6px; background: var(--oip-surface-2); padding: 3px 10px; cursor: pointer; }
+.oip-outline-confirm button:first-of-type { background: var(--oip-alarm-1); border-color: var(--oip-alarm-1); color: #fff; }
+
+/* Inspector header: the containers above the selection. */
+.oip-selection-path { margin: 0 0 10px; font-size: 12px; }
+.oip-selection-path ol { display: flex; flex-wrap: wrap; align-items: center; list-style: none; margin: 0; padding: 0; gap: 2px; }
+.oip-selection-path li { display: flex; align-items: center; min-width: 0; }
+.oip-selection-path li + li::before { content: "›"; padding: 0 4px; color: var(--studio-muted); }
+.oip-selection-path button { border: 0; border-radius: 4px; background: transparent; color: var(--studio-accent); padding: 1px 4px; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+.oip-selection-path button:hover { background: var(--oip-surface-3); }
+.oip-selection-path [aria-current] { font-weight: 600; padding: 1px 4px; }
+.oip-project-status { margin: 2px 0 0; font-size: 12px; color: var(--studio-muted); }
+
+/* Component palette (HMP-002): search, then one group per category. */
+.oip-palette-search { display: grid; gap: 4px; padding: 12px 12px 0; font-size: 12px; color: var(--studio-muted); }
+.oip-palette-search input { font: inherit; font-size: 14px; color: inherit; padding: 6px 8px; border: 1px solid var(--studio-line); border-radius: 8px; background: var(--oip-surface-2); }
+.oip-palette-empty { padding: 0 12px; font-size: 13px; color: var(--studio-muted); }
+.oip-palette-count { font-variant-numeric: tabular-nums; opacity: 0.7; }
+.oip-library button[draggable="true"] { cursor: grab; }
+
+/* The open view's own properties (HMP-073, HMP-092, HMP-110), shown while nothing is selected. */
+.oip-view-inspector { display: grid; gap: 12px; padding: 0 12px 12px; }
+.oip-view-inspector-title { margin: 0; font-size: 14px; }
+.oip-view-section { display: grid; gap: 6px; border-top: 1px solid var(--studio-line); padding-top: 8px; }
+.oip-view-section h3 { margin: 0; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--studio-muted); }
+.oip-view-section label { display: grid; gap: 2px; font-size: 12px; }
+.oip-view-section input, .oip-view-section select { font: inherit; font-size: 13px; padding: 4px 6px; border: 1px solid var(--studio-line); border-radius: 6px; background: var(--oip-surface-2); color: inherit; min-width: 0; }
+.oip-view-rows { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.oip-view-rows > li { display: grid; gap: 4px; padding: 6px; border: 1px solid var(--studio-line); border-radius: 8px; }
+.oip-view-add { display: grid; gap: 4px; }
+.oip-view-note, .oip-view-empty { margin: 0; font-size: 12px; color: var(--studio-muted); }
+.oip-view-check { display: flex !important; align-items: center; gap: 6px; }
+.oip-view-section button { justify-self: start; }
+.oip-view-field { display: grid; gap: 2px; font-size: 12px; }
+
+/* Style editor (HMP-093, P4-07). */
+.oip-style-field { display: grid; grid-template-columns: 1fr auto; gap: 4px; align-items: end; font-size: 13px; }
+.oip-style-field label { display: flex; flex-direction: column; gap: 4px; }
+.oip-style-field input, .oip-style-field select, .oip-style-add select, .oip-style-css {
+  font: inherit;
+  padding: 4px 6px;
+  border: 1px solid var(--studio-line);
+  border-radius: 8px;
+  background: var(--oip-surface-2);
+  color: var(--studio-ink);
+}
+.oip-style-field-error, .oip-style-errors { grid-column: 1 / -1; margin: 0; color: var(--oip-alarm-1); font-size: 12px; }
+.oip-style-editor > button { align-self: flex-start; }
+.oip-style-errors ul { margin: 4px 0 0; padding-left: 18px; }
+.oip-style-add { display: flex; gap: 6px; }
+.oip-style-add select { flex: 1; min-width: 0; }
+.oip-style-css { font-family: ui-monospace, monospace; font-size: 12px; resize: vertical; }
+.oip-style-css-label { font-size: 13px; }
+
+/* Property categories (HMP-127, P4-10) and variants (HMP-115, P4-09). */
+.oip-category { border-top: 1px solid var(--studio-line); padding-top: 8px; }
+.oip-custom-row { display: grid; grid-template-columns: minmax(60px, auto) auto 1fr auto; gap: 6px; align-items: center; font-size: 13px; }
+.oip-custom-row textarea { grid-column: 3; font-family: ui-monospace, monospace; font-size: 12px; }
+.oip-custom-name { font-family: ui-monospace, monospace; }
+.oip-custom-add { display: flex; gap: 6px; }
+.oip-custom-add input { flex: 1; min-width: 0; }
+.oip-custom-row input, .oip-custom-row select, .oip-custom-row textarea, .oip-custom-add input, .oip-custom-add select {
+  font: inherit;
+  padding: 4px 6px;
+  border: 1px solid var(--studio-line);
+  border-radius: 8px;
+  background: var(--oip-surface-2);
+  color: var(--studio-ink);
+}
+
+/* Pipe tool (HMP-128) */
+.oip-pipe-layer { position: absolute; inset: 0; z-index: 3; cursor: crosshair; outline: none; touch-action: none; }
+.oip-pipe-layer:focus-visible { box-shadow: inset 0 0 0 2px var(--studio-accent); }
+.oip-pipe-layer svg { display: block; pointer-events: none; }
+.oip-pipe-anchor { fill: var(--studio-accent); opacity: 0.45; }
+.oip-pipe-anchor[data-snapped] { opacity: 1; }
+.oip-pipe-preview { stroke: var(--studio-accent); stroke-width: 3; stroke-dasharray: 6 4; }
+.oip-pipe-vertex { fill: var(--studio-accent); }
+
+.oip-beta-notice {
+  margin: 0;
+  padding: 10px 12px;
+  background: #3a2a12;
+  color: #f3e6c4;
+  border-bottom: 2px solid #e0a040;
+  font-size: 13px;
+  line-height: 1.4;
+}

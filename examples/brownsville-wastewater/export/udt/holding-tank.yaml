@@ -1,0 +1,62 @@
+apiVersion: oip/v1
+kind: Udt
+metadata:
+  name: holding-tank
+  module: tags
+  version: 1
+  modified: "2026-11-17T20:17:03.561592400Z"
+  modifiedBy: admin
+spec:
+  path: Types/HoldingTank
+  parameters:
+    -
+      default: ""
+      name: Plant
+      dataType: String
+  members:
+    -
+      value: 8
+      name: Level
+      engUnit: ft
+      dataType: Double
+      type: memory
+      alarms:
+        -
+          setpointA: 14
+          priority: Critical
+          name: Overflow
+          deadband: 0.3
+          mode: AboveValue
+    -
+      engUnit: gal
+      value: 0
+      name: Volume
+      dataType: Double
+      type: memory
+    -
+      engUnit: gpm
+      value: 0
+      name: Inflow
+      dataType: Double
+      type: memory
+    -
+      engUnit: gpm
+      value: 0
+      name: Outflow
+      dataType: Double
+      type: memory
+    -
+      value: true
+      name: InletValve
+      dataType: Boolean
+      type: memory
+    -
+      value: true
+      name: OutletValve
+      dataType: Boolean
+      type: memory
+    -
+      name: Plant
+      dataType: String
+      type: expression
+      expression: "{Plant}"

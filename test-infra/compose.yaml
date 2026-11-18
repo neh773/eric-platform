@@ -1,0 +1,147 @@
+# Simulator stack for driver, historian and alarm tests.
+# Host port map (also enforced by PortMapTest against these strings):
+#   modbus direct TCP 15020, control HTTP 15021, toxiproxy 5020
+#   opc ua  direct TCP 14840, control HTTP 14841, toxiproxy 4840
+#   mqtt    direct 11883, sparkplug control HTTP 15030, toxiproxy 1883
+#   timescale direct ${OIP_SIM_POSTGRES_PORT:-25432}, toxiproxy 15432
+#   mailpit SMTP 1025, HTTP 8025, SMTP via toxiproxy 11025
+#   toxiproxy API 8474
+# Every host port stays below 32768, outside the Linux ephemeral range, so no client socket can hold it.
+# `docker compose up -d --build --wait` publishes this map.
+# Testcontainers uses the same file and may publish the ports through an ambassador;
+# SimulatorStack reads the mapped ports rather than assuming the host numbers.
+
+name: oip-sim
+
+services:
+  modbus:
+    image: oip-sim-modbus:local
+    build:
+      context: ./sim
+      dockerfile: modbus/Dockerfile
+    ports:
+      - "15020:5020"
+      - "15021:8080"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=2)"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+      start_period: 3s
+
+  opcua:
+    image: oip-sim-opcua:local
+    build:
+      context: ./sim
+      dockerfile: opcua/Dockerfile
+    hostname: opcua
+    ports:
+      - "14840:4840"
+      - "14841:8080"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8080/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 2s
+      timeout: 5s
+      retries: 40
+      start_period: 15s
+
+  mosquitto:
+    image: eclipse-mosquitto:2.0.22@sha256:09b62ff32c2e7b64d4b431b9a89236073289b68db273de2b089edeb9b0d92b5c
+    ports:
+      - "11883:1883"
+    volumes:
+      - ./config/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+    healthcheck:
+      test: ["CMD", "mosquitto_sub", "-h", "127.0.0.1", "-t", "$$SYS/broker/uptime", "-C", "1", "-W", "3"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+      start_period: 3s
+
+  sparkplug:
+    image: oip-sim-sparkplug:local
+    build:
+      context: ./sim
+      dockerfile: sparkplug/Dockerfile
+    ports:
+      - "15030:8080"
+    environment:
+      MQTT_HOST: mosquitto
+      MQTT_PORT: "1883"
+      HTTP_PORT: "8080"
+      GROUP_ID: OIP
+      EDGE_NODE: SimEdge
+      DEVICE_ID: SimDevice
+    depends_on:
+      mosquitto:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=2)"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+      start_period: 5s
+
+  timescale:
+    image: timescale/timescaledb:2.31.0-pg16-oss@sha256:1bfcf994089b9c97b4ddfa07f2ff9eec430709715e419d9a6957d1a4b4614cd1
+    ports:
+      - "${OIP_SIM_POSTGRES_PORT:-25432}:5432"
+    environment:
+      POSTGRES_USER: oip
+      POSTGRES_PASSWORD: oip
+      POSTGRES_DB: oip
+      TIMESCALEDB_TELEMETRY: "off"
+    volumes:
+      - ./config/postgres/init.sql:/docker-entrypoint-initdb.d/00-sim.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U oip -d oip"]
+      interval: 2s
+      timeout: 5s
+      retries: 40
+      start_period: 10s
+
+  mailpit:
+    image: axllent/mailpit:v1.32.0@sha256:0790692be935ea4420d085694f7985b1f692ca6a8771ab0e0bd8ba75ac180498
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    environment:
+      MP_MAX_MESSAGES: "1000"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8025/livez"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+      start_period: 2s
+
+  toxiproxy:
+    image: ghcr.io/shopify/toxiproxy:2.13.0@sha256:5d3dae09bc185dcc5ff6cf43abf6062a4a720aff0c4306a471e773acdcd107aa
+    command: ["-host=0.0.0.0", "-config=/config/toxiproxy.json"]
+    ports:
+      - "8474:8474"
+      - "5020:5020"
+      - "4840:4840"
+      - "1883:1883"
+      - "15432:5432"
+      - "11025:1025"
+    volumes:
+      - ./config/toxiproxy.json:/config/toxiproxy.json:ro
+    depends_on:
+      modbus:
+        condition: service_healthy
+      opcua:
+        condition: service_healthy
+      mosquitto:
+        condition: service_healthy
+      sparkplug:
+        condition: service_healthy
+      timescale:
+        condition: service_healthy
+      mailpit:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "/toxiproxy-cli", "list"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+      start_period: 2s

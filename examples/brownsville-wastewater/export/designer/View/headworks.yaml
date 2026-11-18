@@ -1,0 +1,314 @@
+apiVersion: oip/v1
+kind: View
+metadata:
+  name: headworks
+  module: designer
+  version: 1
+  modified: "2026-11-17T20:40:37.447517100Z"
+  modifiedBy: admin
+spec:
+  path: headworks
+  document:
+    root:
+      id: root
+      name: Root
+      children:
+        -
+          id: h-a
+          name: h-a
+          style:
+            fontSize: 20
+            color: "#e8eef4"
+          type: label
+          kind: component
+          props:
+            text: Resaca Bend
+          frame:
+            y: 12
+            width: 240
+            height: 28
+            x: 16
+        -
+          id: h-b
+          name: h-b
+          style:
+            fontSize: 20
+            color: "#e8eef4"
+          type: label
+          kind: component
+          props:
+            text: Laguna Works
+          frame:
+            y: 12
+            width: 240
+            height: 28
+            x: 520
+        -
+          id: influent-a
+          name: influent-a
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          type: label
+          kind: component
+          props:
+            text: Influent
+          frame:
+            y: 56
+            width: 200
+            height: 20
+            x: 16
+        -
+          props:
+            decimals: 0
+            suffix: " gpm"
+          frame:
+            y: 78
+            width: 200
+            height: 28
+            x: 16
+          style:
+            fontSize: 18
+            color: "#d7dee6"
+          id: influent-av
+          name: influent-av
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Plants/ResacaBend/InfluentFlow"
+              bidirectional: false
+              mode: direct
+              kind: tag
+        -
+          id: influent-b
+          name: influent-b
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          type: label
+          kind: component
+          props:
+            text: Influent
+          frame:
+            y: 56
+            width: 200
+            height: 20
+            x: 520
+        -
+          props:
+            decimals: 0
+            suffix: " gpm"
+          frame:
+            y: 78
+            width: 200
+            height: 28
+            x: 520
+          style:
+            fontSize: 18
+            color: "#d7dee6"
+          id: influent-bv
+          name: influent-bv
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Plants/LagunaWorks/InfluentFlow"
+              bidirectional: false
+              mode: direct
+              kind: tag
+        -
+          id: screen-a
+          name: screen-a
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          type: label
+          kind: component
+          props:
+            text: Bar screen differential
+          frame:
+            y: 134
+            width: 200
+            height: 20
+            x: 16
+        -
+          props:
+            decimals: 2
+            suffix: " psi"
+          frame:
+            y: 156
+            width: 200
+            height: 28
+            x: 16
+          style:
+            fontSize: 18
+            color: "#d7dee6"
+          id: screen-av
+          name: screen-av
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Plants/ResacaBend/BarScreenDp"
+              bidirectional: false
+              mode: direct
+              kind: tag
+        -
+          id: screen-b
+          name: screen-b
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          type: label
+          kind: component
+          props:
+            text: Bar screen differential
+          frame:
+            y: 134
+            width: 200
+            height: 20
+            x: 520
+        -
+          props:
+            decimals: 2
+            suffix: " psi"
+          frame:
+            y: 156
+            width: 200
+            height: 28
+            x: 520
+          style:
+            fontSize: 18
+            color: "#d7dee6"
+          id: screen-bv
+          name: screen-bv
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Plants/LagunaWorks/BarScreenDp"
+              bidirectional: false
+              mode: direct
+              kind: tag
+        -
+          id: screen-as
+          name: screen-as
+          bindings:
+            state:
+              path: "[default]Brownsville/Plants/ResacaBend/BarScreenRun"
+              bidirectional: false
+              mode: direct
+              kind: tag
+          type: pump
+          kind: component
+          props:
+            label: Bar screen differential
+          frame:
+            y: 142
+            width: 48
+            height: 48
+            x: 250
+        -
+          id: screen-bs
+          name: screen-bs
+          bindings:
+            state:
+              path: "[default]Brownsville/Plants/LagunaWorks/BarScreenRun"
+              bidirectional: false
+              mode: direct
+              kind: tag
+          type: pump
+          kind: component
+          props:
+            label: Bar screen differential
+          frame:
+            y: 142
+            width: 48
+            height: 48
+            x: 760
+        -
+          id: grit-a
+          name: grit-a
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          type: label
+          kind: component
+          props:
+            text: Grit flow
+          frame:
+            y: 212
+            width: 200
+            height: 20
+            x: 16
+        -
+          props:
+            decimals: 0
+            suffix: " gpm"
+          frame:
+            y: 234
+            width: 200
+            height: 28
+            x: 16
+          style:
+            fontSize: 18
+            color: "#d7dee6"
+          id: grit-av
+          name: grit-av
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Plants/ResacaBend/GritFlow"
+              bidirectional: false
+              mode: direct
+              kind: tag
+        -
+          id: grit-b
+          name: grit-b
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          type: label
+          kind: component
+          props:
+            text: Grit flow
+          frame:
+            y: 212
+            width: 200
+            height: 20
+            x: 520
+        -
+          props:
+            decimals: 0
+            suffix: " gpm"
+          frame:
+            y: 234
+            width: 200
+            height: 28
+            x: 520
+          style:
+            fontSize: 18
+            color: "#d7dee6"
+          id: grit-bv
+          name: grit-bv
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Plants/LagunaWorks/GritFlow"
+              bidirectional: false
+              mode: direct
+              kind: tag
+      layout: coordinate
+      style:
+        background: "#12171c"
+        color: "#d7dee6"
+      kind: container
+      props:
+        mode: fixed
+    params: {}
+    width: 980
+    height: 314
+  title: Headworks

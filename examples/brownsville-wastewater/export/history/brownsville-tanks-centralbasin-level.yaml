@@ -1,0 +1,12 @@
+apiVersion: oip/v1
+kind: HistorySettings
+metadata:
+  name: brownsville-tanks-centralbasin-level
+  module: historian
+  version: 1
+  modified: "2026-11-17T20:35:12.007591800Z"
+  modifiedBy: admin
+spec:
+  storageProvider: local
+  sampleMode: onChange
+  tagPath: "[default]Brownsville/Tanks/CentralBasin/Level"

@@ -1,0 +1,859 @@
+{
+  "kind": "ramp",
+  "bench": "oip-load-ramp",
+  "version": 2,
+  "target": "oip",
+  "profile": "core-curves",
+  "description": "Core curves at 1, 2 and 4 CPUs with 2 GB per CPU. 100% changing every 1000 ms, Modbus TCP, OPC UA reads, local history off. Step ramp from 10,000 to 320,000 points. Cutoffs, windows and sampling copied unchanged from oip-edge.",
+  "stoppedBecause": "completed",
+  "error": null,
+  "elapsedSeconds": 850.292,
+  "maxWallSeconds": 7200.0,
+  "profileMaxWallSeconds": 7200.0,
+  "trialSecondsLeft": null,
+  "plannedSeconds": 780.0,
+  "limits": {
+    "cpuPercent": 50.0,
+    "memoryPercent": 50.0,
+    "driftPercent": 10.0,
+    "qualityErrorFraction": 0.01
+  },
+  "formula": {
+    "percentChanging": 100.0,
+    "registersPerUnit": 10000,
+    "epochMs": 1794291850153,
+    "value": "(index % 1000 + tick) % 30000 when (index % 100) < percent, else index % 1000"
+  },
+  "steps": [
+    {
+      "points": 10000,
+      "previousPoints": 0,
+      "protocol": "modbus",
+      "periodMs": 1000,
+      "percentChanging": 100.0,
+      "sampleIndexes": [
+        0,
+        625,
+        1250,
+        1875,
+        2500,
+        3125,
+        3750,
+        4375,
+        5000,
+        5625,
+        6250,
+        6875,
+        7500,
+        8125,
+        8750,
+        9375
+      ],
+      "reads": 176,
+      "qualityErrors": 0,
+      "mismatches": 0,
+      "valuesPerSec": 9094.982191162013,
+      "expectedValuesPerSec": 10000.0,
+      "latencyMs": {
+        "p50": 700.0,
+        "p95": 982.0,
+        "max": 982.0
+      },
+      "driftPercent": -2.2506198741178776,
+      "referenceDriftGaugeMs": null,
+      "referenceDriftPercent": null,
+      "cpuPercentOfQuota": {
+        "avg": 1.6752272727272726,
+        "max": 2.9525
+      },
+      "memoryPercent": {
+        "avg": 7.523636363636364,
+        "max": 7.66
+      },
+      "rssBytes": {
+        "avg": 646208790.8181819,
+        "max": 657876582.0
+      },
+      "heapBytes": {
+        "avg": 130937719.27272727,
+        "max": 150616416.0
+      },
+      "simCpuPercent": {
+        "avg": 16.197272727272725,
+        "max": 23.3
+      },
+      "simSaturated": false,
+      "clockDriftPercent": 0.0209983,
+      "error": null,
+      "cutoff": null,
+      "budgetRemainingSeconds": 7199.934806952999
+    },
+    {
+      "points": 20000,
+      "previousPoints": 10000,
+      "protocol": "modbus",
+      "periodMs": 1000,
+      "percentChanging": 100.0,
+      "sampleIndexes": [
+        0,
+        1250,
+        2500,
+        3750,
+        5000,
+        6250,
+        7500,
+        8750,
+        10000,
+        11250,
+        12500,
+        13750,
+        15000,
+        16250,
+        17500,
+        18750
+      ],
+      "reads": 192,
+      "qualityErrors": 0,
+      "mismatches": 0,
+      "valuesPerSec": 18971.79099001863,
+      "expectedValuesPerSec": 20000.0,
+      "latencyMs": {
+        "p50": 461.0,
+        "p95": 1064.0,
+        "max": 1064.0
+      },
+      "driftPercent": 1.3818790910894199,
+      "referenceDriftGaugeMs": null,
+      "referenceDriftPercent": null,
+      "cpuPercentOfQuota": {
+        "avg": 1.9291666666666665,
+        "max": 2.51
+      },
+      "memoryPercent": {
+        "avg": 7.905833333333334,
+        "max": 7.91
+      },
+      "rssBytes": {
+        "avg": 679110245.9166666,
+        "max": 679686963.0
+      },
+      "heapBytes": {
+        "avg": 189647528.0,
+        "max": 288287624.0
+      },
+      "simCpuPercent": {
+        "avg": 21.97583333333333,
+        "max": 30.59
+      },
+      "simSaturated": false,
+      "clockDriftPercent": 0.0206126,
+      "error": null,
+      "cutoff": null,
+      "budgetRemainingSeconds": 7138.010525050999
+    },
+    {
+      "points": 30000,
+      "previousPoints": 20000,
+      "protocol": "modbus",
+      "periodMs": 1000,
+      "percentChanging": 100.0,
+      "sampleIndexes": [
+        0,
+        1875,
+        3750,
+        5625,
+        7500,
+        9375,
+        11250,
+        13125,
+        15000,
+        16875,
+        18750,
+        20625,
+        22500,
+        24375,
+        26250,
+        28125
+      ],
+      "reads": 192,
+      "qualityErrors": 0,
+      "mismatches": 0,
+      "valuesPerSec": 27806.498749309907,
+      "expectedValuesPerSec": 30000.0,
+      "latencyMs": {
+        "p50": 586.5,
+        "p95": 1018.0,
+        "max": 1018.0
+      },
+      "driftPercent": -0.9028848271305805,
+      "referenceDriftGaugeMs": null,
+      "referenceDriftPercent": null,
+      "cpuPercentOfQuota": {
+        "avg": 2.335625,
+        "max": 3.2975
+      },
+      "memoryPercent": {
+        "avg": 8.345,
+        "max": 8.83
+      },
+      "rssBytes": {
+        "avg": 716876458.25,
+        "max": 758120448.0
+      },
+      "heapBytes": {
+        "avg": 193405877.33333334,
+        "max": 261519264.0
+      },
+      "simCpuPercent": {
+        "avg": 34.24916666666667,
+        "max": 45.8
+      },
+      "simSaturated": false,
+      "clockDriftPercent": 0.021594600000000002,
+      "error": null,
+      "cutoff": null,
+      "budgetRemainingSeconds": 7073.642115622999
+    },
+    {
+      "points": 40000,
+      "previousPoints": 30000,
+      "protocol": "modbus",
+      "periodMs": 1000,
+      "percentChanging": 100.0,
+      "sampleIndexes": [
+        0,
+        2500,
+        5000,
+        7500,
+        10000,
+        12500,
+        15000,
+        17500,
+        20000,
+        22500,
+        25000,
+        27500,
+        30000,
+        32500,
+        35000,
+        37500
+      ],
+      "reads": 192,
+      "qualityErrors": 0,
+      "mismatches": 0,
+      "valuesPerSec": 37109.11747834984,
+      "expectedValuesPerSec": 40000.0,
+      "latencyMs": {
+        "p50": 803.0,
+        "p95": 1087.0,
+        "max": 1087.0
+      },
+      "driftPercent": -0.8198889182755883,
+      "referenceDriftGaugeMs": null,
+      "referenceDriftPercent": null,
+      "cpuPercentOfQuota": {
+        "avg": 2.7289583333333334,
+        "max": 4.4825
+      },
+      "memoryPercent": {
+        "avg": 9.04,
+        "max": 9.04
+      },
+      "rssBytes": {
+        "avg": 776330717.3333334,
+        "max": 776575385.0
+      },
+      "heapBytes": {
+        "avg": 231710048.0,
+        "max": 334681920.0
+      },
+      "simCpuPercent": {
+        "avg": 43.525,
+        "max": 67.44
+      },
+      "simSaturated": false,
+      "clockDriftPercent": 0.0192516,
+      "error": null,
+      "cutoff": null,
+      "budgetRemainingSeconds": 7009.257985635999
+    },
+    {
+      "points": 60000,
+      "previousPoints": 40000,
+      "protocol": "modbus",
+      "periodMs": 1000,
+      "percentChanging": 100.0,
+      "sampleIndexes": [
+        0,
+        3750,
+        7500,
+        11250,
+        15000,
+        18750,
+        22500,
+        26250,
+        30000,
+        33750,
+        37500,
+        41250,
+        45000,
+        48750,
+        52500,
+        56250
+      ],
+      "reads": 192,
+      "qualityErrors": 0,
+      "mismatches": 0,
+      "valuesPerSec": 55666.27315104033,
+      "expectedValuesPerSec": 60000.0,
+      "latencyMs": {
+        "p50": 779.0,
+        "p95": 1147.0,
+        "max": 1584.0
+      },
+      "driftPercent": -0.8111444189737307,
+      "referenceDriftGaugeMs": null,
+      "referenceDriftPercent": null,
+      "cpuPercentOfQuota": {
+        "avg": 3.3672916666666666,
+        "max": 4.0725
+      },
+      "memoryPercent": {
+        "avg": 9.5875,
+        "max": 10.48
+      },
+      "rssBytes": {
+        "avg": 823429256.1666666,
+        "max": 900097638.0
+      },
+      "heapBytes": {
+        "avg": 245919904.0,
+        "max": 325307984.0
+      },
+      "simCpuPercent": {
+        "avg": 46.9675,
+        "max": 69.98
+      },
+      "simSaturated": false,
+      "clockDriftPercent": 0.0231458,
+      "error": null,
+      "cutoff": null,
+      "budgetRemainingSeconds": 6944.923470622001
+    },
+    {
+      "points": 80000,
+      "previousPoints": 60000,
+      "protocol": "modbus",
+      "periodMs": 1000,
+      "percentChanging": 100.0,
+      "sampleIndexes": [
+        0,
+        5000,
+        10000,
+        15000,
+        20000,
+        25000,
+        30000,
+        35000,
+        40000,
+        45000,
+        50000,
+        55000,
+        60000,
+        65000,
+        70000,
+        75000
+      ],
+      "reads": 192,
+      "qualityErrors": 0,
+      "mismatches": 0,
+      "valuesPerSec": 75619.0661572766,
+      "expectedValuesPerSec": 80000.0,
+      "latencyMs": {
+        "p50": 936.0,
+        "p95": 1713.0,
+        "max": 1730.0
+      },
+      "driftPercent": 1.3104283669199401,
+      "referenceDriftGaugeMs": null,
+      "referenceDriftPercent": null,
+      "cpuPercentOfQuota": {
+        "avg": 5.12625,
+        "max": 14.1525
+      },
+      "memoryPercent": {
+        "avg": 11.066666666666668,
+        "max": 11.09
+      },
+      "rssBytes": {
+        "avg": 950586572.4166666,
+        "max": 952841011.0
+      },
+      "heapBytes": {
+        "avg": 331419932.0,
+        "max": 466476168.0
+      },
+      "simCpuPercent": {
+        "avg": 53.6175,
+        "max": 79.67
+      },
+      "simSaturated": false,
+      "clockDriftPercent": 0.017721,
+      "error": null,
+      "cutoff": null,
+      "budgetRemainingSeconds": 6879.842804106
+    },
+    {
+      "points": 100000,
+      "previousPoints": 80000,
+      "protocol": "modbus",
+      "periodMs": 1000,
+      "percentChanging": 100.0,
+      "sampleIndexes": [
+        0,
+        6250,
+        12500,
+        18750,
+        25000,
+        31250,
+        37500,
+        43750,
+        50000,
+        56250,
+        62500,
+        68750,
+        75000,
+        81250,
+        87500,
+        93750
+      ],
+      "reads": 192,
+      "qualityErrors": 0,
+      "mismatches": 0,
+      "valuesPerSec": 94566.50915048615,
+      "expectedValuesPerSec": 100000.0,
+      "latencyMs": {
+        "p50": 894.0,
+        "p95": 1616.0,
+        "max": 1911.0
+      },
+      "driftPercent": 1.2190291774853719,
+      "referenceDriftGaugeMs": null,
+      "referenceDriftPercent": null,
+      "cpuPercentOfQuota": {
+        "avg": 5.121875,
+        "max": 8.3725
+      },
+      "memoryPercent": {
+        "avg": 11.112499999999999,
+        "max": 11.12
+      },
+      "rssBytes": {
+        "avg": 954728447.75,
+        "max": 954938163.0
+      },
+      "heapBytes": {
+        "avg": 319803100.6666667,
+        "max": 425438320.0
+      },
+      "simCpuPercent": {
+        "avg": 66.94333333333334,
+        "max": 94.98
+      },
+      "simSaturated": true,
+      "clockDriftPercent": 0.0203988,
+      "error": null,
+      "cutoff": null,
+      "budgetRemainingSeconds": 6814.852481857
+    },
+    {
+      "points": 120000,
+      "previousPoints": 100000,
+      "protocol": "modbus",
+      "periodMs": 1000,
+      "percentChanging": 100.0,
+      "sampleIndexes": [
+        0,
+        7500,
+        15000,
+        22500,
+        30000,
+        37500,
+        45000,
+        52500,
+        60000,
+        67500,
+        75000,
+        82500,
+        90000,
+        97500,
+        105000,
+        112500
+      ],
+      "reads": 192,
+      "qualityErrors": 0,
+      "mismatches": 0,
+      "valuesPerSec": 112998.78855227237,
+      "expectedValuesPerSec": 120000.0,
+      "latencyMs": {
+        "p50": 1174.0,
+        "p95": 1989.0,
+        "max": 1989.0
+      },
+      "driftPercent": 1.1923093844867827,
+      "referenceDriftGaugeMs": null,
+      "referenceDriftPercent": null,
+      "cpuPercentOfQuota": {
+        "avg": 4.90125,
+        "max": 6.1275
+      },
+      "memoryPercent": {
+        "avg": 13.685,
+        "max": 13.84
+      },
+      "rssBytes": {
+        "avg": 1175747296.8333333,
+        "max": 1188632199.0
+      },
+      "heapBytes": {
+        "avg": 468663948.0,
+        "max": 668213528.0
+      },
+      "simCpuPercent": {
+        "avg": 70.755,
+        "max": 100.07
+      },
+      "simSaturated": true,
+      "clockDriftPercent": 0.021645599999999997,
+      "error": null,
+      "cutoff": null,
+      "budgetRemainingSeconds": 6749.924861337
+    },
+    {
+      "points": 160000,
+      "previousPoints": 120000,
+      "protocol": "modbus",
+      "periodMs": 1000,
+      "percentChanging": 100.0,
+      "sampleIndexes": [
+        0,
+        10000,
+        20000,
+        30000,
+        40000,
+        50000,
+        60000,
+        70000,
+        80000,
+        90000,
+        100000,
+        110000,
+        120000,
+        130000,
+        140000,
+        150000
+      ],
+      "reads": 192,
+      "qualityErrors": 0,
+      "mismatches": 0,
+      "valuesPerSec": 147237.5952152188,
+      "expectedValuesPerSec": 160000.0,
+      "latencyMs": {
+        "p50": 937.0,
+        "p95": 1811.0,
+        "max": 2252.0
+      },
+      "driftPercent": -1.0184105756329342,
+      "referenceDriftGaugeMs": null,
+      "referenceDriftPercent": null,
+      "cpuPercentOfQuota": {
+        "avg": 7.114999999999999,
+        "max": 10.565
+      },
+      "memoryPercent": {
+        "avg": 13.864166666666668,
+        "max": 13.89
+      },
+      "rssBytes": {
+        "avg": 1190869161.0,
+        "max": 1194000908.0
+      },
+      "heapBytes": {
+        "avg": 536758570.6666667,
+        "max": 685743744.0
+      },
+      "simCpuPercent": {
+        "avg": 85.79,
+        "max": 101.27
+      },
+      "simSaturated": true,
+      "clockDriftPercent": 0.025278300000000004,
+      "error": null,
+      "cutoff": null,
+      "budgetRemainingSeconds": 6684.810707298999
+    },
+    {
+      "points": 200000,
+      "previousPoints": 160000,
+      "protocol": "modbus",
+      "periodMs": 1000,
+      "percentChanging": 100.0,
+      "sampleIndexes": [
+        0,
+        12500,
+        25000,
+        37500,
+        50000,
+        62500,
+        75000,
+        87500,
+        100000,
+        112500,
+        125000,
+        137500,
+        150000,
+        162500,
+        175000,
+        187500
+      ],
+      "reads": 192,
+      "qualityErrors": 0,
+      "mismatches": 0,
+      "valuesPerSec": 181584.31333478307,
+      "expectedValuesPerSec": 200000.0,
+      "latencyMs": {
+        "p50": 1466.0,
+        "p95": 2878.0,
+        "max": 2878.0
+      },
+      "driftPercent": -2.9982363315696636,
+      "referenceDriftGaugeMs": null,
+      "referenceDriftPercent": null,
+      "cpuPercentOfQuota": {
+        "avg": 9.81625,
+        "max": 29.1175
+      },
+      "memoryPercent": {
+        "avg": 14.068333333333333,
+        "max": 14.07
+      },
+      "rssBytes": {
+        "avg": 1208138508.8333333,
+        "max": 1209033293.0
+      },
+      "heapBytes": {
+        "avg": 512372719.3333333,
+        "max": 636527392.0
+      },
+      "simCpuPercent": {
+        "avg": 86.805,
+        "max": 98.3
+      },
+      "simSaturated": true,
+      "clockDriftPercent": 0.0179944,
+      "error": null,
+      "cutoff": null,
+      "budgetRemainingSeconds": 6618.037544041999
+    },
+    {
+      "points": 240000,
+      "previousPoints": 200000,
+      "protocol": "modbus",
+      "periodMs": 1000,
+      "percentChanging": 100.0,
+      "sampleIndexes": [
+        0,
+        15000,
+        30000,
+        45000,
+        60000,
+        75000,
+        90000,
+        105000,
+        120000,
+        135000,
+        150000,
+        165000,
+        180000,
+        195000,
+        210000,
+        225000
+      ],
+      "reads": 192,
+      "qualityErrors": 0,
+      "mismatches": 0,
+      "valuesPerSec": 230280.70021622573,
+      "expectedValuesPerSec": 240000.0,
+      "latencyMs": {
+        "p50": 1258.0,
+        "p95": 3066.0,
+        "max": 3173.0
+      },
+      "driftPercent": 3.2603919500834913,
+      "referenceDriftGaugeMs": null,
+      "referenceDriftPercent": null,
+      "cpuPercentOfQuota": {
+        "avg": 9.803541666666666,
+        "max": 18.7025
+      },
+      "memoryPercent": {
+        "avg": 15.831666666666669,
+        "max": 16.05
+      },
+      "rssBytes": {
+        "avg": 1359894019.75,
+        "max": 1378684502.0
+      },
+      "heapBytes": {
+        "avg": 551921868.0,
+        "max": 723007888.0
+      },
+      "simCpuPercent": {
+        "avg": 95.26916666666666,
+        "max": 98.83
+      },
+      "simSaturated": true,
+      "clockDriftPercent": 0.014480999999999999,
+      "error": null,
+      "cutoff": null,
+      "budgetRemainingSeconds": 6550.938895883999
+    },
+    {
+      "points": 280000,
+      "previousPoints": 240000,
+      "protocol": "modbus",
+      "periodMs": 1000,
+      "percentChanging": 100.0,
+      "sampleIndexes": [
+        0,
+        17500,
+        35000,
+        52500,
+        70000,
+        87500,
+        105000,
+        122500,
+        140000,
+        157500,
+        175000,
+        192500,
+        210000,
+        227500,
+        245000,
+        262500
+      ],
+      "reads": 192,
+      "qualityErrors": 0,
+      "mismatches": 0,
+      "valuesPerSec": 256508.6342439425,
+      "expectedValuesPerSec": 280000.0,
+      "latencyMs": {
+        "p50": 1407.0,
+        "p95": 2977.0,
+        "max": 3435.0
+      },
+      "driftPercent": -3.1221101765819705,
+      "referenceDriftGaugeMs": null,
+      "referenceDriftPercent": null,
+      "cpuPercentOfQuota": {
+        "avg": 9.755625,
+        "max": 18.935
+      },
+      "memoryPercent": {
+        "avg": 15.869166666666665,
+        "max": 15.87
+      },
+      "rssBytes": {
+        "avg": 1362936288.0,
+        "max": 1363652116.0
+      },
+      "heapBytes": {
+        "avg": 649967456.0,
+        "max": 813670016.0
+      },
+      "simCpuPercent": {
+        "avg": 95.47000000000001,
+        "max": 99.16
+      },
+      "simSaturated": true,
+      "clockDriftPercent": 0.0182444,
+      "error": null,
+      "cutoff": null,
+      "budgetRemainingSeconds": 6483.714266547999
+    },
+    {
+      "points": 320000,
+      "previousPoints": 280000,
+      "protocol": "modbus",
+      "periodMs": 1000,
+      "percentChanging": 100.0,
+      "sampleIndexes": [
+        0,
+        20000,
+        40000,
+        60000,
+        80000,
+        100000,
+        120000,
+        140000,
+        160000,
+        180000,
+        200000,
+        220000,
+        240000,
+        260000,
+        280000,
+        300000
+      ],
+      "reads": 192,
+      "qualityErrors": 0,
+      "mismatches": 0,
+      "valuesPerSec": 300659.3817800681,
+      "expectedValuesPerSec": 320000.0,
+      "latencyMs": {
+        "p50": 1499.0,
+        "p95": 3206.0,
+        "max": 4206.0
+      },
+      "driftPercent": 1.3037350246652544,
+      "referenceDriftGaugeMs": null,
+      "referenceDriftPercent": null,
+      "cpuPercentOfQuota": {
+        "avg": 10.918750000000001,
+        "max": 21.675
+      },
+      "memoryPercent": {
+        "avg": 15.931666666666667,
+        "max": 15.96
+      },
+      "rssBytes": {
+        "avg": 1368483954.25,
+        "max": 1371168309.0
+      },
+      "heapBytes": {
+        "avg": 668657741.3333334,
+        "max": 854831200.0
+      },
+      "simCpuPercent": {
+        "avg": 95.12583333333333,
+        "max": 97.4
+      },
+      "simSaturated": true,
+      "clockDriftPercent": 0.0192645,
+      "error": null,
+      "cutoff": null,
+      "budgetRemainingSeconds": 6416.539015563001
+    }
+  ],
+  "notes": [
+    "At 100000 points the simulator CPU exceeded 80% of one core. A gateway cutoff in this step may be the simulator falling behind.",
+    "At 120000 points the simulator CPU exceeded 80% of one core. A gateway cutoff in this step may be the simulator falling behind.",
+    "At 160000 points the simulator CPU exceeded 80% of one core. A gateway cutoff in this step may be the simulator falling behind.",
+    "At 200000 points the simulator CPU exceeded 80% of one core. A gateway cutoff in this step may be the simulator falling behind.",
+    "At 240000 points the simulator CPU exceeded 80% of one core. A gateway cutoff in this step may be the simulator falling behind.",
+    "At 280000 points the simulator CPU exceeded 80% of one core. A gateway cutoff in this step may be the simulator falling behind.",
+    "At 320000 points the simulator CPU exceeded 80% of one core. A gateway cutoff in this step may be the simulator falling behind."
+  ],
+  "simHost": "172.17.0.1",
+  "gateway": "http://127.0.0.1:8090"
+}

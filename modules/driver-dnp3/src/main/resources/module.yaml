@@ -1,0 +1,10 @@
+id: org.oip.driver-dnp3
+version: 0.1.0
+name: DNP3 Driver
+entrypoint: org.oip.dnp3.Dnp3DriverModule
+dependencies: []
+permissions:
+  - device.connect
+configSchema:
+  type: object
+  properties: {}

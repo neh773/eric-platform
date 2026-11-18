@@ -1,0 +1,52 @@
+{
+  "step": "P1-06",
+  "target": "ours",
+  "label": "container-size, not reference-size",
+  "dryRun": true,
+  "id": "P1-06",
+  "status": "ok",
+  "seconds": 0.0,
+  "startedMinute": 9.86,
+  "notes": [],
+  "data": {
+    "gate": "parity-1",
+    "closes": [
+      "SEC-005"
+    ],
+    "prompt": [
+      "The probes with key parity-ro have run. Now disable key parity-ro in the UI; ending this answer runs the disabled-key probe.",
+      "Is a rotate action offered, and does it return a new secret?",
+      "Record the header name the API expects (DIFFERENCES 28)."
+    ],
+    "probes": [
+      {
+        "method": "GET",
+        "path": "/api/v1/security/api-keys",
+        "auth": "session",
+        "status": 200,
+        "ms": 3.2,
+        "shape": {
+          "type": "object",
+          "keys": [
+            "items"
+          ],
+          "lists": {
+            "items": {
+              "length": 0,
+              "itemKeys": null
+            }
+          }
+        }
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/diagnostics",
+        "auth": "bogus-bearer",
+        "status": 401,
+        "ms": 8.6
+      }
+    ],
+    "answer": null,
+    "note": "dry run: UI questions are for the reference product; our side is the probes"
+  }
+}

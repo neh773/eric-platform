@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["total", "routes"],
+  "additionalProperties": false,
+  "properties": {
+    "total": {"$ref": "#/$defs/stats"},
+    "routes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["method", "path", "count", "p50Micros", "p99Micros", "maxMicros"],
+        "additionalProperties": false,
+        "properties": {
+          "method": {"type": "string"},
+          "path": {"type": "string"},
+          "count": {"type": "integer", "minimum": 0},
+          "p50Micros": {"type": "integer", "minimum": 0},
+          "p99Micros": {"type": "integer", "minimum": 0},
+          "maxMicros": {"type": "integer", "minimum": 0}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "stats": {
+      "type": "object",
+      "required": ["count", "p50Micros", "p99Micros", "maxMicros"],
+      "additionalProperties": false,
+      "properties": {
+        "count": {"type": "integer", "minimum": 0},
+        "p50Micros": {"type": "integer", "minimum": 0},
+        "p99Micros": {"type": "integer", "minimum": 0},
+        "maxMicros": {"type": "integer", "minimum": 0}
+      }
+    }
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["cpuLoad", "processCpuLoad", "heapUsedBytes", "heapMaxBytes", "disk", "clockDrift", "samples"],
+  "additionalProperties": false,
+  "properties": {
+    "cpuLoad": {"type": "number"},
+    "processCpuLoad": {"type": "number"},
+    "heapUsedBytes": {"type": "integer", "minimum": 0},
+    "heapMaxBytes": {"type": "integer"},
+    "disk": {
+      "type": "object",
+      "required": ["path", "usableBytes", "totalBytes"],
+      "additionalProperties": false,
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "usableBytes": {"type": "integer", "minimum": 0},
+        "totalBytes": {"type": "integer", "minimum": 0}
+      }
+    },
+    "clockDrift": {
+      "type": "object",
+      "required": ["intervalMs", "drift", "lateMillis", "samples"],
+      "additionalProperties": false,
+      "properties": {
+        "intervalMs": {"type": "integer", "const": 1000},
+        "drift": {"type": "number"},
+        "lateMillis": {"type": "number"},
+        "samples": {"type": "integer", "minimum": 0}
+      }
+    },
+    "samples": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["cpuLoad", "heapUsedBytes", "diskUsableBytes", "clockDrift"],
+        "additionalProperties": false,
+        "properties": {
+          "cpuLoad": {"type": "number"},
+          "heapUsedBytes": {"type": "integer", "minimum": 0},
+          "diskUsableBytes": {"type": "integer", "minimum": 0},
+          "clockDrift": {"type": "number"}
+        }
+      }
+    }
+  }
+}

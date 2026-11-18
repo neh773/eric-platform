@@ -1,0 +1,12 @@
+{
+  "plan": "P2-04",
+  "scenarios": ["PRF-001"],
+  "targets": ["oip", "comparison"],
+  "sizes": ["S2", "S4", "S8", "S16", "EDGE"],
+  "trialMinutes": 120,
+  "procedureCapMinutes": 110,
+  "resetTrial": "manual",
+  "oneRunPerTrial": true,
+  "dryRunIsGate": false,
+  "command": "python3 -m bench hardware P2-04 --dry-run"
+}

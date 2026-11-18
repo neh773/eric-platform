@@ -1,0 +1,22 @@
+{
+  "inputs": [
+    {"address": "%IL0", "tag": "pid/sp", "type": "LREAL"},
+    {"address": "%IL1", "tag": "pid/pv", "type": "LREAL"},
+    {"address": "%IL2", "tag": "pid/man_out", "type": "LREAL"},
+    {"address": "%IL3", "tag": "pid/kp", "type": "LREAL"},
+    {"address": "%IL4", "tag": "pid/ti", "type": "LREAL"},
+    {"address": "%IL5", "tag": "pid/td", "type": "LREAL"},
+    {"address": "%IL6", "tag": "pid/n", "type": "LREAL"},
+    {"address": "%IL7", "tag": "pid/out_min", "type": "LREAL"},
+    {"address": "%IL8", "tag": "pid/out_max", "type": "LREAL"},
+    {"address": "%IX0.0", "tag": "pid/manual", "type": "BOOL"},
+    {"address": "%IX0.1", "tag": "pid/direct", "type": "BOOL"},
+    {"address": "%IX0.2", "tag": "pid/reset", "type": "BOOL"}
+  ],
+  "outputs": [
+    {"address": "%QL20", "tag": "pid/out", "type": "LREAL", "safe": 0},
+    {"address": "%QL21", "tag": "pid/error", "type": "LREAL", "safe": 0},
+    {"address": "%QX1.0", "tag": "pid/limited_high", "type": "BOOL", "safe": false},
+    {"address": "%QX1.1", "tag": "pid/limited_low", "type": "BOOL", "safe": false}
+  ]
+}

@@ -1,0 +1,28 @@
+id: org.oip.driver-modbus
+version: 0.1.0
+name: Modbus Driver
+entrypoint: org.oip.modbus.ModbusDriverModule
+dependencies: []
+permissions:
+  - device.connect
+configSchema:
+  type: object
+  properties:
+    defaultTimeoutMs:
+      type: integer
+      minimum: 1
+      maximum: 120000
+      default: 1000
+    defaultUnitId:
+      type: integer
+      minimum: 0
+      maximum: 255
+      default: 1
+    reconnectInitialMs:
+      type: integer
+      minimum: 1
+      default: 500
+    reconnectMaxMs:
+      type: integer
+      minimum: 1
+      default: 30000

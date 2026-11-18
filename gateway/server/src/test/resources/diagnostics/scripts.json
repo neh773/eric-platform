@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["scripts"],
+  "additionalProperties": false,
+  "properties": {
+    "scripts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "type", "running", "executions", "failures", "lastMillis", "avgMillis", "maxMillis", "lastError", "lastFinishedAt", "recentLog"],
+        "additionalProperties": false,
+        "properties": {
+          "name": {"type": "string"},
+          "type": {"type": "string"},
+          "running": {"type": "integer", "minimum": 0},
+          "executions": {"type": "integer", "minimum": 0},
+          "failures": {"type": "integer", "minimum": 0},
+          "lastMillis": {"type": "integer", "minimum": 0},
+          "avgMillis": {"type": "number", "minimum": 0},
+          "maxMillis": {"type": "integer", "minimum": 0},
+          "lastError": {"type": ["string", "null"]},
+          "lastFinishedAt": {"type": "integer", "minimum": 0},
+          "recentLog": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    }
+  }
+}

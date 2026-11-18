@@ -1,0 +1,52 @@
+apiVersion: oip/v1
+kind: Udt
+metadata:
+  name: pump
+  module: tags
+  version: 1
+  modified: "2026-11-17T20:17:03.508856400Z"
+  modifiedBy: admin
+spec:
+  path: Types/Pump
+  parameters: []
+  members:
+    -
+      value: false
+      name: Run
+      dataType: Boolean
+      type: memory
+    -
+      value: false
+      name: Fault
+      dataType: Boolean
+      type: memory
+    -
+      value: 2
+      name: Hoa
+      dataType: Int32
+      type: memory
+    -
+      value: 120
+      name: Runtime
+      dataType: Double
+      type: memory
+    -
+      value: 40
+      name: Starts
+      dataType: Int32
+      type: memory
+    -
+      value: 0
+      name: Speed
+      dataType: Double
+      type: memory
+    -
+      value: 0
+      name: Amps
+      dataType: Double
+      type: memory
+    -
+      value: 650
+      name: Rated
+      dataType: Double
+      type: memory

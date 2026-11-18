@@ -1,0 +1,56 @@
+apiVersion: oip/v1
+kind: View
+metadata:
+  name: alarms
+  module: designer
+  version: 1
+  modified: "2026-11-17T20:40:37.596728300Z"
+  modifiedBy: admin
+spec:
+  path: alarms
+  document:
+    root:
+      id: root
+      name: Root
+      children:
+        -
+          id: title
+          name: title
+          style:
+            fontSize: 22
+            color: "#e8eef4"
+          type: label
+          kind: component
+          props:
+            text: Alarm summary
+          frame:
+            y: 12
+            width: 320
+            height: 28
+            x: 16
+        -
+          id: table
+          name: table
+          type: alarm-status-table
+          kind: component
+          props:
+            sourceFilter: "*Brownsville*"
+            showClearedAcked: false
+            columns: "activeTime, displayPath, label, priority, state"
+            refreshRate: 2000
+          frame:
+            y: 52
+            width: 1080
+            height: 520
+            x: 16
+      layout: coordinate
+      style:
+        background: "#12171c"
+        color: "#d7dee6"
+      kind: container
+      props:
+        mode: fixed
+    params: {}
+    width: 1120
+    height: 600
+  title: Alarms

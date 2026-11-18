@@ -1,0 +1,39 @@
+{
+ "name": "oip-trial",
+ "description": "Same steps as reference-trial (10% changing, 1000 ms), read through our OPC UA server.",
+ "points": [
+  2000,
+  5000,
+  10000,
+  20000,
+  40000,
+  80000,
+  120000
+ ],
+ "periodMs": 1000,
+ "percentChanging": 10,
+ "protocols": [
+  "modbus"
+ ],
+ "warmupSeconds": 15,
+ "sampleSeconds": 45,
+ "sampleIntervalSeconds": 1,
+ "sampleTags": 32,
+ "registersPerUnit": 10000,
+ "metricsPerDevice": 500,
+ "modbusExtraPorts": 0,
+ "tagBatch": 2000,
+ "maxWallSeconds": 7200,
+ "cutoffs": {
+  "cpuPercent": 50,
+  "memoryPercent": 50,
+  "driftPercent": 10,
+  "qualityErrorFraction": 0.01,
+  "minReads": 8
+ },
+ "oip": {
+  "opcuaReadEndpoint": "opc.tcp://172.17.0.2:4840/oip",
+  "opcuaNodeId": "ns=2;s=Tags/{provider}/{path}",
+  "readViaOpcUa": true
+ }
+}

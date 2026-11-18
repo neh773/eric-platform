@@ -1,0 +1,6 @@
+apiVersion: oip/v1
+kind: Database
+metadata: {name: main, module: m, version: 1}
+spec:
+  url: jdbc:postgresql://dev-db/plant_dev
+  pool: {max: 2}

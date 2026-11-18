@@ -1,0 +1,3 @@
+url: jdbc:postgresql://prod-db.plant.local/plant
+pool: {min: 4, max: 32}
+tags: [prod, critical]

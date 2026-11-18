@@ -1,0 +1,4 @@
+url: jdbc:postgresql://dev-db/plant_dev
+pool: {min: 1, max: 2}
+debug: true
+tags: [base]

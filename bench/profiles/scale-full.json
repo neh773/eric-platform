@@ -1,0 +1,24 @@
+{
+  "name": "scale-full",
+  "description": "ADR 0010 series S2/S4/S8/S16 (2 GB RAM per vCPU). Each tier ramps points at 100% changing and 1 s until a cutoff. Efficiency is E(n) = (T(n) / T(baseline)) / (n / baseline), minimum 0.70. Run only when the host can spare the 32 GB tier plus the simulator fleet.",
+  "points": [10000, 20000, 40000, 80000, 160000, 320000, 640000, 1280000],
+  "periodMs": 1000,
+  "percentChanging": 100,
+  "protocols": ["modbus"],
+  "warmupSeconds": 10,
+  "sampleSeconds": 30,
+  "sampleIntervalSeconds": 1,
+  "sampleTags": 32,
+  "registersPerUnit": 10000,
+  "modbusExtraPorts": 3,
+  "tagBatch": 2000,
+  "maxWallSeconds": 3600,
+  "requireDevices": true,
+  "sizes": [
+    {"cpus": 2, "memory": "4g"},
+    {"cpus": 4, "memory": "8g"},
+    {"cpus": 8, "memory": "16g"},
+    {"cpus": 16, "memory": "32g"}
+  ],
+  "cutoffs": {"cpuPercent": 50, "memoryPercent": 50, "driftPercent": 10, "qualityErrorFraction": 0.01, "minReads": 4}
+}

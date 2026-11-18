@@ -1,0 +1,33 @@
+id: org.oip.driver-logix
+version: 0.1.0
+name: Logix Driver
+entrypoint: org.oip.logix.LogixDriverModule
+dependencies: []
+permissions:
+  - device.connect
+configSchema:
+  type: object
+  properties:
+    defaultTimeoutMs:
+      type: integer
+      minimum: 1
+      maximum: 120000
+      default: 2000
+    defaultSlot:
+      type: integer
+      minimum: 0
+      maximum: 31
+      default: 0
+    defaultCipConnectionSize:
+      type: integer
+      minimum: 64
+      maximum: 4000
+      default: 500
+    reconnectInitialMs:
+      type: integer
+      minimum: 1
+      default: 500
+    reconnectMaxMs:
+      type: integer
+      minimum: 1
+      default: 30000

@@ -1,0 +1,42 @@
+apiVersion: oip/v1
+kind: Udt
+metadata:
+  name: force-main
+  module: tags
+  version: 1
+  modified: "2026-11-17T20:17:03.583309200Z"
+  modifiedBy: admin
+spec:
+  path: Types/ForceMain
+  parameters:
+    -
+      default: ""
+      name: From
+      dataType: String
+    -
+      default: ""
+      name: To
+      dataType: String
+  members:
+    -
+      engUnit: psi
+      value: 0
+      name: Pressure
+      dataType: Double
+      type: memory
+    -
+      engUnit: gpm
+      value: 0
+      name: Flow
+      dataType: Double
+      type: memory
+    -
+      name: From
+      dataType: String
+      type: expression
+      expression: "{From}"
+    -
+      name: To
+      dataType: String
+      type: expression
+      expression: "{To}"

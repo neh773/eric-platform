@@ -1,0 +1,529 @@
+syntax = "proto3";
+
+// Gateway-to-gateway link. This is the ERIC protocol (ADR 0012).
+// It is not the reference platform's peer network and is not wire-compatible with it.
+package oip.gateway.network.v1;
+
+option java_package = "org.oip.network.v1";
+option java_multiple_files = true;
+option java_outer_classname = "GatewayNetworkProto";
+
+// Session setup and liveness. Heartbeat is the ping described for gateway network connections.
+service GatewayLink {
+  rpc Hello(HelloRequest) returns (HelloResponse);
+  rpc Heartbeat(HeartbeatRequest) returns (HeartbeatResponse);
+}
+
+// First remote service: realtime tag read, subscribe, and browse.
+service RemoteTags {
+  rpc Read(TagReadRequest) returns (TagReadResponse);
+  rpc Subscribe(TagSubscribeRequest) returns (stream TagSample);
+  rpc Browse(TagBrowseRequest) returns (TagBrowseResponse);
+  // A tag write from a peer's remote tag provider. Needs an allow tags policy; the owning gateway writes with the
+  // policy's roles and audits the write, naming the peer and its user.
+  rpc Write(TagWriteRequest) returns (TagWriteResponse);
+}
+
+// Live alarms on the gateway that owns the tags.
+// Query and Subscribe require a readable alarm policy (read or allow).
+// Acknowledge, Shelve, and Unshelve require allow. With no policy the call is denied.
+service RemoteAlarms {
+  rpc Query(AlarmQueryRequest) returns (AlarmQueryResponse);
+  rpc Subscribe(AlarmSubscribeRequest) returns (stream AlarmSnapshot);
+  rpc Acknowledge(AlarmAckRequest) returns (AlarmAckResponse);
+  rpc Shelve(AlarmShelveRequest) returns (AlarmShelveResponse);
+  rpc Unshelve(AlarmUnshelveRequest) returns (AlarmUnshelveResponse);
+  // Shelves currently in force. A peer that does not implement this rpc answers UNIMPLEMENTED,
+  // and the requester keeps its local shelves. Protocol 2 applies AlarmCaller the same way Query does.
+  rpc ListShelved(AlarmShelvedQuery) returns (AlarmShelvedList);
+}
+
+message HelloRequest {
+  string gateway_name = 1;
+  string version = 2;
+  string certificate_fingerprint = 3;
+  // 1 is the original protocol. 2 adds AlarmCaller on alarm calls.
+  // An omitted value is 0. Servers treat 0 and 1 the same.
+  int32 protocol_version = 4;
+}
+
+message HelloResponse {
+  string gateway_name = 1;
+  string version = 2;
+  string certificate_fingerprint = 3;
+  int32 protocol_version = 4;
+}
+
+message HeartbeatRequest {
+  int64 sent_unix_millis = 1;
+}
+
+message HeartbeatResponse {
+  int64 sent_unix_millis = 1;
+  int64 received_unix_millis = 2;
+}
+
+message TagReadRequest {
+  string provider = 1;
+  repeated string paths = 2;
+}
+
+message TagReadResponse {
+  repeated TagSample values = 1;
+}
+
+message TagSubscribeRequest {
+  string provider = 1;
+  string path = 2;
+}
+
+message TagSample {
+  string path = 1;
+  string quality = 2;
+  // UTC microseconds. Zero means the sender had no timestamp.
+  int64 timestamp_unix_micros = 3;
+  bool value_present = 4;
+  // JSON scalar, array, or object. Ignored when value_present is false.
+  string value_json = 5;
+}
+
+message TagWriteRequest {
+  string provider = 1;
+  string path = 2;
+  bool value_present = 3;
+  // JSON scalar, array, or object. Ignored when value_present is false.
+  string value_json = 4;
+  // Who wrote on the requesting gateway, for the owning gateway's audit record. Never used for authorization.
+  string actor = 5;
+}
+
+message TagWriteResponse {
+  // The quality the owning gateway's write returned (Good, Bad_AccessDenied, Bad_NotWritable, ...).
+  string quality = 1;
+}
+
+message TagBrowseRequest {
+  string provider = 1;
+  string path = 2;
+}
+
+message TagBrowseNode {
+  string name = 1;
+  string path = 2;
+  string kind = 3;
+  string data_type = 4;
+}
+
+message TagBrowseResponse {
+  repeated TagBrowseNode nodes = 1;
+}
+
+// Master/backup redundancy rides the same mutual-TLS peer network.
+// The backup calls the master. This is not the reference platform's redundancy protocol.
+service Redundancy {
+  rpc Exchange(RedundancyExchange) returns (RedundancyExchange);
+  rpc PullConfig(ConfigPullRequest) returns (ConfigPullResponse);
+  rpc PullRuntime(RuntimePullRequest) returns (RuntimePullResponse);
+  rpc PushRuntime(RuntimePush) returns (RuntimePullResponse);
+  rpc ForwardHistory(HistoryForwardRequest) returns (HistoryForwardResponse);
+}
+
+message RedundancyExchange {
+  string role = 1;
+  string activity = 2;
+  int64 active_uptime_millis = 3;
+  int64 sent_unix_millis = 4;
+  int64 config_revision = 5;
+  int64 runtime_revision = 6;
+  string node_id = 7;
+  string command = 8;
+  string recovery = 9;
+  bool split_brain = 10;
+}
+
+message ConfigPullRequest {
+  int64 since_revision = 1;
+}
+
+message ConfigDocument {
+  string scope = 1;
+  string module = 2;
+  string kind = 3;
+  string name = 4;
+  string spec_json = 5;
+  string labels_json = 6;
+  bool deleted = 7;
+}
+
+message ConfigPullResponse {
+  bool full = 1;
+  int64 revision = 2;
+  repeated ConfigDocument documents = 3;
+}
+
+message RuntimeTag {
+  string provider = 1;
+  string path = 2;
+  string value_json = 3;
+  string quality = 4;
+  int64 timestamp_unix_millis = 5;
+  string type = 6;
+}
+
+message RuntimeAlarm {
+  string source = 1;
+  string tag_path = 2;
+  bool active = 3;
+  bool acknowledged = 4;
+  string ack_user = 5;
+  int64 shelved_until_millis = 6;
+  bool shelved = 7;
+  string event_id = 8;
+}
+
+message RuntimePullRequest {
+  int64 since_revision = 1;
+}
+
+message RuntimePullResponse {
+  bool full = 1;
+  int64 revision = 2;
+  repeated RuntimeTag tags = 3;
+  repeated RuntimeAlarm alarms = 4;
+  int64 active_uptime_millis = 5;
+}
+
+message RuntimePush {
+  int64 active_uptime_millis = 1;
+  repeated RuntimeTag tags = 2;
+  repeated RuntimeAlarm alarms = 3;
+}
+
+message HistoryPoint {
+  string provider = 1;
+  string path = 2;
+  string value_json = 3;
+  string quality = 4;
+  int64 timestamp_unix_millis = 5;
+}
+
+message HistoryForwardRequest {
+  repeated HistoryPoint points = 1;
+}
+
+message HistoryForwardResponse {
+  int32 accepted = 1;
+  int32 dropped = 2;
+}
+
+// A client-facing history query is not defined here. Edge sync below pushes history,
+// audit, and alarm-journal rows. Redundancy HistoryForward above is a failover buffer.
+// Live alarm status is RemoteAlarms, which is separate from the alarm-journal push.
+
+// Who asked the requesting gateway to make this call.
+// Protocol 2 peers set it. Older peers leave it empty, and the owner
+// keeps the protocol 1 alarm behaviour for them.
+message AlarmCaller {
+  string user = 1;
+  repeated string roles = 2;
+  string zone = 3;
+}
+
+message AlarmQueryRequest {
+  // Empty means every provider on the owning gateway.
+  string provider = 1;
+  AlarmCaller caller = 2;
+}
+
+message AlarmQueryResponse {
+  repeated AlarmView alarms = 1;
+}
+
+message AlarmSubscribeRequest {
+  string provider = 1;
+  AlarmCaller caller = 2;
+}
+
+// Full live set for the subscription. A new stream sends the current set immediately,
+// including after the previous connection dropped.
+message AlarmSnapshot {
+  repeated AlarmView alarms = 1;
+}
+
+message AlarmView {
+  string event_id = 1;
+  string source = 2;
+  string name = 3;
+  string display_path = 4;
+  string tag_path = 5;
+  string priority = 6;
+  int32 priority_code = 7;
+  string state = 8;
+  int32 state_code = 9;
+  bool active = 10;
+  bool acknowledged = 11;
+  bool value_present = 12;
+  string value_json = 13;
+  int64 active_time_unix_millis = 14;
+  bool clear_time_set = 15;
+  int64 clear_time_unix_millis = 16;
+  bool ack_time_set = 17;
+  int64 ack_time_unix_millis = 18;
+  string ack_user = 19;
+  string ack_notes = 20;
+  bool setpoint_a_present = 21;
+  string setpoint_a_json = 22;
+  bool setpoint_b_present = 23;
+  string setpoint_b_json = 24;
+  string notes = 25;
+}
+
+message AlarmAckRequest {
+  repeated string event_ids = 1;
+  string user = 2;
+  string notes = 3;
+  AlarmCaller caller = 4;
+}
+
+message AlarmAckResponse {
+  repeated string event_ids = 1;
+}
+
+message AlarmShelveRequest {
+  repeated string sources = 1;
+  int64 duration_millis = 2;
+  AlarmCaller caller = 3;
+}
+
+message AlarmShelveResponse {
+  repeated string sources = 1;
+}
+
+message AlarmUnshelveRequest {
+  repeated string sources = 1;
+  AlarmCaller caller = 2;
+}
+
+message AlarmUnshelveResponse {
+  repeated string sources = 1;
+}
+
+message AlarmShelvedQuery {
+  string provider = 1;
+  AlarmCaller caller = 2;
+}
+
+message AlarmShelvedList {
+  repeated ShelvedAlarm shelves = 1;
+}
+
+message ShelvedAlarm {
+  string source = 1;
+  string name = 2;
+  string display_path = 3;
+  string tag_path = 4;
+  string priority = 5;
+  int32 priority_code = 6;
+  bool shelved_at_set = 7;
+  int64 shelved_at_unix_millis = 8;
+  int64 shelved_until_unix_millis = 9;
+  string shelved_by = 10;
+  bool condition_active = 11;
+  bool event_set = 12;
+  AlarmView event = 13;
+}
+
+// Spoke-to-hub edge sync on the same mutual-TLS listener.
+// The spoke calls the hub. This is not the reference platform's sync protocol.
+service EdgeSync {
+  rpc PushHistory(EdgeHistoryBatch) returns (EdgeSyncAck);
+  rpc PushAudit(EdgeAuditBatch) returns (EdgeSyncAck);
+  rpc PushAlarms(EdgeAlarmBatch) returns (EdgeSyncAck);
+}
+
+message EdgeHistoryPoint {
+  int64 local_id = 1;
+  string provider = 2;
+  string path = 3;
+  string value_json = 4;
+  string quality = 5;
+  // UTC microseconds, matching the tag engine's timestamp resolution.
+  int64 timestamp_unix_micros = 6;
+}
+
+message EdgeHistoryBatch {
+  string remote_provider = 1;
+  repeated EdgeHistoryPoint points = 2;
+}
+
+message EdgeAuditRecord {
+  int64 seq = 1;
+  int64 timestamp_unix_millis = 2;
+  string actor = 3;
+  string actor_host = 4;
+  string action = 5;
+  string target = 6;
+  string detail = 7;
+  string status = 8;
+  string origin = 9;
+  string context = 10;
+}
+
+message EdgeAuditBatch {
+  string remote_profile = 1;
+  repeated EdgeAuditRecord records = 2;
+}
+
+message EdgeAlarmRecord {
+  int64 local_id = 1;
+  string event_id = 2;
+  string source = 3;
+  string display_path = 4;
+  int32 priority = 5;
+  int32 event_type = 6;
+  int32 event_flags = 7;
+  int64 event_time_unix_millis = 8;
+  string data_json = 9;
+}
+
+message EdgeAlarmBatch {
+  string remote_journal = 1;
+  repeated EdgeAlarmRecord records = 2;
+}
+
+message EdgeSyncAck {
+  int32 accepted = 1;
+  // Highest spoke id included in this batch. The spoke advances through this id.
+  int64 through_id = 2;
+}
+
+// A peer asks this gateway to run one built-in task and then reads its state.
+// Tasks are gateway-status, tag-count, and hold. hold stays running until it
+// finishes or is cancelled. The service policy name is "tasks".
+service RemoteTasks {
+  rpc Submit(TaskSubmit) returns (TaskState);
+  rpc Get(TaskRef) returns (TaskState);
+  rpc List(TaskListRequest) returns (TaskList);
+  rpc Cancel(TaskRef) returns (TaskState);
+}
+
+message TaskSubmit {
+  string name = 1;
+  string argument = 2;
+}
+
+message TaskRef {
+  string id = 1;
+}
+
+message TaskListRequest {}
+
+message TaskState {
+  string id = 1;
+  string name = 2;
+  string argument = 3;
+  string state = 4;
+  string detail = 5;
+  int64 started_unix_millis = 6;
+  int64 finished_unix_millis = 7;
+}
+
+message TaskList {
+  repeated TaskState tasks = 1;
+}
+
+// A notification profile on the sender names a profile on this gateway.
+// The service policy name is "notifications". allow is required.
+service RemoteNotifications {
+  rpc Deliver(NotificationForward) returns (NotificationForwardAck);
+}
+
+message NotificationForward {
+  string remote_profile = 1;
+  string event_id = 2;
+  string source = 3;
+  string display_path = 4;
+  string priority = 5;
+  string state = 6;
+  bool active = 7;
+  string sender = 8;
+}
+
+message NotificationForwardAck {
+  bool accepted = 1;
+  string profile = 2;
+}
+
+// Enterprise administration. The controller serves this; agents dial the controller and call it.
+// An agent checks in on a fixed period with its inventory and health. The reply carries the task runs
+// the controller has queued for it. Payloads (backups, projects, tags, module and upgrade packages) move in
+// chunks so no single message passes the network's message cap.
+service EnterpriseAdmin {
+  rpc CheckIn(EamCheckIn) returns (EamCheckInReply);
+  rpc Report(EamTaskReport) returns (EamReportAck);
+  rpc Upload(stream EamChunk) returns (EamUploadAck);
+  rpc Download(EamDownloadRequest) returns (stream EamChunk);
+}
+
+message EamCheckIn {
+  // The agent's gateway-network name. The controller keys its agent record by this name.
+  string gateway_name = 1;
+  string version = 2;
+  // Inventory and health as a JSON object (modules, projects, tag counts, cpu, memory, disk, uptime).
+  string inventory_json = 3;
+  // Runs the agent has accepted and not reported yet.
+  repeated string running = 4;
+}
+
+message EamTaskOrder {
+  string run_id = 1;
+  string kind = 2;
+  string params_json = 3;
+  // Empty when the task has no payload to download.
+  string payload_id = 4;
+  string payload_sha256 = 5;
+  int64 payload_size = 6;
+  // Backup passphrase for backup and restore runs. Never stored in the run record.
+  string secret = 7;
+}
+
+message EamCheckInReply {
+  // pending, approved, maintenance, or replaced.
+  string state = 1;
+  repeated EamTaskOrder tasks = 2;
+  int64 check_in_millis = 3;
+  string controller_name = 4;
+}
+
+message EamTaskReport {
+  string run_id = 1;
+  bool success = 2;
+  string message = 3;
+  string result_json = 4;
+  // Set when the run uploaded a payload first (a backup).
+  string upload_id = 5;
+}
+
+message EamReportAck {
+  bool accepted = 1;
+}
+
+message EamChunk {
+  // Upload: the run id on the first chunk. Download: the payload id.
+  string run_id = 1;
+  string payload_id = 2;
+  int64 offset = 3;
+  bytes data = 4;
+  bool last = 5;
+}
+
+message EamUploadAck {
+  string upload_id = 1;
+  int64 size = 2;
+  string sha256 = 3;
+}
+
+message EamDownloadRequest {
+  string run_id = 1;
+  string payload_id = 2;
+}

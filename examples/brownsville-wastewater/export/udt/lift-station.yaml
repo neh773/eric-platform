@@ -1,0 +1,160 @@
+apiVersion: oip/v1
+kind: Udt
+metadata:
+  name: lift-station
+  module: tags
+  version: 1
+  modified: "2026-11-17T20:17:03.536650400Z"
+  modifiedBy: admin
+spec:
+  path: Types/LiftStation
+  parameters:
+    -
+      default: ""
+      name: District
+      dataType: String
+    -
+      default: ""
+      name: Downstream
+      dataType: String
+    -
+      default: 2
+      name: PumpCount
+      dataType: Int32
+    -
+      default: 400
+      name: BaseInflow
+      dataType: Double
+  members:
+    -
+      value: 6
+      name: Level
+      engUnit: ft
+      dataType: Double
+      type: memory
+      alarms:
+        -
+          setpointA: 14
+          priority: High
+          name: High
+          deadband: 0.2
+          mode: AboveValue
+        -
+          setpointA: 16.5
+          priority: Critical
+          name: HighHigh
+          deadband: 0.2
+          mode: AboveValue
+        -
+          setpointA: 1.5
+          priority: Medium
+          name: Low
+          deadband: 0.2
+          mode: BelowValue
+    -
+      engUnit: gal
+      value: 0
+      name: Volume
+      dataType: Double
+      type: memory
+    -
+      engUnit: gpm
+      value: 0
+      name: Inflow
+      dataType: Double
+      type: memory
+    -
+      engUnit: gpm
+      value: 0
+      name: Flow
+      dataType: Double
+      type: memory
+    -
+      engUnit: psi
+      value: 0
+      name: DischargePressure
+      dataType: Double
+      type: memory
+    -
+      engUnit: ft
+      value: 7.5
+      name: LeadOn
+      dataType: Double
+      type: memory
+    -
+      engUnit: ft
+      value: 4
+      name: LeadOff
+      dataType: Double
+      type: memory
+    -
+      engUnit: ft
+      value: 10.5
+      name: LagOn
+      dataType: Double
+      type: memory
+    -
+      engUnit: ft
+      value: 6.5
+      name: LagOff
+      dataType: Double
+      type: memory
+    -
+      engUnit: ft
+      value: 13
+      name: StandbyOn
+      dataType: Double
+      type: memory
+    -
+      engUnit: ft
+      value: 9
+      name: StandbyOff
+      dataType: Double
+      type: memory
+    -
+      value: 0
+      name: LeadIndex
+      dataType: Int32
+      type: memory
+    -
+      name: PumpCount
+      dataType: Int32
+      type: expression
+      expression: "{PumpCount}"
+    -
+      name: District
+      dataType: String
+      type: expression
+      expression: "{District}"
+    -
+      name: Downstream
+      dataType: String
+      type: expression
+      expression: "{Downstream}"
+    -
+      value: true
+      name: PowerOk
+      dataType: Boolean
+      type: memory
+    -
+      value: false
+      name: Generator
+      dataType: Boolean
+      type: memory
+    -
+      value: true
+      name: CommsOk
+      dataType: Boolean
+      type: memory
+    -
+      typeId: Types/Pump
+      name: P1
+      type: udt
+    -
+      typeId: Types/Pump
+      name: P2
+      type: udt
+    -
+      typeId: Types/Pump
+      name: P3
+      type: udt

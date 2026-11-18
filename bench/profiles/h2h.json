@@ -1,0 +1,28 @@
+{
+  "name": "h2h",
+  "description": "PRF-001 head-to-head vs the reference platform 8.3.10 on S2, S4, S8, S16, and EDGE. One size is one 2 h trial. a manual license reset is manual. Cutoffs stay CPU above 50%, memory above 50%, clock drift outside +/-10%, and any error or data loss. E(n) is not this profile.",
+  "points": [5000, 10000, 20000, 40000, 80000, 160000, 320000],
+  "periodMs": 1000,
+  "percentChanging": 10,
+  "protocols": ["modbus"],
+  "warmupSeconds": 20,
+  "sampleSeconds": 60,
+  "sampleIntervalSeconds": 10,
+  "steadySeconds": 2700,
+  "sampleTags": 32,
+  "registersPerUnit": 10000,
+  "metricsPerDevice": 500,
+  "modbusExtraPorts": 0,
+  "tagBatch": 2000,
+  "maxWallSeconds": 6600,
+  "requireDevices": true,
+  "sizes": [
+    {"id": "S2", "cpus": 2, "memory": "4g", "ramGb": 4},
+    {"id": "S4", "cpus": 4, "memory": "8g", "ramGb": 8},
+    {"id": "S8", "cpus": 8, "memory": "16g", "ramGb": 16},
+    {"id": "S16", "cpus": 16, "memory": "32g", "ramGb": 32},
+    {"id": "EDGE", "cpus": 4, "memory": "4g", "ramGb": 4}
+  ],
+  "reference": {"provider": "default", "opcuaReadEndpoint": "opc.tcp://127.0.0.1:62541"},
+  "cutoffs": {"cpuPercent": 50, "memoryPercent": 50, "driftPercent": 10, "qualityErrorFraction": 0.01, "minReads": 4}
+}

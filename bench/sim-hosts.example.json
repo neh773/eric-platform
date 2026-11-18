@@ -1,0 +1,19 @@
+{
+  "headroom": 2.0,
+  "pointsPerVcpu": 80000,
+  "hosts": [
+    {
+      "id": "local",
+      "address": "127.0.0.1",
+      "gatewayAddress": "172.17.0.1",
+      "slots": 16
+    },
+    {
+      "id": "sim-2",
+      "address": "10.1.0.20",
+      "gatewayAddress": "10.1.0.20",
+      "slots": 16,
+      "dockerHost": "ssh://bench@10.1.0.20"
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+ "name": "core-curves-ram",
+ "description": "Lowest clean RAM at 4 CPUs: one fixed step of 100,000 points, run at 8, 4, 2 and 1 GB. Every other setting, and the cutoffs, copied unchanged from core-curves (and so from oip-edge).",
+ "points": [
+  100000
+ ],
+ "periodMs": 1000,
+ "percentChanging": 100,
+ "protocols": [
+  "modbus"
+ ],
+ "warmupSeconds": 15,
+ "sampleSeconds": 45,
+ "sampleIntervalSeconds": 1,
+ "sampleTags": 32,
+ "registersPerUnit": 10000,
+ "metricsPerDevice": 500,
+ "modbusExtraPorts": 0,
+ "tagBatch": 2000,
+ "maxWallSeconds": 7200,
+ "cutoffs": {
+  "cpuPercent": 50,
+  "memoryPercent": 50,
+  "driftPercent": 10,
+  "qualityErrorFraction": 0.01,
+  "minReads": 8
+ },
+ "oip": {
+  "opcuaReadEndpoint": "opc.tcp://127.0.0.1:4840/oip",
+  "opcuaNodeId": "ns=2;s=Tags/{provider}/{path}",
+  "readViaOpcUa": true
+ }
+}

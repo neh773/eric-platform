@@ -1,0 +1,36 @@
+# One gateway container. The process listens on 8088 inside the container.
+# Set OIP_PUBLISH_PORT to choose the host port (default 8088) and OIP_PROFILE for edge|standard|hub.
+# OIP_ADMIN_PASSWORD, when set, seeds user admin on first start if the user source is empty.
+# Leave it unset for a gateway with no users. Do not commit a password. See docs/ops/http-auth.md.
+# HTTPS is off unless OIP_HTTP_HTTPS=true. Publish the HTTPS port yourself (default 8043)
+# and do not enable OIP_HTTP_FORCE_REDIRECT unless health checks use HTTPS.
+# OIP_HTTPS_PKCS12_PASSWORD is not logged. See docs/ops/https.md.
+services:
+  gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: oip-gateway:local
+    ports:
+      - "${OIP_PUBLISH_PORT:-8088}:8088"
+    environment:
+      OIP_DATA_DIR: /data
+      OIP_PROFILE: ${OIP_PROFILE:-standard}
+      OIP_HTTP_HOST: 0.0.0.0
+      OIP_HTTP_PORT: "8088"
+      OIP_ADMIN_PASSWORD: "${OIP_ADMIN_PASSWORD:-}"
+      OIP_HTTP_HTTPS: "${OIP_HTTP_HTTPS:-}"
+      OIP_HTTP_HTTPS_PORT: "${OIP_HTTP_HTTPS_PORT:-}"
+      OIP_HTTP_PUBLIC_ADDRESS: "${OIP_HTTP_PUBLIC_ADDRESS:-}"
+      OIP_HTTP_PUBLIC_HTTPS_PORT: "${OIP_HTTP_PUBLIC_HTTPS_PORT:-}"
+      OIP_HTTP_FORCE_REDIRECT: "${OIP_HTTP_FORCE_REDIRECT:-}"
+      OIP_HTTPS_CERT: "${OIP_HTTPS_CERT:-}"
+      OIP_HTTPS_KEY: "${OIP_HTTPS_KEY:-}"
+      OIP_HTTPS_PKCS12: "${OIP_HTTPS_PKCS12:-}"
+      OIP_HTTPS_PKCS12_PASSWORD: "${OIP_HTTPS_PKCS12_PASSWORD:-}"
+    volumes:
+      - gateway-data:/data
+    restart: unless-stopped
+
+volumes:
+  gateway-data:

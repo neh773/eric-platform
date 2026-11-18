@@ -1,0 +1,3 @@
+__pycache__/
+*.pyc
+sim/opcua/node_modules/

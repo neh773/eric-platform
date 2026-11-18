@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["resources", "loadErrors", "byModule"],
+  "additionalProperties": false,
+  "properties": {
+    "resources": {"type": "integer", "minimum": 0},
+    "loadErrors": {"type": "integer", "minimum": 0},
+    "byModule": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}}
+  }
+}

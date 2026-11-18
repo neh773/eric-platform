@@ -1,0 +1,16 @@
+{
+  "step": "W91",
+  "target": "ours",
+  "label": "container-size, not reference-size",
+  "dryRun": true,
+  "id": "W91",
+  "status": "ok",
+  "seconds": 0.8,
+  "startedMinute": 10.65,
+  "notes": [],
+  "data": {
+    "oipStopped": true,
+    "simStopped": 2,
+    "dbRemoved": true
+  }
+}

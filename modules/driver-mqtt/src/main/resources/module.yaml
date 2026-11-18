@@ -1,0 +1,18 @@
+id: org.oip.driver-mqtt
+version: 0.1.0
+name: MQTT Driver
+entrypoint: org.oip.mqtt.MqttDriverModule
+dependencies: []
+permissions:
+  - device.connect
+configSchema:
+  type: object
+  properties:
+    reconnectInitialMs:
+      type: integer
+      minimum: 1
+      default: 500
+    reconnectMaxMs:
+      type: integer
+      minimum: 1
+      default: 30000

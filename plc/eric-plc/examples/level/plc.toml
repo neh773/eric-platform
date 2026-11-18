@@ -1,0 +1,14 @@
+period_ms = 100
+fifo_priority = 50
+mlock = true
+max_consecutive_overruns = 3
+bridge_timeout_ms = 500
+shm_path = "/dev/shm/eric-plc-level"
+program = "../../build/liblevel.so"
+entry = "LevelLoop"
+instance = "LevelLoop_instance"
+hwmap = "../../build/level-hwmap.json"
+mapping = "mapping.json"
+status_path = "../../build/level-status.json"
+label = "container-size, not reference"
+stop_safe = true

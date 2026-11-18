@@ -1,0 +1,35 @@
+{
+ "name": "oip-edge-rest",
+ "description": "Same as reference-trial-edge: 100% changing every 1000 ms. Reads via POST /api/v1/tags/read.",
+ "points": [
+  120000,
+  160000,
+  200000
+ ],
+ "periodMs": 1000,
+ "percentChanging": 100,
+ "protocols": [
+  "modbus"
+ ],
+ "warmupSeconds": 15,
+ "sampleSeconds": 45,
+ "sampleIntervalSeconds": 1,
+ "sampleTags": 32,
+ "registersPerUnit": 10000,
+ "metricsPerDevice": 500,
+ "modbusExtraPorts": 0,
+ "tagBatch": 2000,
+ "maxWallSeconds": 7200,
+ "cutoffs": {
+  "cpuPercent": 50,
+  "memoryPercent": 50,
+  "driftPercent": 10,
+  "qualityErrorFraction": 0.01,
+  "minReads": 8
+ },
+ "oip": {
+  "opcuaReadEndpoint": "opc.tcp://172.17.0.2:4840/oip",
+  "opcuaNodeId": "ns=2;s=Tags/{provider}/{path}",
+  "readViaOpcUa": false
+ }
+}

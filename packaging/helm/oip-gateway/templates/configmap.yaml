@@ -1,0 +1,11 @@
+{{- if .Values.gatewayYaml }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "oip-gateway.fullname" . }}
+  labels:
+    {{- include "oip-gateway.labels" . | nindent 4 }}
+data:
+  gateway.yaml: |
+    {{- .Values.gatewayYaml | nindent 4 }}
+{{- end }}

@@ -1,0 +1,32 @@
+[
+  {
+    "name": "modbus",
+    "listen": "0.0.0.0:5020",
+    "upstream": "modbus:5020",
+    "enabled": true
+  },
+  {
+    "name": "opcua",
+    "listen": "0.0.0.0:4840",
+    "upstream": "opcua:4840",
+    "enabled": true
+  },
+  {
+    "name": "mqtt",
+    "listen": "0.0.0.0:1883",
+    "upstream": "mosquitto:1883",
+    "enabled": true
+  },
+  {
+    "name": "postgres",
+    "listen": "0.0.0.0:5432",
+    "upstream": "timescale:5432",
+    "enabled": true
+  },
+  {
+    "name": "smtp",
+    "listen": "0.0.0.0:1025",
+    "upstream": "mailpit:1025",
+    "enabled": true
+  }
+]

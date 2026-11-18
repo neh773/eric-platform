@@ -1,0 +1,37 @@
+{
+  "name": "@oip/web",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "packageManager": "pnpm@10.33.4",
+  "engines": {
+    "node": ">=22"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild"]
+  },
+  "scripts": {
+    "dev": "pnpm --filter @oip/designer dev",
+    "lint": "eslint .",
+    "typecheck": "tsc -p hmi-runtime --noEmit && tsc -p components --noEmit && tsc -p designer --noEmit && tsc -p admin --noEmit && tsc -p perf --noEmit && tsc -p manual --noEmit",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "licenses": "python3 scripts/check_npm_licenses.py"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.39.1",
+    "@playwright/test": "1.56.1",
+    "@testing-library/jest-dom": "6.9.1",
+    "@testing-library/react": "16.3.0",
+    "@types/node": "22.19.1",
+    "@types/react": "19.2.2",
+    "@types/react-dom": "19.2.2",
+    "@vitejs/plugin-react": "5.1.0",
+    "eslint": "9.39.1",
+    "happy-dom": "20.0.10",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.46.2",
+    "vite": "6.4.1",
+    "vitest": "3.2.4"
+  }
+}

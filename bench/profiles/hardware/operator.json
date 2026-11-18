@@ -1,0 +1,37 @@
+{
+  "hardware": [
+    "S2: 2 dedicated vCPU, 4 GB RAM, SSD, Linux x64. Scaling baseline.",
+    "S4: 4 dedicated vCPU, 8 GB RAM, SSD, Linux x64. Scaling step.",
+    "S8: 8 dedicated vCPU, 16 GB RAM, SSD, Linux x64. Primary absolute floors.",
+    "S16: 16 dedicated vCPU, 32 GB RAM, SSD, Linux x64. Large absolute floor.",
+    "EDGE: 4 dedicated vCPU, 4 GB RAM, SSD, Linux x64. Edge floor only. Not a scaling-series point.",
+    "P3-04: a historian database on its own host, not on the gateway VM.",
+    "P4-01 and P4-14: a host that can open the session farm (50 sessions, 300 tags each) against each product."
+  ],
+  "trialWindow": [
+    "Comparison trial window: 2 hours (120 minutes). Nick supplies a window of that length. The harness does not choose a different length.",
+    "Each comparison procedure finishes in 110 minutes (20 min setup, 25 min ramp, 45 min steady, 20 min collect).",
+    "One comparison run uses one trial window. Sizes are not stacked.",
+    "P2-04: five windows, one each for S2, S4, S8, S16, and EDGE.",
+    "P2-05: one window per comparison series. A tier that would start after the window is skipped. Nick opens a new window himself before the remaining tiers. EDGE is not in this series.",
+    "P3-04 PRF-003: the 1 hour steady state is its own trial (60 minutes). Pair the comparison copy only when setup, 60 minutes steady, and teardown fit in 110 minutes. Otherwise the hour runs on our gateway only.",
+    "P3-04 PRF-008: 3 hours (180 minutes) on our gateway only. A paired historian sample uses the shorter 2 hour trial window.",
+    "P4-01: the p95 sample length is the steady window Nick names on the reference host. A paired comparison run still finishes inside 110 minutes. The CI spec's 20 second window is not this length.",
+    "P4-14 and parity-3: both products share one trial window.",
+    "P4-15: no extra soak. The gate waits on P4-01, P4-14, and three consecutive green main runs."
+  ],
+  "stepsNickStarts": [
+    "Start the comparison gateway VM. This harness does not start it and does not open it during a dry-run.",
+    "Perform a manual license reset in the comparison gateway UI when the 2 hour window has lapsed. The harness does not POST the trial route.",
+    "Pass --reset-confirmed only after that manual reset.",
+    "Provide the comparison API token in a file (--token-file). It is not the admin password and it is not a command-line argument.",
+    "Provide our gateway password in a file (--oip-password-file). It is not a command-line argument.",
+    "Set the cgroup CPU and memory for the size, and the comparison JVM heap, before the run.",
+    "Set the comparison OPC UA server bind address, anonymous access, and tag-provider exposure for the run, then restore them. The harness does not change those settings.",
+    "Leave notification pipelines off for the P3-04 full-load run.",
+    "Point both gateways at the historian database on its own host for P3-04.",
+    "Open the same project on both products for P4-14, inside that one trial window.",
+    "Supply three consecutive green main run identifiers before gate-4 can pass.",
+    "Copy a measured report into docs/agent/reports only after a real reference-size run. Leave the CI-size reports in place. Dry-run output stays under bench/out/hardware/."
+  ]
+}

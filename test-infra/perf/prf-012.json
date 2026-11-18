@@ -1,0 +1,13 @@
+{
+  "name": "prf-012",
+  "description": "High-point simulator for PRF-012. fullPoints is the address space the S16 tag floor needs. ciPoints is the size the Simulator stack smoke job serves. Drivers refuse loopback targets. Change fractions 10 and 6 follow the tag index and the scan number.",
+  "fullPoints": 150000,
+  "ciPoints": 64,
+  "percentChanging": 10,
+  "changePercents": [10, 6],
+  "periodMs": 1000,
+  "registersPerUnit": 10000,
+  "metricsPerDevice": 500,
+  "protocols": ["modbus", "opcua", "mqtt"],
+  "loopbackAllowed": false
+}

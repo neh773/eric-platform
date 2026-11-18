@@ -1,0 +1,50 @@
+{
+  "step": "P1-10",
+  "target": "ours",
+  "label": "container-size, not reference-size",
+  "dryRun": true,
+  "id": "P1-10",
+  "status": "ok",
+  "seconds": 9.9,
+  "startedMinute": 9.86,
+  "notes": [],
+  "data": {
+    "gate": "parity-1",
+    "closes": [
+      "PRO-003"
+    ],
+    "prompt": [
+      "Create project parity-a in the web UI, export it, import it again.",
+      "Which conflict choices are offered (overwrite, skip, rename, other)?",
+      "Is an inherited parent included? Is the import audited?"
+    ],
+    "probes": [
+      {
+        "method": "GET",
+        "path": "/api/v1/projects",
+        "auth": "session",
+        "status": 200,
+        "ms": 9939.9,
+        "shape": {
+          "type": "object",
+          "keys": [
+            "items",
+            "projects"
+          ],
+          "lists": {
+            "projects": {
+              "length": 0,
+              "itemKeys": null
+            },
+            "items": {
+              "length": 0,
+              "itemKeys": null
+            }
+          }
+        }
+      }
+    ],
+    "answer": null,
+    "note": "dry run: UI questions are for the reference product; our side is the probes"
+  }
+}

@@ -1,0 +1,30 @@
+# Persistent gateway that restores a backup on its first boot. Put the backup file (from the backup API or the
+# admin Backups page) in OIP_RESTORE_DIR as gateway.oipbk. An encrypted backup also needs its passphrase in a file
+# named passphrase in the same directory (the passphrase is never passed as a command-line value).
+#   OIP_RESTORE_DIR=./restore docker compose -f packaging/compose/restore.yaml up -d
+# The restore runs only while the volume holds no configuration. After it, restored-from-backup.json on the volume
+# stops any later restore, so the same file can stay mounted. Backup users replace OIP_ADMIN_PASSWORD's admin.
+# Doc source: FEATURES GAT-009. See docs/ops/container-recipes.md.
+services:
+  gateway:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    image: oip-gateway:local
+    ports:
+      - "${OIP_PUBLISH_PORT:-8088}:8088"
+    environment:
+      OIP_DATA_DIR: /data
+      OIP_PROFILE: ${OIP_PROFILE:-standard}
+      OIP_HTTP_HOST: 0.0.0.0
+      OIP_HTTP_PORT: "8088"
+      OIP_ADMIN_PASSWORD: "${OIP_ADMIN_PASSWORD:-}"
+      OIP_RESTORE_FROM: /restore/gateway.oipbk
+      OIP_RESTORE_PASSPHRASE_FILE: /restore/passphrase
+    volumes:
+      - gateway-data:/data
+      - ${OIP_RESTORE_DIR:?set OIP_RESTORE_DIR to the folder holding gateway.oipbk}:/restore:ro
+    restart: unless-stopped
+
+volumes:
+  gateway-data:

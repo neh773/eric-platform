@@ -1,0 +1,17 @@
+{
+  "name": "reference-trial-opcua",
+  "description": "OPC UA subscription ramp. Shorter than the Modbus trial profile because each point is a monitored item.",
+  "points": [2000, 10000, 25000, 50000],
+  "periodMs": 1000,
+  "percentChanging": 10,
+  "protocols": ["opcua"],
+  "warmupSeconds": 15,
+  "sampleSeconds": 45,
+  "sampleIntervalSeconds": 1,
+  "sampleTags": 32,
+  "registersPerUnit": 10000,
+  "metricsPerDevice": 500,
+  "maxWallSeconds": 6600,
+  "reference": {"provider": "default", "opcuaReadEndpoint": "opc.tcp://127.0.0.1:62541"},
+  "cutoffs": {"cpuPercent": 50, "memoryPercent": 50, "driftPercent": 10, "qualityErrorFraction": 0.01, "minReads": 8}
+}

@@ -1,0 +1,13 @@
+{
+  "name": "oip-opcua-sim",
+  "private": true,
+  "version": "1.0.0",
+  "description": "OPC UA test simulator for the ERIC (Apache-2.0). Uses node-opcua (MIT).",
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "dependencies": {
+    "node-opcua": "2.187.16"
+  }
+}

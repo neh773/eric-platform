@@ -1,0 +1,69 @@
+.oip-logic {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr) 280px;
+  gap: 12px;
+  padding: 12px;
+  background: var(--oip-bg);
+  color: var(--oip-ink);
+}
+
+.oip-plc-banner {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 12px;
+  border: 1px solid var(--oip-accent, #3d8bff);
+  background: var(--oip-surface-2, #15181d);
+}
+
+.oip-logic-tree,
+.oip-logic-editor,
+.oip-logic-side {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: var(--oip-surface-1);
+  border: 1px solid var(--oip-line);
+}
+
+.oip-logic h2 {
+  margin: 0;
+  font-size: 14px;
+}
+
+.oip-logic button,
+.oip-logic input,
+.oip-logic select,
+.oip-logic textarea {
+  font: inherit;
+  color: inherit;
+}
+
+.oip-logic textarea,
+.oip-logic .cm-editor {
+  flex: 1;
+  min-height: 220px;
+  background: var(--oip-surface-2);
+  border: 1px solid var(--oip-line);
+  font-family: var(--oip-font-mono);
+}
+
+.oip-logic-actions,
+.oip-logic-map {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.oip-logic-forces {
+  padding: 8px;
+  border: 1px solid var(--oip-alarm, #c4554e);
+  color: var(--oip-ink);
+}
+
+.oip-logic [data-forced="yes"] {
+  outline: 1px solid var(--oip-alarm, #c4554e);
+}

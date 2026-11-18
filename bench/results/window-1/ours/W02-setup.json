@@ -1,0 +1,23 @@
+{
+  "step": "W02",
+  "target": "ours",
+  "label": "container-size, not reference-size",
+  "dryRun": true,
+  "id": "W02",
+  "status": "ok",
+  "seconds": 0.0,
+  "startedMinute": 0.09,
+  "notes": [],
+  "data": {
+    "prompt": [
+      "Sign in to the web UI as the admin user (password in secrets/reference-admin.txt).",
+      "Platform > Security > API Keys: create key 'bench' with full access. Save the secret, one line, mode 0600, to secrets/reference-api-token.txt.",
+      "Create key 'parity-ro' with read-only access. Save it to secrets/reference-api-token-2.txt. Record whether each secret was shown once.",
+      "Connections > OPC UA > Server Settings: write the current values here, then set bind 0.0.0.0, port 62541, add policy None, anonymous access on, expose tag providers on.",
+      "Turn the gateway audit profile on (record the default retention).",
+      "Do not open any trial or licensing action."
+    ],
+    "answer": null,
+    "note": "dry run: the prompt is shown for the reference product only; nothing to do on our gateway"
+  }
+}

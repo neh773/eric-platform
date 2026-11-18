@@ -1,0 +1,101 @@
+/* Tag browser, save controls, sign-in, and the save-conflict prompt (M4.4). Uses the studio tokens from designer.css. */
+.oip-tagbrowser { padding: 12px; border-top: 1px solid var(--studio-line); }
+.oip-tagbrowser-head { display: flex; align-items: center; justify-content: space-between; }
+.oip-tagbrowser-head p { margin: 8px 0; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--studio-muted); }
+.oip-tagbrowser-head button { font-size: 12px; border: 1px solid var(--studio-line); background: var(--oip-surface-2); border-radius: 4px; padding: 2px 8px; }
+.oip-tagbrowser ul { list-style: none; margin: 0; padding: 0; }
+.oip-tagbrowser ul ul { padding-left: 14px; }
+.oip-tagtree-folder, .oip-tagtree-more {
+  display: block; width: 100%; text-align: left; border: 0; background: transparent;
+  padding: 3px 4px; font: inherit; font-size: 13px; color: var(--studio-ink); border-radius: 4px; cursor: pointer;
+}
+.oip-tagtree-folder:hover, .oip-tagtree-tag:hover { background: var(--oip-surface-3); }
+.oip-tagtree-tag {
+  display: flex; align-items: baseline; gap: 6px; padding: 3px 4px; font-size: 13px;
+  border-radius: 4px; cursor: grab; min-width: 0;
+}
+.oip-tagtree-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.oip-tagtree-tag[data-readable="false"] { color: var(--studio-muted); opacity: 0.6; font-style: italic; }
+.oip-tagpicker .oip-tagtree-tag { cursor: pointer; }
+.oip-tagtree-value { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-variant-numeric: tabular-nums; max-width: 96px; }
+.oip-tagtree-value output { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.oip-tagtree-denied { font-size: 11px; }
+.oip-quality-dot { flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--oip-ink-3); display: inline-block; }
+.oip-quality-dot[data-quality="good"] { background: var(--oip-ok); }
+.oip-quality-dot[data-quality="bad"] { background: var(--oip-alarm-1); }
+.oip-quality-dot[data-quality="uncertain"] { background: var(--oip-alarm-2); }
+.oip-tagtree-scroll { max-height: 55vh; overflow: auto; }
+.oip-tagbrowser-filter { width: 100%; box-sizing: border-box; margin: 0 0 6px; padding: 4px 6px; border: 1px solid var(--studio-line); border-radius: 4px; font: inherit; font-size: 13px; }
+.oip-tagbrowser-offline { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0 0 8px; padding: 6px 8px; font-size: 12px; border: 1px solid var(--oip-line-strong); background: var(--oip-surface-2); border-radius: 4px; }
+.oip-tagbrowser-offline button { font-size: 12px; border: 1px solid var(--studio-line); background: var(--oip-surface-2); border-radius: 4px; padding: 2px 8px; }
+.oip-tagpicker { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; background: rgba(27, 36, 48, 0.35); }
+.oip-tagpicker-panel { width: min(420px, calc(100vw - 32px)); max-height: 80vh; overflow: auto; background: var(--studio-panel); border: 1px solid var(--studio-line); border-radius: 8px; box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2); }
+.oip-tagpicker-head { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px 0; }
+.oip-tagpicker-head h3 { margin: 0; font-size: 14px; }
+.oip-tagpicker-head button { border: 0; background: transparent; font-size: 18px; cursor: pointer; }
+.oip-tagpicker .oip-tagbrowser { border-top: 0; }
+.oip-tagtree-tag:focus-visible, .oip-tagtree-folder:focus-visible { outline: 2px solid var(--studio-accent); }
+.oip-tagtree-type { font-size: 11px; color: var(--studio-muted); }
+.oip-tagtree-status { font-size: 12px; color: var(--studio-muted); padding: 3px 4px; }
+.oip-new-view { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 12px 12px; }
+.oip-new-view input { flex: 1 1 120px; min-width: 0; padding: 4px 6px; border: 1px solid var(--studio-line); border-radius: 4px; }
+.oip-new-view button { border: 1px solid var(--studio-line); background: var(--oip-surface-2); border-radius: 4px; padding: 4px 8px; }
+.oip-new-view p { flex-basis: 100%; margin: 0; font-size: 12px; color: var(--oip-alarm-1); }
+.oip-save-status { font-size: 12px; color: var(--studio-muted); }
+.oip-save-status[data-save-state="dirty"], .oip-save-status[data-save-state="conflict"], .oip-save-status[data-save-state="error"] { color: var(--oip-alarm-1); }
+.oip-gate { max-width: 360px; margin: 64px auto; padding: 24px; }
+.oip-login { display: flex; flex-direction: column; gap: 10px; background: var(--studio-panel); border: 1px solid var(--studio-line); border-radius: 8px; }
+.oip-login h1 { margin: 0; font-size: 18px; }
+.oip-login label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
+.oip-login input { padding: 6px 8px; border: 1px solid var(--studio-line); border-radius: 4px; }
+.oip-conflict {
+  position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 20; max-width: 420px;
+  background: var(--studio-panel); border: 1px solid var(--studio-line); border-radius: 8px; padding: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+}
+.oip-conflict h2 { margin: 0 0 8px; font-size: 16px; }
+.oip-conflict-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.oip-load-errors { margin: 8px 16px 0; padding: 8px 12px; border: 1px solid var(--oip-alarm-1); background: var(--oip-surface-2); color: var(--oip-alarm-1); border-radius: 6px; font-size: 13px; }
+.oip-load-errors p { margin: 0 0 4px; }
+.oip-load-errors ul { margin: 0 0 6px; padding-left: 18px; overflow-wrap: anywhere; }
+.oip-load-errors button { border: 1px solid var(--oip-alarm-1); background: var(--oip-surface-2); border-radius: 4px; padding: 2px 8px; font-size: 12px; }
+.oip-top-identity { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.oip-file { position: relative; }
+.oip-file > button { border: 1px solid rgba(255, 255, 255, 0.35); }
+.oip-file [role="menu"] {
+  position: absolute; top: calc(100% + 4px); left: 0; z-index: 30; min-width: 180px;
+  background: var(--studio-panel); color: var(--studio-ink); border: 1px solid var(--studio-line);
+  border-radius: 8px; padding: 4px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+}
+.oip-file [role="menuitem"] {
+  display: block; width: 100%; text-align: start; border: 0; background: transparent; color: inherit;
+  border-radius: 4px; padding: 6px 10px; cursor: pointer;
+}
+.oip-file [role="menuitem"]:hover:not(:disabled) { background: var(--oip-surface-3); }
+.oip-file [role="menuitem"]:disabled { color: var(--studio-muted); cursor: default; }
+.oip-dialog-backdrop { position: fixed; inset: 0; z-index: 40; display: grid; place-items: center; background: rgba(27, 36, 48, 0.35); }
+.oip-dialog {
+  width: min(440px, calc(100vw - 32px)); max-height: min(80vh, 640px); overflow: auto;
+  background: var(--studio-panel); color: var(--studio-ink); border: 1px solid var(--studio-line);
+  border-radius: 8px; padding: 16px; box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+}
+.oip-dialog h2 { margin: 0 0 8px; font-size: 16px; }
+.oip-dialog h3 { margin: 8px 0 4px; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--studio-muted); }
+.oip-dialog form, .oip-dialog label { display: flex; flex-direction: column; gap: 4px; }
+.oip-dialog form { gap: 10px; }
+.oip-dialog label { font-size: 13px; }
+.oip-dialog input, .oip-dialog textarea, .oip-dialog select { padding: 6px 8px; border: 1px solid var(--studio-line); border-radius: 4px; font: inherit; }
+.oip-dialog ul { list-style: none; margin: 0; padding: 0; }
+.oip-dialog li button { display: flex; flex-direction: column; align-items: flex-start; width: 100%; text-align: start; border: 0; background: transparent; padding: 6px 4px; border-radius: 4px; cursor: pointer; }
+.oip-dialog li button:hover, .oip-dialog li button[aria-current="true"] { background: var(--oip-surface-3); }
+.oip-dialog li small { color: var(--studio-muted); }
+.oip-dialog li label { flex-direction: row; align-items: center; gap: 8px; }
+.oip-dialog-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.oip-dialog-actions button, .oip-pages button { border: 1px solid var(--studio-line); background: var(--oip-surface-2); border-radius: 4px; padding: 4px 10px; cursor: pointer; }
+.oip-check { flex-direction: row !important; align-items: center; }
+.oip-pages { padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.oip-pages h3 { margin: 0; font-size: 13px; }
+.oip-pages ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.oip-pages li, .oip-pages form { display: flex; flex-direction: column; gap: 6px; }
+.oip-pages label { display: flex; flex-direction: column; gap: 2px; font-size: 12px; }
+.oip-pages input, .oip-pages select { padding: 4px 6px; border: 1px solid var(--studio-line); border-radius: 4px; font: inherit; }

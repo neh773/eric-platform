@@ -1,0 +1,48 @@
+/* D-5 event, action and script editors. Same look as the D-3 binding editor (bindingEditor.css). */
+.oip-events { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.oip-events h3 { margin: 6px 0 0; font-size: 13px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--studio-muted); }
+.oip-event { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.oip-event-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  padding: 6px 8px;
+  border: 1px solid var(--studio-line);
+  border-radius: 8px;
+  background: var(--oip-surface-2);
+  color: var(--studio-ink);
+  font-size: 13px;
+  cursor: pointer;
+}
+.oip-event-toggle[aria-expanded="true"] { border-color: var(--studio-accent); background: var(--oip-accent-subtle); }
+.oip-event-summary { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--studio-muted); font-size: 12px; text-align: right; }
+.oip-event-add select { border: 1px solid var(--studio-line); border-radius: 6px; padding: 4px 6px; background: var(--oip-surface-2); font: inherit; font-size: 13px; }
+.oip-action-flags { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; }
+.oip-script-editor { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.oip-script-editor textarea {
+  width: 100%;
+  min-width: 0;
+  min-height: 7em;
+  border: 1px solid var(--studio-line);
+  border-radius: 6px;
+  padding: 6px 8px;
+  background: var(--oip-surface-2);
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  font-size: 12.5px;
+  line-height: 1.45;
+  tab-size: 4;
+  white-space: pre-wrap;
+  overflow: auto;
+  resize: vertical;
+}
+.oip-script-editor textarea:focus-visible { outline: 2px solid var(--studio-accent); outline-offset: 1px; }
+
+.oip-script-hooks { display: flex; flex-direction: column; gap: 8px; min-width: 0; padding: 12px; font-size: 13px; }
+.oip-script-hooks ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.oip-script-hooks li button { width: 100%; text-align: left; border: 1px solid transparent; border-radius: 6px; background: transparent; padding: 4px 8px; cursor: pointer; font-family: ui-monospace, "SFMono-Regular", Menlo, monospace; font-size: 12px; }
+.oip-script-hooks li button[aria-current="true"] { border-color: var(--studio-accent); background: var(--oip-accent-subtle); }
+.oip-script-hooks form { display: flex; gap: 4px; }
+.oip-script-hooks form input { flex: 1 1 auto; min-width: 0; border: 1px solid var(--studio-line); border-radius: 6px; padding: 4px 6px; font: inherit; font-size: 13px; }
+.oip-script-hooks .oip-binding-remove { margin-top: 2px; }

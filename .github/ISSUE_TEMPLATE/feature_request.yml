@@ -1,0 +1,31 @@
+name: Feature request
+description: Something the beta does not do yet.
+title: "[feature] "
+labels: []
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: What you need
+      description: The plant task, and what you do today without it.
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why it matters
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Gateway
+        - Tags or drivers
+        - Historian or alarms
+        - Control Canvas or HMI
+        - PLC
+        - Installer
+    validations:
+      required: true

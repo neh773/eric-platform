@@ -1,0 +1,11 @@
+{
+  "inputs": [
+    {"address": "%IX0.0", "tag": "plc/start", "type": "BOOL"},
+    {"address": "%IX0.1", "tag": "plc/stop", "type": "BOOL"},
+    {"address": "%IW2", "tag": "plc/level_raw", "type": "INT"}
+  ],
+  "outputs": [
+    {"address": "%QX1.0", "tag": "plc/motor", "type": "BOOL", "safe": false},
+    {"address": "%QW4", "tag": "plc/level_out", "type": "INT", "safe": 0}
+  ]
+}

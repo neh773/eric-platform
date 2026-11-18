@@ -1,0 +1,170 @@
+/* Graphite tokens. Dark is the default on :root. Light is opt-in.
+   Legacy names resolve here so a saved project does not break:
+   nightwatch, process, graphite, and dark are Dark; daylight and light are Light.
+   There is no separate Process palette. */
+
+:root,
+[data-oip-theme="dark"],
+[data-oip-theme="graphite"],
+[data-oip-theme="nightwatch"],
+[data-oip-theme="process"],
+[data-theme="nightwatch"],
+[data-theme="process"],
+[data-theme="graphite"],
+[data-theme="dark"] {
+  color-scheme: dark;
+  --oip-bg: #0B0D10;
+  --oip-surface-1: #14171C;
+  --oip-surface-2: #1C2027;
+  --oip-surface-3: #252A33;
+  --oip-line: #2A2F38;
+  --oip-line-strong: #3A414D;
+  --oip-ink: #F2F4F7;
+  --oip-ink-2: #A3ABB8;
+  --oip-ink-3: #8A93A1;
+  --oip-primary: #F2F4F7;
+  --oip-primary-ink: #0B0D10;
+  --oip-accent: #3D8BFF;
+  --oip-accent-subtle: rgba(61, 139, 255, 0.16);
+  --oip-ok: #32D583;
+  --oip-alarm-1: #FF453A;
+  --oip-alarm-2: #FF9F0A;
+  --oip-alarm-3: #FFD60A;
+  --oip-alarm-3-fill: #FFD60A;
+  --oip-alarm-4: #C77DFF;
+  --oip-alarm-ink: #0B0D10;
+  --oip-state-on: #F2F4F7;
+  --oip-state-off: #5B6370;
+  --oip-idle: #6E7784;
+  --oip-series-2: #3D8BFF;
+  --oip-series-3: #5AC8C8;
+  --oip-limit: #5B6370;
+  --oip-color-canvas: var(--oip-bg);
+  --oip-color-surface: var(--oip-surface-1);
+  --oip-color-ink: var(--oip-ink);
+  --oip-color-muted: var(--oip-ink-2);
+  --oip-color-line: var(--oip-line);
+  --oip-color-accent: var(--oip-accent);
+  --oip-color-accent-ink: #FFFFFF;
+  --oip-color-ok: var(--oip-ok);
+  --oip-color-alarm: var(--oip-alarm-1);
+  --oip-color-warning: var(--oip-alarm-2);
+  --oip-color-idle: var(--oip-idle);
+  --oip-color-running: var(--oip-state-on);
+  --oip-color-stopped: var(--oip-state-off);
+  --oip-radius: var(--oip-radius-sm);
+  --oip-font-ui: "Inter", "Segoe UI", system-ui, sans-serif;
+  --oip-font-mono: "JetBrains Mono", ui-monospace, "Cascadia Code", "SFMono-Regular", monospace;
+}
+
+[data-oip-theme="light"],
+[data-oip-theme="daylight"],
+[data-theme="daylight"],
+[data-theme="light"] {
+  color-scheme: light;
+  --oip-bg: #F4F5F7;
+  --oip-surface-1: #FFFFFF;
+  --oip-surface-2: #ECEEF1;
+  --oip-surface-3: #E1E4E8;
+  --oip-line: #E1E4E8;
+  --oip-line-strong: #C5CAD2;
+  --oip-ink: #0B0D10;
+  --oip-ink-2: #4A5260;
+  --oip-ink-3: #636B78;
+  --oip-primary: #0B0D10;
+  --oip-primary-ink: #FFFFFF;
+  --oip-accent: #0A66E0;
+  --oip-accent-subtle: rgba(10, 102, 224, 0.10);
+  --oip-ok: #11804B;
+  --oip-alarm-1: #D70F1F;
+  --oip-alarm-2: #B54A00;
+  --oip-alarm-3: #7A5E00;
+  --oip-alarm-3-fill: #FFD60A;
+  --oip-alarm-4: #8E3CCB;
+  --oip-alarm-ink: #FFFFFF;
+  --oip-state-on: #0B0D10;
+  --oip-state-off: #9AA1AC;
+  --oip-idle: #6B7280;
+  --oip-series-2: #0A66E0;
+  --oip-series-3: #0E8A8A;
+  --oip-limit: #9AA1AC;
+  --oip-color-canvas: var(--oip-bg);
+  --oip-color-surface: var(--oip-surface-1);
+  --oip-color-ink: var(--oip-ink);
+  --oip-color-muted: var(--oip-ink-2);
+  --oip-color-line: var(--oip-line);
+  --oip-color-accent: var(--oip-accent);
+  --oip-color-accent-ink: #FFFFFF;
+  --oip-color-ok: var(--oip-ok);
+  --oip-color-alarm: var(--oip-alarm-1);
+  --oip-color-warning: var(--oip-alarm-2);
+  --oip-color-idle: var(--oip-idle);
+  --oip-color-running: var(--oip-state-on);
+  --oip-color-stopped: var(--oip-state-off);
+  --oip-radius: var(--oip-radius-sm);
+  --oip-font-ui: "Inter", "Segoe UI", system-ui, sans-serif;
+  --oip-font-mono: "JetBrains Mono", ui-monospace, "Cascadia Code", "SFMono-Regular", monospace;
+}
+
+:root {
+  --oip-font-ui: "Inter", "Segoe UI", system-ui, sans-serif;
+  --oip-font-mono: "JetBrains Mono", ui-monospace, "Cascadia Code", "SFMono-Regular", monospace;
+  --oip-text-xs: 12px;
+  --oip-text-sm: 13px;
+  --oip-text-md: 14px;
+  --oip-text-lg: 16px;
+  --oip-text-xl: 20px;
+  --oip-text-2xl: 28px;
+  --oip-text-3xl: 40px;
+  --oip-text-4xl: 64px;
+  --oip-text-5xl: 96px;
+  --oip-space-1: 4px;
+  --oip-space-2: 8px;
+  --oip-space-3: 12px;
+  --oip-space-4: 16px;
+  --oip-space-5: 24px;
+  --oip-space-6: 32px;
+  --oip-space-7: 48px;
+  --oip-space-8: 64px;
+  --oip-radius-sm: 6px;
+  --oip-radius-md: 10px;
+  --oip-radius-lg: 16px;
+  --oip-radius: var(--oip-radius-sm);
+  --oip-control-sm: 28px;
+  --oip-control-md: 36px;
+  --oip-control-lg: 48px;
+  --oip-hit-min: 44px;
+  --oip-dur-fast: 120ms;
+  --oip-dur-panel: 200ms;
+  --oip-dur-dialog: 320ms;
+  --oip-ease: cubic-bezier(0.2, 0, 0, 1);
+  --oip-shadow-overlay: 0 8px 24px rgba(0, 0, 0, 0.28);
+  --oip-color-canvas: var(--oip-bg);
+  --oip-color-surface: var(--oip-surface-1);
+  --oip-color-ink: var(--oip-ink);
+  --oip-color-muted: var(--oip-ink-2);
+  --oip-color-line: var(--oip-line);
+  --oip-color-accent: var(--oip-accent);
+  --oip-color-accent-ink: #FFFFFF;
+  --oip-color-ok: var(--oip-ok);
+  --oip-color-alarm: var(--oip-alarm-1);
+  --oip-color-warning: var(--oip-alarm-2);
+  --oip-color-idle: var(--oip-idle);
+  --oip-color-running: var(--oip-state-on);
+  --oip-color-stopped: var(--oip-state-off);
+  --oip-font-ui: "Inter", "Segoe UI", system-ui, sans-serif;
+  --oip-font-mono: "JetBrains Mono", ui-monospace, "Cascadia Code", "SFMono-Regular", monospace;
+}
+
+[data-oip-touch="true"] {
+  --oip-control-sm: 44px;
+  --oip-control-md: 48px;
+  --oip-control-lg: 56px;
+  --oip-text-md: 16px;
+  --oip-hit-min: 44px;
+}
+
+.oip-num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}

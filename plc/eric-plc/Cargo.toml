@@ -1,0 +1,22 @@
+[package]
+name = "eric-plc"
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+publish = false
+description = "ERIC PLC scan engine preview. Structured Text is compiled by an external RuSTy binary."
+
+[lib]
+name = "eric_plc"
+path = "src/lib.rs"
+
+[[bin]]
+name = "eric-plc"
+path = "src/main.rs"
+
+[dependencies]
+libc = "0.2.169"
+libloading = "0.8.6"
+serde = { version = "1.0.215", features = ["derive"] }
+serde_json = "1.0.133"
+toml = "0.8.19"

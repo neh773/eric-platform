@@ -1,0 +1,8 @@
+{
+  "name": "refauto-ui",
+  "private": true,
+  "description": "Headless DOM for ui_signin.js. Install with: npm ci --prefix bench/reference/ui",
+  "dependencies": {
+    "jsdom": "24.1.3"
+  }
+}

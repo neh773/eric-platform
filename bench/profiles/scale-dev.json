@@ -1,0 +1,22 @@
+{
+  "name": "scale-dev",
+  "description": "Two sizes that fit a box with about 3 GB free. Each tier ramps points at 100% changing and 1 s until a cutoff. Efficiency is E(n) = (T(n) / T(baseline)) / (n / baseline), minimum 0.70.",
+  "points": [5000, 10000, 20000, 40000, 80000, 160000],
+  "periodMs": 1000,
+  "percentChanging": 100,
+  "protocols": ["modbus"],
+  "warmupSeconds": 5,
+  "sampleSeconds": 15,
+  "sampleIntervalSeconds": 1,
+  "sampleTags": 16,
+  "registersPerUnit": 10000,
+  "modbusExtraPorts": 1,
+  "tagBatch": 2000,
+  "maxWallSeconds": 900,
+  "requireDevices": true,
+  "sizes": [
+    {"cpus": 2, "memory": "768m"},
+    {"cpus": 4, "memory": "1024m"}
+  ],
+  "cutoffs": {"cpuPercent": 50, "memoryPercent": 50, "driftPercent": 10, "qualityErrorFraction": 0.01, "minReads": 4}
+}

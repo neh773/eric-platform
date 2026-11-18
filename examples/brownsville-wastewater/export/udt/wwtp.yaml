@@ -1,0 +1,145 @@
+apiVersion: oip/v1
+kind: Udt
+metadata:
+  name: wwtp
+  module: tags
+  version: 1
+  modified: "2026-11-17T20:17:03.606892800Z"
+  modifiedBy: admin
+spec:
+  path: Types/Wwtp
+  parameters:
+    -
+      default: ""
+      name: Service
+      dataType: String
+  members:
+    -
+      engUnit: gpm
+      value: 0
+      name: InfluentFlow
+      dataType: Double
+      type: memory
+    -
+      engUnit: psi
+      value: 0.4
+      name: BarScreenDp
+      dataType: Double
+      type: memory
+    -
+      value: true
+      name: BarScreenRun
+      dataType: Boolean
+      type: memory
+    -
+      engUnit: gpm
+      value: 0
+      name: GritFlow
+      dataType: Double
+      type: memory
+    -
+      engUnit: ft
+      value: 8
+      name: PrimaryLevel
+      dataType: Double
+      type: memory
+    -
+      engUnit: gpm
+      value: 0
+      name: PrimaryFlow
+      dataType: Double
+      type: memory
+    -
+      engUnit: mg/L
+      value: 2
+      name: Do
+      dataType: Double
+      type: memory
+    -
+      engUnit: mg/L
+      value: 2
+      name: DoSp
+      dataType: Double
+      type: memory
+    -
+      value: true
+      name: BlowerRun
+      dataType: Boolean
+      type: memory
+    -
+      engUnit: "%"
+      value: 45
+      name: BlowerSpeed
+      dataType: Double
+      type: memory
+    -
+      engUnit: scfm
+      value: 0
+      name: AirFlow
+      dataType: Double
+      type: memory
+    -
+      engUnit: ft
+      value: 10
+      name: SecondaryLevel
+      dataType: Double
+      type: memory
+    -
+      engUnit: gpm
+      value: 0
+      name: RasFlow
+      dataType: Double
+      type: memory
+    -
+      engUnit: gpm
+      value: 0
+      name: WasFlow
+      dataType: Double
+      type: memory
+    -
+      value: true
+      name: UvRun
+      dataType: Boolean
+      type: memory
+    -
+      value: 1.1
+      name: ChlorineResidual
+      engUnit: mg/L
+      dataType: Double
+      type: memory
+      alarms:
+        -
+          setpointA: 0.4
+          priority: High
+          name: LowResidual
+          deadband: 0.05
+          mode: BelowValue
+    -
+      engUnit: gpm
+      value: 0
+      name: EffluentFlow
+      dataType: Double
+      type: memory
+    -
+      value: 1.4
+      name: Turbidity
+      engUnit: NTU
+      dataType: Double
+      type: memory
+      alarms:
+        -
+          setpointA: 4
+          priority: High
+          name: HighTurbidity
+          deadband: 0.1
+          mode: AboveValue
+    -
+      value: 7.1
+      name: Ph
+      dataType: Double
+      type: memory
+    -
+      value: false
+      name: PlantAlarm
+      dataType: Boolean
+      type: memory

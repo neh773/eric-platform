@@ -1,0 +1,18 @@
+{
+  "step": "W03",
+  "target": "ours",
+  "label": "container-size, not reference-size",
+  "dryRun": true,
+  "id": "W03",
+  "status": "ok",
+  "seconds": 0.1,
+  "startedMinute": 0.09,
+  "notes": [],
+  "data": {
+    "simHealthy": true,
+    "elapsedMinutes": 0.09,
+    "minutesNeeded": 89.0,
+    "windowFits": true,
+    "loginAccepted": true
+  }
+}

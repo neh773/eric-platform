@@ -1,0 +1,19 @@
+# systemd unit for a versioned gateway install. Adjust the paths and the user.
+# Exit code 75 is the gateway's "restart for upgrade" and is a normal stop that must be followed by a start.
+[Unit]
+Description=Open industrial platform gateway
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=oip
+Environment=OIP_INSTALL_DIR=/opt/oip
+Environment=OIP_DATA_DIR=/var/lib/oip
+ExecStart=/opt/oip/oip-gateway.sh
+Restart=on-failure
+RestartSec=2
+SuccessExitStatus=75
+RestartForceExitStatus=75
+
+[Install]
+WantedBy=multi-user.target

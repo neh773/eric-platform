@@ -1,0 +1,197 @@
+/* C-11 batch 1 skin. Original styling; every color is a theme token (daylight / nightwatch). */
+
+.oip-simple-gauge,
+.oip-progress,
+.oip-icon,
+.oip-sparkline,
+.oip-datetime,
+.oip-picker,
+.oip-password,
+.oip-radio,
+.oip-textarea,
+.oip-multistate,
+.oip-link {
+  box-sizing: border-box;
+  color: var(--oip-color-ink);
+  font-family: var(--oip-font-ui);
+}
+
+.oip-simple-gauge,
+.oip-progress,
+.oip-sparkline,
+.oip-datetime,
+.oip-picker,
+.oip-password,
+.oip-radio,
+.oip-textarea,
+.oip-oneshot,
+.oip-multistate {
+  width: 100%;
+  height: 100%;
+}
+
+/* Simple gauge */
+.oip-simple-gauge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.oip-simple-gauge svg { flex: 1; width: 100%; min-height: 0; overflow: visible; }
+.oip-simple-gauge-label { fill: var(--oip-color-muted); font-size: 13px; }
+.oip-simple-gauge path { fill: none; stroke-linecap: round; }
+.oip-simple-gauge-track { stroke: var(--oip-color-line); }
+.oip-simple-gauge-arc { stroke: var(--oip-color-running); }
+.oip-simple-gauge-value {
+  fill: var(--oip-color-ink);
+  font-family: var(--oip-font-mono);
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+}
+.oip-simple-gauge-unit { fill: var(--oip-color-muted); font-size: 8px; }
+/* Progress bar */
+.oip-progress { display: flex; flex-direction: column; justify-content: center; gap: 6px; }
+.oip-progress-head { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; }
+.oip-progress-value { font-family: var(--oip-font-mono); font-variant-numeric: tabular-nums; }
+.oip-progress-track {
+  position: relative;
+  height: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--oip-color-line);
+}
+.oip-progress-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--oip-color-accent);
+  transition: width 160ms ease-out;
+}
+.oip-progress[data-indeterminate] .oip-progress-fill {
+  position: absolute;
+  animation: oip-progress-slide 1.4s ease-in-out infinite;
+}
+@keyframes oip-progress-slide {
+  from { left: -35%; }
+  to { left: 100%; }
+}
+
+/* Icon */
+.oip-icon { display: block; width: 100%; height: 100%; min-width: 12px; min-height: 12px; }
+
+/* Sparkline */
+.oip-sparkline { position: relative; }
+.oip-sparkline svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.oip-sparkline polyline { fill: none; stroke: var(--oip-color-accent); stroke-width: 2; stroke-linejoin: round; }
+.oip-sparkline-band { fill: var(--oip-color-ok); opacity: 0.16; }
+.oip-sparkline-last {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  border-radius: 50%;
+  background: var(--oip-color-accent);
+}
+
+/* Shared field chrome */
+.oip-datetime,
+.oip-password,
+.oip-textarea { display: flex; flex-direction: column; gap: 4px; }
+.oip-datetime label,
+.oip-password label,
+.oip-textarea label,
+.oip-picker-time label { color: var(--oip-color-muted); font-size: 13px; }
+.oip-datetime input,
+.oip-password input,
+.oip-textarea textarea,
+.oip-picker-time input {
+  box-sizing: border-box;
+  width: 100%;
+  border: 1px solid var(--oip-color-line);
+  border-radius: var(--oip-radius);
+  padding: 6px 10px;
+  background: var(--oip-color-surface);
+  color: var(--oip-color-ink);
+  font: inherit;
+  color-scheme: light dark;
+}
+.oip-textarea textarea { flex: 1; resize: vertical; }
+.oip-datetime input[aria-invalid="true"] { border-color: var(--oip-color-alarm); }
+.oip-datetime input:focus-visible,
+.oip-password input:focus-visible,
+.oip-textarea textarea:focus-visible,
+.oip-picker button:focus-visible,
+.oip-radio input:focus-visible,
+.oip-multistate button:focus-visible,
+.oip-link:focus-visible {
+  outline: 2px solid var(--oip-color-accent);
+  outline-offset: 2px;
+}
+.oip-datetime input:disabled,
+.oip-password input:disabled,
+.oip-textarea textarea:disabled { opacity: 0.55; cursor: not-allowed; }
+
+/* Date-time picker */
+.oip-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  border: 1px solid var(--oip-color-line);
+  border-radius: var(--oip-radius);
+  background: var(--oip-color-surface);
+}
+.oip-picker-head { display: flex; align-items: center; justify-content: space-between; font-weight: 600; white-space: nowrap; }
+.oip-picker-row { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; text-align: center; }
+.oip-picker-row [role="columnheader"] { color: var(--oip-color-muted); font-size: 11px; }
+.oip-picker button {
+  width: 100%;
+  border: 0;
+  border-radius: calc(var(--oip-radius) / 2);
+  padding: 4px 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.oip-picker button[data-outside] { color: var(--oip-color-muted); opacity: 0.6; }
+.oip-picker button[aria-pressed="true"] { background: var(--oip-color-accent); color: var(--oip-color-accent-ink); }
+.oip-picker button:disabled { cursor: not-allowed; }
+.oip-picker-time { display: flex; align-items: center; gap: 8px; }
+
+/* Radio group */
+.oip-radio { display: flex; flex-direction: column; gap: 6px; }
+.oip-radio[data-orientation="row"] { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 14px; }
+.oip-radio-title { color: var(--oip-color-muted); font-size: 13px; }
+.oip-radio label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+.oip-radio input { accent-color: var(--oip-color-accent); }
+
+/* One-shot button: uses .oip-button, plus a pending look */
+.oip-oneshot[data-state="pending"] { background: var(--oip-color-idle); color: var(--oip-color-surface); }
+
+/* Multi-state button */
+.oip-multistate { display: flex; gap: 4px; }
+.oip-multistate[data-orientation="column"] { flex-direction: column; }
+.oip-multistate button {
+  flex: 1;
+  border: 1px solid var(--oip-color-line);
+  border-radius: var(--oip-radius);
+  background: var(--oip-color-surface);
+  color: var(--oip-color-ink);
+  font: inherit;
+  cursor: pointer;
+}
+.oip-multistate button[aria-pressed="true"] {
+  border-color: var(--oip-color-accent);
+  background: var(--oip-color-accent);
+  color: var(--oip-color-accent-ink);
+  font-weight: 600;
+}
+.oip-multistate button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Link */
+.oip-link { color: var(--oip-color-accent); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.oip-link[aria-disabled="true"] { color: var(--oip-color-muted); text-decoration: none; cursor: not-allowed; }
+
+@media (prefers-reduced-motion: reduce) {
+  .oip-progress-fill { transition: none; }
+  .oip-progress[data-indeterminate] .oip-progress-fill { animation: none; left: 0; }
+}

@@ -1,0 +1,8 @@
+apiVersion: oip/v1
+kind: Database
+metadata: {name: main, module: m, version: 1}
+spec:
+  url: jdbc:postgresql://prod-db.plant.local/plant
+  pool: {min: 4, max: 32}
+  debug: null
+  tags: [prod, critical]

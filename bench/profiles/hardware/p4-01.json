@@ -1,0 +1,15 @@
+{
+  "plan": "P4-01",
+  "scenarios": ["PRF-011"],
+  "targets": ["oip", "comparison"],
+  "sessions": 50,
+  "tagsPerSession": 300,
+  "thresholdMsP95": 250,
+  "ciSpecIsHardwareGate": false,
+  "trialMinutes": 120,
+  "procedureCapMinutes": 110,
+  "resetTrial": "manual",
+  "oneRunPerTrial": true,
+  "dryRunIsGate": false,
+  "command": "python3 -m bench hardware P4-01 --dry-run"
+}

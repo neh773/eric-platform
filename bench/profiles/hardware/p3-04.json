@@ -1,0 +1,26 @@
+{
+  "plan": "P3-04",
+  "scenarios": ["PRF-003", "PRF-008"],
+  "parity": "parity-3",
+  "targets": ["oip", "comparison"],
+  "historianOnOwnHost": true,
+  "notificationPipelines": false,
+  "prf003": {
+    "threshold": 50000,
+    "durationMinutes": 60,
+    "hardware": "S8",
+    "clients": 75
+  },
+  "prf008": {
+    "threshold": 10000,
+    "stretch": 30000,
+    "stretchGates": false,
+    "durationMinutes": 180
+  },
+  "trialMinutes": 120,
+  "procedureCapMinutes": 110,
+  "resetTrial": "manual",
+  "oneRunPerTrial": true,
+  "dryRunIsGate": false,
+  "command": "python3 -m bench hardware P3-04 --dry-run"
+}

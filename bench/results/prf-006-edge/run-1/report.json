@@ -1,0 +1,187 @@
+{
+  "kind": "ramp",
+  "bench": "oip-load-ramp",
+  "version": 2,
+  "target": "oip",
+  "profile": "oip-edge-prf006",
+  "description": "PRF-006 on EDGE (4 vCPU / 4 GB): starts at the 88,500-tag floor, then the oip-edge steps. 100% changing every 1000 ms, local history on (one HistorySettings per tag, embedded historian). Cutoffs, windows and sampling copied unchanged from oip-edge.",
+  "stoppedBecause": "memory",
+  "error": null,
+  "elapsedSeconds": 155.966,
+  "maxWallSeconds": 7200.0,
+  "profileMaxWallSeconds": 7200.0,
+  "trialSecondsLeft": null,
+  "plannedSeconds": 240.0,
+  "limits": {
+    "cpuPercent": 50.0,
+    "memoryPercent": 50.0,
+    "driftPercent": 10.0,
+    "qualityErrorFraction": 0.01
+  },
+  "formula": {
+    "percentChanging": 100.0,
+    "registersPerUnit": 10000,
+    "epochMs": 1794280138642,
+    "value": "(index % 1000 + tick) % 30000 when (index % 100) < percent, else index % 1000"
+  },
+  "steps": [
+    {
+      "points": 88500,
+      "previousPoints": 0,
+      "protocol": "modbus",
+      "periodMs": 1000,
+      "percentChanging": 100.0,
+      "sampleIndexes": [
+        0,
+        5531,
+        11062,
+        16593,
+        22125,
+        27656,
+        33187,
+        38718,
+        44250,
+        49781,
+        55312,
+        60843,
+        66375,
+        71906,
+        77437,
+        82968
+      ],
+      "reads": 176,
+      "qualityErrors": 0,
+      "mismatches": 0,
+      "valuesPerSec": 80464.63550502935,
+      "expectedValuesPerSec": 88500.0,
+      "latencyMs": {
+        "p50": 814.0,
+        "p95": 1334.0,
+        "max": 1334.0
+      },
+      "driftPercent": -3.139691464480618,
+      "referenceDriftGaugeMs": null,
+      "referenceDriftPercent": null,
+      "cpuPercentOfQuota": {
+        "avg": 28.47340909090909,
+        "max": 46.6875
+      },
+      "memoryPercent": {
+        "avg": 40.37090909090909,
+        "max": 41.78
+      },
+      "rssBytes": {
+        "avg": 1733604980.8181818,
+        "max": 1794222587.0
+      },
+      "heapBytes": {
+        "avg": 604293256.7272727,
+        "max": 869725280.0
+      },
+      "simCpuPercent": {
+        "avg": 45.72909090909091,
+        "max": 72.95
+      },
+      "simSaturated": false,
+      "clockDriftPercent": 0.018970400000000002,
+      "error": null,
+      "cutoff": null,
+      "budgetRemainingSeconds": 7199.901374186,
+      "history": {
+        "samples": 11,
+        "windowSeconds": 42.329,
+        "rowsWritten": 3211125,
+        "rowsPerSec": 75861.89926221414,
+        "writtenTotal": 5207750,
+        "dropped": 0,
+        "droppedTotal": 0,
+        "pendingMax": 528000,
+        "pendingLast": 528000,
+        "maxConsecutiveFlushFailures": 0,
+        "lastFlushError": null
+      }
+    },
+    {
+      "points": 120000,
+      "previousPoints": 88500,
+      "protocol": "modbus",
+      "periodMs": 1000,
+      "percentChanging": 100.0,
+      "sampleIndexes": [
+        0,
+        7500,
+        15000,
+        22500,
+        30000,
+        37500,
+        45000,
+        52500,
+        60000,
+        67500,
+        75000,
+        82500,
+        90000,
+        97500,
+        105000,
+        112500
+      ],
+      "reads": 192,
+      "qualityErrors": 0,
+      "mismatches": 0,
+      "valuesPerSec": 112176.96754931843,
+      "expectedValuesPerSec": 120000.0,
+      "latencyMs": {
+        "p50": 922.0,
+        "p95": 1896.0,
+        "max": 1896.0
+      },
+      "driftPercent": -1.3568907691970447,
+      "referenceDriftGaugeMs": null,
+      "referenceDriftPercent": null,
+      "cpuPercentOfQuota": {
+        "avg": 29.107708333333335,
+        "max": 34.89
+      },
+      "memoryPercent": {
+        "avg": 51.916666666666664,
+        "max": 53.06
+      },
+      "rssBytes": {
+        "avg": 2229893332.3333335,
+        "max": 2278480150.0
+      },
+      "heapBytes": {
+        "avg": 759930496.0,
+        "max": 990879360.0
+      },
+      "simCpuPercent": {
+        "avg": 60.78666666666666,
+        "max": 91.93
+      },
+      "simSaturated": true,
+      "clockDriftPercent": 0.020536600000000002,
+      "error": null,
+      "cutoff": "memory",
+      "budgetRemainingSeconds": 7119.900475515,
+      "history": {
+        "samples": 12,
+        "windowSeconds": 45.619,
+        "rowsWritten": 2530000,
+        "rowsPerSec": 55459.06046204806,
+        "writtenTotal": 9477750,
+        "dropped": 2069854,
+        "droppedTotal": 2541408,
+        "pendingMax": 1000000,
+        "pendingLast": 991396,
+        "maxConsecutiveFlushFailures": 0,
+        "lastFlushError": null
+      }
+    }
+  ],
+  "notes": [
+    "At 120000 points the simulator CPU exceeded 80% of one core. A gateway cutoff in this step may be the simulator falling behind.",
+    "Applied container limits cpus=4.0, memory=4g to oip-edge-gw."
+  ],
+  "simHost": "172.17.0.1",
+  "gateway": "http://127.0.0.1:8090"
+}

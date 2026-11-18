@@ -1,0 +1,28 @@
+{
+  "name": "prf-003",
+  "description": "Sizes for FullLoadTest (PRF-003). full is the ADR 0010 floor: 50,000 value changes/s for 1 h on S8 from the networked simulator through drivers, with historian, alarms and journal, and 75 subscribed sessions. ci is the Load bench job size: fewer points for a short window, same client count. Every point changes once per 1000 ms simulator period; tags scan faster so no change is aliased away. commsTimeoutMillis is set on every tag: with the default 0 a sample a few ms late reads as comms loss (see docs/agent/reports/prf-003.md).",
+  "sizes": {
+    "full": {
+      "points": 50000,
+      "modbusPoints": 25000,
+      "seconds": 3600,
+      "warmupSeconds": 60,
+      "sessions": 75,
+      "tagsPerSession": 300,
+      "alarmBit": 6,
+      "scanMillis": 500,
+      "commsTimeoutMillis": 5000
+    },
+    "ci": {
+      "points": 5000,
+      "modbusPoints": 2500,
+      "seconds": 60,
+      "warmupSeconds": 15,
+      "sessions": 75,
+      "tagsPerSession": 300,
+      "alarmBit": 4,
+      "scanMillis": 500,
+      "commsTimeoutMillis": 5000
+    }
+  }
+}

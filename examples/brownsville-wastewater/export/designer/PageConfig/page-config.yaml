@@ -1,0 +1,70 @@
+apiVersion: oip/v1
+kind: PageConfig
+metadata:
+  name: page-config
+  module: designer
+  version: 1
+  modified: "2026-11-17T20:35:12.838871600Z"
+  modifiedBy: admin
+spec:
+  pages:
+    -
+      primaryView: overview
+      title: Brownsville
+      url: /
+      name: City
+    -
+      primaryView: station
+      title: Lift station
+      url: "/station/:name"
+      name: Station
+    -
+      primaryView: tank
+      title: Basin
+      url: "/tank/:name"
+      name: Tank
+    -
+      primaryView: plant
+      title: Plant
+      url: "/plant/:name"
+      name: Plant
+    -
+      primaryView: headworks
+      title: Headworks
+      url: /headworks
+      name: Headworks
+    -
+      primaryView: aeration
+      title: Aeration
+      url: /aeration
+      name: Aeration
+    -
+      primaryView: clarifiers
+      title: Clarifiers
+      url: /clarifiers
+      name: Clarifiers
+    -
+      primaryView: disinfection
+      title: Disinfection
+      url: /disinfection
+      name: Disinfection
+    -
+      primaryView: alarms
+      title: Alarms
+      url: /alarms
+      name: Alarms
+    -
+      primaryView: trends
+      title: Trends
+      url: /trends
+      name: Trends
+  sharedDocks:
+    -
+      id: nav
+      size: 200
+      handle: hide
+      display: visible
+      edge: left
+      content: push
+      view: nav
+  cornerPriority: top-bottom

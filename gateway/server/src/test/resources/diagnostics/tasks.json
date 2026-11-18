@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["tasks"],
+  "additionalProperties": false,
+  "properties": {
+    "tasks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["name", "rateMs", "state", "lastDurationMillis", "runs", "lastError"],
+        "additionalProperties": false,
+        "properties": {
+          "name": {"type": "string"},
+          "rateMs": {"type": "integer", "minimum": 0},
+          "state": {"type": "string", "enum": ["IDLE", "RUNNING", "FAILED"]},
+          "lastDurationMillis": {"type": "number", "minimum": 0},
+          "runs": {"type": "integer", "minimum": 0},
+          "lastError": {"type": ["string", "null"]}
+        }
+      }
+    }
+  }
+}

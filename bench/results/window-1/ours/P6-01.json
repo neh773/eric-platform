@@ -1,0 +1,76 @@
+{
+  "step": "P6-01",
+  "target": "ours",
+  "label": "container-size, not reference-size",
+  "dryRun": true,
+  "id": "P6-01",
+  "status": "ok",
+  "seconds": 0.0,
+  "startedMinute": 10.63,
+  "notes": [],
+  "data": {
+    "gate": "parity-6",
+    "closes": [
+      "GAN-001",
+      "GAN-003"
+    ],
+    "prompt": [
+      "Defaults: require SSL, incoming connection approval policy, port.",
+      "Certificate list: approve, deny and regenerate actions present?"
+    ],
+    "probes": [
+      {
+        "method": "GET",
+        "path": "/api/v1/gateway-network",
+        "auth": "session",
+        "status": 200,
+        "ms": 3.9,
+        "shape": {
+          "type": "object",
+          "keys": [
+            "certificate",
+            "enabled",
+            "gatewayName",
+            "incoming",
+            "listening",
+            "outgoing",
+            "policies",
+            "port",
+            "protocolVersion",
+            "protocols",
+            "providers",
+            "tasks"
+          ],
+          "lists": {
+            "protocols": {
+              "length": 2,
+              "itemKeys": null
+            },
+            "tasks": {
+              "length": 0,
+              "itemKeys": null
+            },
+            "incoming": {
+              "length": 0,
+              "itemKeys": null
+            },
+            "outgoing": {
+              "length": 0,
+              "itemKeys": null
+            },
+            "policies": {
+              "length": 0,
+              "itemKeys": null
+            },
+            "providers": {
+              "length": 0,
+              "itemKeys": null
+            }
+          }
+        }
+      }
+    ],
+    "answer": null,
+    "note": "dry run: UI questions are for the reference product; our side is the probes"
+  }
+}

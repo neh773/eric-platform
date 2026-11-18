@@ -1,0 +1,17 @@
+{
+  "name": "ci",
+  "description": "Tiny ramp for unit tests. No gateway and no docker.",
+  "points": [20, 40],
+  "periodMs": 1000,
+  "percentChanging": 50,
+  "protocols": ["modbus"],
+  "warmupSeconds": 0,
+  "sampleSeconds": 2,
+  "sampleIntervalSeconds": 1,
+  "sampleTags": 8,
+  "registersPerUnit": 10,
+  "metricsPerDevice": 10,
+  "modbusExtraPorts": 0,
+  "maxWallSeconds": 60,
+  "cutoffs": {"cpuPercent": 50, "memoryPercent": 50, "driftPercent": 10, "qualityErrorFraction": 0.01, "minReads": 4}
+}

@@ -1,0 +1,17 @@
+{
+  "step": "B2",
+  "target": "ours",
+  "label": "container-size, not reference-size",
+  "dryRun": true,
+  "id": "B2",
+  "status": "ok",
+  "seconds": 6.2,
+  "startedMinute": null,
+  "notes": [],
+  "data": {
+    "container": "oip-window-db",
+    "port": 25432,
+    "secretCreated": false,
+    "ready": true
+  }
+}

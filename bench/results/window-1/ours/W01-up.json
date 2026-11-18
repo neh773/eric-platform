@@ -1,0 +1,19 @@
+{
+  "step": "W01",
+  "target": "ours",
+  "label": "container-size, not reference-size",
+  "dryRun": true,
+  "id": "W01",
+  "status": "ok",
+  "seconds": 5.1,
+  "startedMinute": null,
+  "notes": [],
+  "data": {
+    "gateway": "http://127.0.0.1:8090",
+    "pid": 1977,
+    "secretCreated": false,
+    "healthy": true,
+    "cpuList": "0,1",
+    "heapMb": 2048
+  }
+}

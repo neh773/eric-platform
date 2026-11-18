@@ -1,0 +1,60 @@
+{
+  "step": "P1-11",
+  "target": "ours",
+  "label": "container-size, not reference-size",
+  "dryRun": true,
+  "id": "P1-11",
+  "status": "ok",
+  "seconds": 1.2,
+  "startedMinute": 10.63,
+  "notes": [],
+  "data": {
+    "gate": "parity-1",
+    "closes": [
+      "GAT-014"
+    ],
+    "prompt": [
+      "As admin, create and download a gateway backup into bench/out/window-1/reference/ (never commit it). It is the restore input for window 2.",
+      "Can parity-ro create or download one?",
+      "Is there a password or encryption option?"
+    ],
+    "probes": [
+      {
+        "method": "POST",
+        "path": "/api/v1/backups",
+        "auth": "session",
+        "status": 200,
+        "ms": 1165.2,
+        "response": {
+          "contentType": "application/octet-stream",
+          "bytes": 5080006
+        }
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/backups",
+        "auth": "session",
+        "status": 200,
+        "ms": 3.1,
+        "shape": {
+          "type": "object",
+          "keys": [
+            "backups"
+          ],
+          "lists": {
+            "backups": {
+              "length": 1,
+              "itemKeys": [
+                "bytes",
+                "encrypted",
+                "name"
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "answer": null,
+    "note": "dry run: UI questions are for the reference product; our side is the probes"
+  }
+}

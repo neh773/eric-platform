@@ -1,0 +1,18 @@
+{
+  "step": "W05",
+  "target": "ours",
+  "label": "container-size, not reference-size",
+  "dryRun": true,
+  "id": "W05",
+  "status": "ok",
+  "seconds": 0.0,
+  "startedMinute": 9.86,
+  "notes": [],
+  "data": {
+    "simHealthy": true,
+    "stoppedBecause": "completed",
+    "notes": [
+      "Wall-clock cap is the remaining trial (1680s), tighter than the profile cap of 6600s."
+    ]
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "plan": "P4-14",
+  "scenarios": ["parity-4"],
+  "targets": ["oip", "comparison"],
+  "checks": ["page-navigation", "view-navigation", "binding-behaviour", "popup", "dock"],
+  "oneTrialWindow": true,
+  "trialMinutes": 120,
+  "procedureCapMinutes": 110,
+  "resetTrial": "manual",
+  "oneRunPerTrial": true,
+  "dryRunIsGate": false,
+  "command": "python3 -m bench hardware P4-14 --dry-run"
+}

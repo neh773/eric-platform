@@ -1,0 +1,388 @@
+apiVersion: oip/v1
+kind: View
+metadata:
+  name: aeration
+  module: designer
+  version: 1
+  modified: "2026-11-17T20:40:37.484222100Z"
+  modifiedBy: admin
+spec:
+  path: aeration
+  document:
+    root:
+      id: root
+      name: Root
+      children:
+        -
+          id: h-a
+          name: h-a
+          style:
+            fontSize: 20
+            color: "#e8eef4"
+          type: label
+          kind: component
+          props:
+            text: Resaca Bend
+          frame:
+            y: 12
+            width: 240
+            height: 28
+            x: 16
+        -
+          id: h-b
+          name: h-b
+          style:
+            fontSize: 20
+            color: "#e8eef4"
+          type: label
+          kind: component
+          props:
+            text: Laguna Works
+          frame:
+            y: 12
+            width: 240
+            height: 28
+            x: 520
+        -
+          id: do-a
+          name: do-a
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          type: label
+          kind: component
+          props:
+            text: Dissolved oxygen
+          frame:
+            y: 56
+            width: 200
+            height: 20
+            x: 16
+        -
+          props:
+            decimals: 2
+            suffix: " mg/L"
+          frame:
+            y: 78
+            width: 200
+            height: 28
+            x: 16
+          style:
+            fontSize: 18
+            color: "#d7dee6"
+          id: do-av
+          name: do-av
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Plants/ResacaBend/Do"
+              bidirectional: false
+              mode: direct
+              kind: tag
+        -
+          id: do-b
+          name: do-b
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          type: label
+          kind: component
+          props:
+            text: Dissolved oxygen
+          frame:
+            y: 56
+            width: 200
+            height: 20
+            x: 520
+        -
+          props:
+            decimals: 2
+            suffix: " mg/L"
+          frame:
+            y: 78
+            width: 200
+            height: 28
+            x: 520
+          style:
+            fontSize: 18
+            color: "#d7dee6"
+          id: do-bv
+          name: do-bv
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Plants/LagunaWorks/Do"
+              bidirectional: false
+              mode: direct
+              kind: tag
+        -
+          id: sp-a
+          name: sp-a
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          type: label
+          kind: component
+          props:
+            text: DO setpoint
+          frame:
+            y: 134
+            width: 200
+            height: 20
+            x: 16
+        -
+          props:
+            decimals: 2
+            suffix: " mg/L"
+          frame:
+            y: 156
+            width: 200
+            height: 28
+            x: 16
+          style:
+            fontSize: 18
+            color: "#d7dee6"
+          id: sp-av
+          name: sp-av
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Plants/ResacaBend/DoSp"
+              bidirectional: false
+              mode: direct
+              kind: tag
+        -
+          id: sp-b
+          name: sp-b
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          type: label
+          kind: component
+          props:
+            text: DO setpoint
+          frame:
+            y: 134
+            width: 200
+            height: 20
+            x: 520
+        -
+          props:
+            decimals: 2
+            suffix: " mg/L"
+          frame:
+            y: 156
+            width: 200
+            height: 28
+            x: 520
+          style:
+            fontSize: 18
+            color: "#d7dee6"
+          id: sp-bv
+          name: sp-bv
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Plants/LagunaWorks/DoSp"
+              bidirectional: false
+              mode: direct
+              kind: tag
+        -
+          id: blower-a
+          name: blower-a
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          type: label
+          kind: component
+          props:
+            text: Blower
+          frame:
+            y: 212
+            width: 200
+            height: 20
+            x: 16
+        -
+          props:
+            decimals: 0
+            suffix: " %"
+          frame:
+            y: 234
+            width: 200
+            height: 28
+            x: 16
+          style:
+            fontSize: 18
+            color: "#d7dee6"
+          id: blower-av
+          name: blower-av
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Plants/ResacaBend/BlowerSpeed"
+              bidirectional: false
+              mode: direct
+              kind: tag
+        -
+          id: blower-b
+          name: blower-b
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          type: label
+          kind: component
+          props:
+            text: Blower
+          frame:
+            y: 212
+            width: 200
+            height: 20
+            x: 520
+        -
+          props:
+            decimals: 0
+            suffix: " %"
+          frame:
+            y: 234
+            width: 200
+            height: 28
+            x: 520
+          style:
+            fontSize: 18
+            color: "#d7dee6"
+          id: blower-bv
+          name: blower-bv
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Plants/LagunaWorks/BlowerSpeed"
+              bidirectional: false
+              mode: direct
+              kind: tag
+        -
+          id: blower-as
+          name: blower-as
+          bindings:
+            state:
+              path: "[default]Brownsville/Plants/ResacaBend/BlowerRun"
+              bidirectional: false
+              mode: direct
+              kind: tag
+          type: pump
+          kind: component
+          props:
+            label: Blower
+          frame:
+            y: 220
+            width: 48
+            height: 48
+            x: 250
+        -
+          id: blower-bs
+          name: blower-bs
+          bindings:
+            state:
+              path: "[default]Brownsville/Plants/LagunaWorks/BlowerRun"
+              bidirectional: false
+              mode: direct
+              kind: tag
+          type: pump
+          kind: component
+          props:
+            label: Blower
+          frame:
+            y: 220
+            width: 48
+            height: 48
+            x: 760
+        -
+          id: air-a
+          name: air-a
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          type: label
+          kind: component
+          props:
+            text: Air flow
+          frame:
+            y: 290
+            width: 200
+            height: 20
+            x: 16
+        -
+          props:
+            decimals: 0
+            suffix: " scfm"
+          frame:
+            y: 312
+            width: 200
+            height: 28
+            x: 16
+          style:
+            fontSize: 18
+            color: "#d7dee6"
+          id: air-av
+          name: air-av
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Plants/ResacaBend/AirFlow"
+              bidirectional: false
+              mode: direct
+              kind: tag
+        -
+          id: air-b
+          name: air-b
+          style:
+            fontSize: 12
+            color: "#8b98a5"
+          type: label
+          kind: component
+          props:
+            text: Air flow
+          frame:
+            y: 290
+            width: 200
+            height: 20
+            x: 520
+        -
+          props:
+            decimals: 0
+            suffix: " scfm"
+          frame:
+            y: 312
+            width: 200
+            height: 28
+            x: 520
+          style:
+            fontSize: 18
+            color: "#d7dee6"
+          id: air-bv
+          name: air-bv
+          type: numeric
+          kind: component
+          bindings:
+            value:
+              path: "[default]Brownsville/Plants/LagunaWorks/AirFlow"
+              bidirectional: false
+              mode: direct
+              kind: tag
+      layout: coordinate
+      style:
+        background: "#12171c"
+        color: "#d7dee6"
+      kind: container
+      props:
+        mode: fixed
+    params: {}
+    width: 980
+    height: 392
+  title: Aeration
