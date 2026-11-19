@@ -53,6 +53,7 @@ if ($null -ne $svc) {
 }
 
 & netsh advfirewall firewall delete rule name="$service" | Out-Null
+Get-NetFirewallRule -DisplayName $service -ErrorAction SilentlyContinue | Remove-NetFirewallRule -ErrorAction SilentlyContinue
 
 $menuRoots = @(
     (Join-Path $env:ProgramData "Microsoft\Windows\Start Menu\Programs\$Product"),

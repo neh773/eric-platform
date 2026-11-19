@@ -78,10 +78,13 @@ function Assert-Clean($dataShouldExist) {
     Start-Sleep -Seconds 3
     $left = Get-Service -Name $layout.serviceName -ErrorAction SilentlyContinue
     if ($null -ne $left) { throw "service still present: $($left.Status)" }
-    $rule = & netsh advfirewall firewall show rule name="$($layout.serviceName)"
-    if ($rule -notmatch "No rules match") { throw "firewall rule still present" }
-    $reg = & reg.exe query "HKLM\Software\$product" 2>&1
-    if ($LASTEXITCODE -eq 0) { throw "registry key HKLM\Software\$product still present: $reg" }
+    # netsh prints blank lines around "No rules match". Without Out-String, $rule is an array,
+    # -notmatch returns the blank lines, and the check fails even when the rule is gone.
+    $rule = & netsh advfirewall firewall show rule name="$($layout.serviceName)" | Out-String
+    if ($rule -notmatch "No rules match") { throw "firewall rule still present:`n$rule" }
+    # reg.exe query writes to stderr when the key is gone, and 2>&1 under
+    # ErrorActionPreference Stop turns that into a terminating error in Windows PowerShell 5.1.
+    if (Test-Path "HKLM:\Software\$product") { throw "registry key HKLM\Software\$product still present" }
     $menu = Join-Path $env:ProgramData "Microsoft\Windows\Start Menu\Programs\$($layout.menuGroup)"
     if (Test-Path $menu) { throw "start-menu folder still present: $menu" }
     foreach ($dir in @("C:\Program Files\$($layout.serviceName)", "C:\Program Files\Control Canvas")) {

@@ -6,6 +6,11 @@ on:
     tags:
       - "v*"
   workflow_dispatch:
+    inputs:
+      tag:
+        description: "Publish a pre-release with this tag (for example v0.1.0-beta). Leave empty to only build."
+        required: false
+        default: ""
 permissions:
   contents: write
 
@@ -96,18 +101,40 @@ jobs:
 
   publish:
     needs: [installers, linux-image]
-    if: startsWith(github.ref, 'refs/tags/v')
+    # A version-tag push publishes. A manual run publishes only when a tag is given;
+    # the action then creates that tag on the commit that was built.
+    if: startsWith(github.ref, 'refs/tags/v') || inputs.tag != ''
     runs-on: ubuntu-latest
+    env:
+      TAG: ${{ inputs.tag != '' && inputs.tag || github.ref_name }}
     steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/release
       - uses: actions/download-artifact@v4
         with:
           path: dist
+      - name: Name the release files
+        id: names
+        run: |
+          set -eu
+          case "$TAG" in v[0-9]*) ;; *) echo "tag must look like v0.1.0-beta, got '$TAG'"; exit 1 ;; esac
+          version="${TAG#v}"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          mkdir -p release
+          gateway=$(ls dist/windows-installers/ERIC\ Gateway-*.exe)
+          designer=$(ls dist/windows-installers/Control\ Canvas-*.exe)
+          cp "$gateway" "release/ERIC-Gateway-${version}-windows-x64.exe"
+          cp "$designer" "release/Control-Canvas-${version}-windows-x64.exe"
+          cp dist/linux-app-images/linux-app-images.tar.gz "release/ERIC-${version}-linux-x64-app-images.tar.gz"
+          sed "s/0\.1\.0-beta/${version}/g" .github/release/notes.md > release-notes.md
+          ls -l release
       - uses: softprops/action-gh-release@v2
         with:
-          files: |
-            dist/windows-installers/*
-            dist/linux-app-images/*
-          body: |
-            ERIC v0.1.0 is BETA software and must only be used with hardware for testing purposes under safe conditions — not for live production, life-safety, or equipment-protection use. It is provided AS IS with no warranty (AGPL-3.0).
-            The Windows files are the gateway and Control Canvas installers. The Linux file is a jpackage app-image archive, not a package-manager installer.
-          generate_release_notes: true
+          tag_name: ${{ env.TAG }}
+          target_commitish: ${{ github.sha }}
+          name: ERIC ${{ steps.names.outputs.version }}
+          prerelease: true
+          body_path: release-notes.md
+          fail_on_unmatched_files: true
+          files: release/*
