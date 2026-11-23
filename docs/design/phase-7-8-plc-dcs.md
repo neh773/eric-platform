@@ -18,9 +18,9 @@ The compiler writes a shared library. Hardware addresses become globals named `_
 
 `plc/eric-plc` is a Rust process, separate from the JVM gateway.
 
-One cyclic task. The period is configurable and defaults to 10 ms. The wait is `clock_nanosleep(TIMER_ABSTIME)` on `CLOCK_MONOTONIC`. The thread asks for `SCHED_FIFO`, `mlockall`, and an optional `sched_setaffinity` core. If the container refuses those calls, the scan still runs and the status file records the refusal.
+One cyclic task. The period is configurable and defaults to 100 ms. The wait is `clock_nanosleep(TIMER_ABSTIME)` on `CLOCK_MONOTONIC`. The thread asks for `SCHED_FIFO`, `mlockall`, and an optional `sched_setaffinity` core. If the container refuses those calls, the scan still runs and the status file records the refusal.
 
-Each cycle reads inputs, executes the program, and writes outputs. A cycle that is still running at the next deadline is an overrun. The engine does not catch up. After `max_consecutive_overruns` (default 3; 0 disables the latch) the program stops, outputs are forced to the safe values in the mapping, and a fault is latched until the process exits.
+Each cycle reads inputs, executes the program, and writes outputs. A cycle that is still running at the next deadline is an overrun. The engine does not catch up. After `max_consecutive_overruns` (default 10; 0 disables the latch) the program stops, outputs are forced to the safe values in the mapping, and a fault is latched until the process exits. The Logic page shows `Faulted: watchdog` (or `Stopped:` with the engine error if the process exited) instead of leaving the program marked running.
 
 Start and stop are the process lifetime. SIGINT and SIGTERM finish the current wait and write the safe outputs. Retain memory is out of scope. TODO: retain.
 

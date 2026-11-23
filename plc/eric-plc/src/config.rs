@@ -36,10 +36,10 @@ struct FileConfig {
     control_socket: String,
 }
 
-fn default_period() -> u64 { 10 }
+fn default_period() -> u64 { 100 }
 fn default_fifo() -> i32 { 50 }
 fn default_true() -> bool { true }
-fn default_overruns() -> u32 { 3 }
+fn default_overruns() -> u32 { 10 }
 fn default_bridge() -> u64 { 100 }
 fn default_label() -> String { "container-size, not reference".into() }
 
@@ -114,4 +114,38 @@ impl Config {
 fn resolve(dir: &Path, raw: &str) -> PathBuf {
     let path = PathBuf::from(raw);
     if path.is_absolute() { path } else { dir.join(path) }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+
+    #[test]
+    fn omitted_period_and_overruns_use_tolerant_defaults() {
+        let dir = std::env::temp_dir().join(format!(
+            "eric-plc-config-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos()
+        ));
+        fs::create_dir_all(&dir).unwrap();
+        let mapping = dir.join("mapping.json");
+        fs::write(
+            &mapping,
+            r#"{"inputs":[{"address":"%IX0.0","tag":"in","type":"BOOL"}],"outputs":[{"address":"%QW0","tag":"out","type":"INT","safe":"0"}]}"#,
+        ).unwrap();
+        let cfg = dir.join("plc.toml");
+        let mapping_path = mapping.display().to_string().replace('\\', "/");
+        fs::write(
+            &cfg,
+            format!(
+                "shm_path = \"image.shm\"\nprogram = \"prog.so\"\nentry = \"P\"\nmapping = \"{mapping_path}\"\nstatus_path = \"status.json\"\n"
+            ),
+        ).unwrap();
+        let loaded = Config::load(&cfg).expect("config");
+        assert_eq!(loaded.period_ns, 100 * 1_000_000);
+        assert_eq!(loaded.max_consecutive_overruns, 10);
+        assert_eq!(loaded.mapping.outputs[0].safe, Some(serde_json::json!("0")));
+        let _ = fs::remove_dir_all(&dir);
+    }
 }

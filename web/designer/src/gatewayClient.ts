@@ -542,12 +542,12 @@ export class GatewayClient {
     return (await this.json(await this.raw("GET", "/api/v1/platform"))) as { os: string; windowsPlc: boolean; banner: string };
   }
 
-  async logicStatus(): Promise<{ state: string; periodMs: number; jitterP99Ns: number; execP99Ns: number; overruns: number }> {
-    return (await this.json(await this.raw("GET", "/api/v1/logic/status"))) as { state: string; periodMs: number; jitterP99Ns: number; execP99Ns: number; overruns: number };
+  async logicStatus(): Promise<{ state: string; message?: string; fault?: string | null; periodMs: number; jitterP99Ns: number; execP99Ns: number; overruns: number }> {
+    return (await this.json(await this.raw("GET", "/api/v1/logic/status"))) as { state: string; message?: string; fault?: string | null; periodMs: number; jitterP99Ns: number; execP99Ns: number; overruns: number };
   }
 
-  async logicWatch(): Promise<{ state: string; forcesActive: boolean; variables: Array<{ name: string; value: unknown; forced: boolean; output: boolean; udt?: string | null; tag?: string; type?: string | null }> }> {
-    return (await this.json(await this.raw("GET", "/api/v1/logic/watch", undefined, { background: true }))) as { state: string; forcesActive: boolean; variables: Array<{ name: string; value: unknown; forced: boolean; output: boolean; udt?: string | null; tag?: string; type?: string | null }> };
+  async logicWatch(): Promise<{ state: string; message?: string; fault?: string | null; forcesActive: boolean; variables: Array<{ name: string; value: unknown; forced: boolean; output: boolean; udt?: string | null; tag?: string; type?: string | null }> }> {
+    return (await this.json(await this.raw("GET", "/api/v1/logic/watch", undefined, { background: true }))) as { state: string; message?: string; fault?: string | null; forcesActive: boolean; variables: Array<{ name: string; value: unknown; forced: boolean; output: boolean; udt?: string | null; tag?: string; type?: string | null }> };
   }
 
   async logicForce(name: string, value: unknown, output: boolean): Promise<void> {

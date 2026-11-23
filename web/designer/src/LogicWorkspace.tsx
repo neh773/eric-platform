@@ -10,6 +10,10 @@ import {
   typeForAddress,
   setMemberDirection,
   udtBindings,
+  logicStatusLabel,
+  scanSettingsFromMapping,
+  DEFAULT_PLC_PERIOD_MS,
+  DEFAULT_PLC_MAX_CONSECUTIVE_OVERRUNS,
   type LogicUdtView,
   type MapRow,
   type UdtBinding,
@@ -61,6 +65,8 @@ export function LogicWorkspace({ client }: { client: GatewayClient }) {
   const [jsonText, setJsonText] = useState("");
   const [diagnostics, setDiagnostics] = useState<Diagnostic[]>([]);
   const [status, setStatus] = useState("stopped");
+  const [periodMs, setPeriodMs] = useState(DEFAULT_PLC_PERIOD_MS);
+  const [maxOverruns, setMaxOverruns] = useState(DEFAULT_PLC_MAX_CONSECUTIVE_OVERRUNS);
   const [stats, setStats] = useState("");
   const [watched, setWatched] = useState<Watched[]>([]);
   const [online, setOnline] = useState(false);
@@ -99,9 +105,12 @@ export function LogicWorkspace({ client }: { client: GatewayClient }) {
     void client.logicMapping().then((file) => {
       if (rowsEdited.current) return;
       const next = rowsFromMapping(file);
+      const scan = scanSettingsFromMapping(file);
+      setPeriodMs(scan.periodMs);
+      setMaxOverruns(scan.maxConsecutiveOverruns);
       setRowsState(next);
       replaceBindings(udtBindings(file));
-      setJsonText(JSON.stringify(mappingDocument(next, udtBindings(file)), null, 2));
+      setJsonText(JSON.stringify(mappingDocument(next, udtBindings(file), scan), null, 2));
     }).catch(() => undefined).finally(() => setMappingLoaded(true));
     void refreshStatus().catch(() => undefined);
   }, []);
@@ -114,7 +123,7 @@ export function LogicWorkspace({ client }: { client: GatewayClient }) {
       void client.logicWatch().then((body) => {
         setWatched(body.variables);
         setForcesActive(body.forcesActive);
-        setStatus(body.state);
+        setStatus(logicStatusLabel(body.state, body.message, body.fault));
       }).catch(() => undefined);
     }, 250);
     return () => window.clearInterval(timer);
@@ -228,7 +237,7 @@ export function LogicWorkspace({ client }: { client: GatewayClient }) {
     setNotice(null);
     const result = await client.logicDeploy(name);
     setDiagnostics(result.diagnostics ?? []);
-    if (result.state) setStatus(result.state);
+    if (result.state) setStatus(logicStatusLabel(result.state, result.message));
     if (result.ok === false) setError(result.message ? `Deploy failed: ${result.message}` : "Compile failed");
     else {
       setNotice(`Deployed ${name}.`);
@@ -243,7 +252,7 @@ export function LogicWorkspace({ client }: { client: GatewayClient }) {
 
   async function refreshStatus() {
     const body = await client.logicStatus();
-    setStatus(body.state);
+    setStatus(logicStatusLabel(body.state, body.message, body.fault));
     showStats(body);
     const watch = await client.logicWatch();
     setWatched(watch.variables);
@@ -251,12 +260,16 @@ export function LogicWorkspace({ client }: { client: GatewayClient }) {
   }
 
   async function saveMapping() {
-    const file = jsonMode ? JSON.parse(jsonText) as ReturnType<typeof mappingDocument> : mappingDocument(rows, bindingsRef.current);
+    const scan = { periodMs, maxConsecutiveOverruns: maxOverruns };
+    const file = jsonMode ? { ...(JSON.parse(jsonText) as ReturnType<typeof mappingDocument>), ...scan } : mappingDocument(rows, bindingsRef.current, scan);
     const saved = await client.logicSaveMapping(file);
     const next = rowsFromMapping(saved);
+    const savedScan = scanSettingsFromMapping(saved);
+    setPeriodMs(savedScan.periodMs);
+    setMaxOverruns(savedScan.maxConsecutiveOverruns);
     setRowsState(next);
     replaceBindings(udtBindings(saved));
-    setJsonText(JSON.stringify(mappingDocument(next, udtBindings(saved)), null, 2));
+    setJsonText(JSON.stringify(mappingDocument(next, udtBindings(saved), savedScan), null, 2));
   }
 
   function insertSymbol() {
@@ -471,6 +484,17 @@ export function LogicWorkspace({ client }: { client: GatewayClient }) {
         <h2>Runtime</h2>
         <p aria-label="Logic status">{status}</p>
         <p>{stats}</p>
+        <div className="oip-logic-actions">
+          <label>
+            Scan period (ms)
+            <input aria-label="Scan period (ms)" type="number" min={1} max={60000} value={periodMs} onChange={(event) => setPeriodMs(Number(event.target.value) || DEFAULT_PLC_PERIOD_MS)} />
+          </label>
+          <label>
+            Max consecutive overruns
+            <input aria-label="Max consecutive overruns" type="number" min={0} value={maxOverruns} onChange={(event) => setMaxOverruns(Math.max(0, Number(event.target.value) || 0))} />
+          </label>
+        </div>
+        <p className="oip-logic-hint">A new program uses 100 ms and 10 consecutive overruns unless you change them here and save the mapping or deploy. After a watchdog fault, Start relaunches the program.</p>
         <div className="oip-logic-actions">
           <button type="button" onClick={() => void client.logicStart().then(refreshStatus).catch((err: unknown) => setError(message(err)))}>Start</button>
           <button type="button" onClick={() => void client.logicStop().then(refreshStatus).catch((err: unknown) => setError(message(err)))}>Stop</button>

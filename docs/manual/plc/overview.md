@@ -7,7 +7,7 @@ This is not a safety controller. On Windows it is not a real-time controller. Re
 ## What is in this build
 
 - One Structured Text program at a time, checked and deployed from Control Canvas.
-- A cyclic task. The usual period is 10 ms. The status line shows the period the engine is actually using.
+- A cyclic task. The usual period is 100 ms, with a watchdog that trips after 10 consecutive overruns, unless you set other values in the Logic runtime pane. The status line shows the period the engine is actually using, and says `Faulted: watchdog` or `Stopped:` with the engine error instead of leaving a dead program marked running.
 - The bundled IEC standard library: timers, counters, and edge triggers.
 - The ERIC process library, including `ERIC_PID`.
 - A tag map that connects program variables to gateway tags.

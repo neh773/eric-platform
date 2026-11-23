@@ -388,8 +388,10 @@ fn status_body(controls: &Controls) -> String {
     let period_ms = stats.period_ns / 1_000_000;
     // A stored force is not "active" while outputs are held at the safe value.
     let forces = state == "running" && controls.forces_active();
+    let watchdog = controls.latched();
+    let fault = if watchdog { "\"watchdog\"" } else { "null" };
     format!(
-        "\"state\":\"{state}\",\"forcesActive\":{forces},\"periodMs\":{period_ms},\"jitterP99Ns\":{},\"execP99Ns\":{},\"overruns\":{}",
+        "\"state\":\"{state}\",\"fault\":{fault},\"watchdog\":{watchdog},\"forcesActive\":{forces},\"periodMs\":{period_ms},\"jitterP99Ns\":{},\"execP99Ns\":{},\"overruns\":{}",
         stats.jitter_p99_ns, stats.exec_p99_ns, stats.overruns
     )
 }
@@ -516,6 +518,8 @@ mod tests {
         controls.latch();
         let body = status_body(&controls);
         assert!(body.contains("\"state\":\"faulted\""), "{body}");
+        assert!(body.contains("\"fault\":\"watchdog\""), "{body}");
+        assert!(body.contains("\"watchdog\":true"), "{body}");
         assert!(body.contains("\"forcesActive\":false"), "{body}");
     }
 }

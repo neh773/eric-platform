@@ -134,6 +134,40 @@ class LogicServiceTest {
         assertEquals(false, (held["variables"] as List<*>).filterIsInstance<Map<*, *>>()[0]["forced"])
     }
 
+
+    @Test fun `a string safe value is stored as a typed number`() {
+        val logic = LogicService(tmp, PlcCompiler(null, emptyList()))
+        logic.saveMapping(mapOf(
+            "outputs" to listOf(mapOf("name" to "Count", "address" to "%QW0", "tag" to "pid/count", "type" to "INT", "safe" to "0")),
+            "periodMs" to 250,
+            "maxConsecutiveOverruns" to 12,
+        ))
+        val saved = logic.mapping()
+        val row = (saved["outputs"] as List<*>).filterIsInstance<Map<*, *>>().single()
+        assertEquals(0L, (row["safe"] as Number).toLong())
+        assertEquals(250, saved["periodMs"])
+        assertEquals(12, saved["maxConsecutiveOverruns"])
+    }
+
+    @Test fun `status shows a watchdog latch instead of running`() {
+        val engine = RecordingEngine()
+        engine.state = "running"
+        engine.watchdog = true
+        engine.fault = "watchdog"
+        val logic = LogicService(tmp, PlcCompiler(null, emptyList()) { tmp.resolve("libPump.so") }, engine)
+        logic.create("Pump")
+        logic.deploy("Pump")
+        val status = logic.status()
+        assertEquals("faulted", status["state"])
+        assertEquals("watchdog", status["message"])
+        assertEquals("watchdog", status["fault"])
+    }
+
+    @Test fun `an unset scan period defaults to 100 ms`() {
+        val logic = LogicService(tmp, PlcCompiler(null, emptyList()))
+        assertEquals(100, logic.status()["periodMs"])
+    }
+
     @Test fun `a real value is shown as a decimal and a decimal force keeps its bits`() {
         val engine = RecordingEngine()
         val fifty = java.lang.Double.doubleToRawLongBits(50.0)
@@ -157,6 +191,8 @@ private class RecordingEngine : PlcControl {
     val sent = mutableListOf<Any?>()
     var analogBits: Long? = null
     var state: String = "running"
+    var watchdog: Boolean = false
+    var fault: String? = null
 
     override fun connected(): Boolean = true
 
@@ -171,14 +207,16 @@ private class RecordingEngine : PlcControl {
         return null
     }
 
-    override fun status(): Map<String, Any?> = mapOf(
-        "state" to state,
-        "forcesActive" to (state == "running"),
-        "periodMs" to 10,
-        "jitterP99Ns" to 100,
-        "execP99Ns" to 50,
-        "overruns" to 2,
-    )
+    override fun status(): Map<String, Any?> = buildMap {
+        put("state", state)
+        put("forcesActive", state == "running")
+        put("periodMs", 10)
+        put("jitterP99Ns", 100)
+        put("execP99Ns", 50)
+        put("overruns", 2)
+        if (fault != null) put("fault", fault)
+        put("watchdog", watchdog)
+    }
 
     override fun watch(): Map<String, Any?> {
         val row = if (analogBits != null) {
@@ -187,5 +225,33 @@ private class RecordingEngine : PlcControl {
             mapOf("name" to "pid/motor", "address" to "%QX1.0", "bits" to 1, "forced" to true, "output" to true)
         }
         return mapOf("state" to state, "forcesActive" to true, "variables" to listOf(row))
+    }
+}
+
+class LogicHealthTest {
+    @org.junit.jupiter.api.Test fun `a dead engine is stopped with its error`() {
+        val presented = presentLogicHealth("running", "", null, false, "the scan engine exited (code 1)", false)
+        assertEquals("stopped", presented.state)
+        assertEquals("the scan engine exited (code 1)", presented.message)
+    }
+
+    @org.junit.jupiter.api.Test fun `a latched watchdog is faulted even if the control socket still says running`() {
+        val presented = presentLogicHealth(
+            "running",
+            "",
+            mapOf("state" to "running", "periodMs" to 10, "execP99Ns" to 0),
+            true,
+            null,
+            true,
+        )
+        assertEquals("faulted", presented.state)
+        assertEquals("watchdog", presented.message)
+        assertEquals("watchdog", presented.fault)
+    }
+
+    @org.junit.jupiter.api.Test fun `typedSafe turns a string zero into an integer`() {
+        assertEquals(0L, typedSafe("INT", "0"))
+        assertEquals(false, typedSafe("BOOL", "false"))
+        assertEquals(1.5, typedSafe("REAL", "1.5"))
     }
 }

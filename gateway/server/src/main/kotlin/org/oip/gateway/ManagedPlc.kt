@@ -20,21 +20,45 @@ internal class ManagedPlc(
     private val runDir: Path,
     private val binary: File,
     private val tags: TagEngine,
-    private val periodMs: Int = 10,
+    private var periodMs: Int = DEFAULT_PLC_PERIOD_MS,
+    private var maxConsecutiveOverruns: Int = DEFAULT_PLC_MAX_CONSECUTIVE_OVERRUNS,
     private val log: (String) -> Unit = { System.err.println("eric-plc: $it") },
 ) : AutoCloseable {
     private var process: Process? = null
+    private var lastExitError: String? = null
     private var bridge: PlcBridge? = null
     @Volatile var control: PlcControl = PlcControl.disconnected()
         private set
 
-    data class Deployed(val library: String, val entry: String, val instance: String, val hwmap: String?, val running: Boolean)
+    data class Deployed(
+        val library: String,
+        val entry: String,
+        val instance: String,
+        val hwmap: String?,
+        val running: Boolean,
+        val periodMs: Int = DEFAULT_PLC_PERIOD_MS,
+        val maxConsecutiveOverruns: Int = DEFAULT_PLC_MAX_CONSECUTIVE_OVERRUNS,
+    )
 
     /** Stops any engine, then starts one with [library]. Returns an error message, or null when it is scanning. */
     @Synchronized
-    fun start(library: Path, entry: String, instance: String, hwmap: Path?, mapping: Map<String, Any?>, running: Boolean = true): String? {
+    fun start(
+        library: Path,
+        entry: String,
+        instance: String,
+        hwmap: Path?,
+        mapping: Map<String, Any?>,
+        running: Boolean = true,
+        periodMs: Int = this.periodMs,
+        maxConsecutiveOverruns: Int = this.maxConsecutiveOverruns,
+    ): String? {
+        val scanPeriodMs = periodMs.coerceIn(1, 60_000)
+        val scanOverruns = maxConsecutiveOverruns.coerceAtLeast(0)
+        this.periodMs = scanPeriodMs
+        this.maxConsecutiveOverruns = scanOverruns
         stopEngine()
         Files.createDirectories(runDir)
+        Files.deleteIfExists(runDir.resolve("status.json"))
         val inputs = rows(mapping["inputs"])
         val outputs = rows(mapping["outputs"])
         if (inputs.isEmpty() && outputs.isEmpty()) {
@@ -49,10 +73,11 @@ internal class ManagedPlc(
         val config = runDir.resolve("plc.toml")
         config.writeText(
             buildString {
-                appendLine("period_ms = $periodMs")
+                appendLine("period_ms = $scanPeriodMs")
                 appendLine("fifo_priority = 0")
                 appendLine("mlock = false")
-                appendLine("bridge_timeout_ms = ${maxOf(500, periodMs * 20)}")
+                appendLine("max_consecutive_overruns = $scanOverruns")
+                appendLine("bridge_timeout_ms = ${maxOf(500, scanPeriodMs * 20)}")
                 appendLine("shm_path = ${toml(image.toString())}")
                 appendLine("program = ${toml(library.toAbsolutePath().toString())}")
                 appendLine("entry = ${toml(entry)}")
@@ -74,6 +99,7 @@ internal class ManagedPlc(
             return "the scan engine could not start: ${e.message}"
         }
         process = started
+        lastExitError = null
         val candidate = UnixPlcControl(socket)
         val deadline = System.nanoTime() + 10_000_000_000L
         while (System.nanoTime() < deadline) {
@@ -89,7 +115,7 @@ internal class ManagedPlc(
         bridge = try {
             PlcBridge.open(
                 tags,
-                PlcSettings(enabled = true, image = image.toString(), mapping = mappingFile.toString(), publishMillis = 10, bridgeTimeoutMillis = maxOf(500L, periodMs * 20L)),
+                PlcSettings(enabled = true, image = image.toString(), mapping = mappingFile.toString(), publishMillis = 10, bridgeTimeoutMillis = maxOf(500L, scanPeriodMs * 20L)),
                 log,
             ).also { it.start() }
         } catch (e: Exception) {
@@ -98,7 +124,7 @@ internal class ManagedPlc(
         }
         control = candidate
         if (!running) candidate.stop()
-        remember(Deployed(library.toAbsolutePath().toString(), entry, instance, hwmap?.toAbsolutePath()?.toString(), running))
+        remember(Deployed(library.toAbsolutePath().toString(), entry, instance, hwmap?.toAbsolutePath()?.toString(), running, scanPeriodMs, scanOverruns))
         return null
     }
 
@@ -114,8 +140,50 @@ internal class ManagedPlc(
         return runCatching {
             @Suppress("UNCHECKED_CAST")
             val m = Json.mapper.readValue(file.readText(), Map::class.java) as Map<String, Any?>
-            Deployed(m["library"] as String, m["entry"] as String, m["instance"] as String, m["hwmap"] as String?, m["running"] != false)
+            Deployed(
+                m["library"] as String,
+                m["entry"] as String,
+                m["instance"] as String,
+                m["hwmap"] as String?,
+                m["running"] != false,
+                intSetting(m["periodMs"], DEFAULT_PLC_PERIOD_MS, 1, 60_000),
+                intSetting(m["maxConsecutiveOverruns"], DEFAULT_PLC_MAX_CONSECUTIVE_OVERRUNS, 0, 1_000_000),
+            )
         }.getOrNull()
+    }
+
+    /** True while the supervised engine process is still alive. */
+    fun alive(): Boolean = process?.isAlive == true
+
+    /** Last lines of the engine log after an unexpected exit, or null while it is running. */
+    fun exitError(): String? {
+        val running = process ?: return lastExitError
+        if (running.isAlive) return null
+        val tail = runCatching { runDir.resolve("engine.log").toFile().readLines().takeLast(8).joinToString(" ") }.getOrDefault("").trim()
+        val code = runCatching { running.exitValue() }.getOrNull()
+        lastExitError = engineStartError(tail + if (code != null && tail.isBlank()) "exit code $code" else "")
+        return lastExitError
+    }
+
+    /** True when the engine has written a watchdog latch into `status.json`. */
+    fun watchdogTripped(): Boolean {
+        val file = runDir.resolve("status.json")
+        if (!file.exists()) return false
+        return runCatching {
+            @Suppress("UNCHECKED_CAST")
+            val m = Json.mapper.readValue(file.readText(), Map::class.java) as Map<String, Any?>
+            m["watchdog_tripped"] == true
+        }.getOrDefault(false)
+    }
+
+    /** Stops a dead or latched engine and starts the last deployed program again. */
+    fun relaunch(periodMs: Int = this.periodMs, maxConsecutiveOverruns: Int = this.maxConsecutiveOverruns): String? {
+        val last = deployed() ?: return "deploy a program before starting"
+        val mappingFile = runDir.resolve("mapping.json")
+        if (!mappingFile.exists()) return "deploy a program before starting"
+        @Suppress("UNCHECKED_CAST")
+        val mapping = Json.mapper.readValue(mappingFile.readText(), Map::class.java) as Map<String, Any?>
+        return start(Path.of(last.library), last.entry, last.instance, last.hwmap?.let { Path.of(it) }, mapping, true, periodMs, maxConsecutiveOverruns)
     }
 
     /** Starts the last deployed program again, with the mapping it was deployed with. */
@@ -126,12 +194,20 @@ internal class ManagedPlc(
         if (!mappingFile.exists()) return null
         @Suppress("UNCHECKED_CAST")
         val mapping = Json.mapper.readValue(mappingFile.readText(), Map::class.java) as Map<String, Any?>
-        return start(Path.of(last.library), last.entry, last.instance, last.hwmap?.let { Path.of(it) }, mapping, last.running)
+        return start(Path.of(last.library), last.entry, last.instance, last.hwmap?.let { Path.of(it) }, mapping, last.running, last.periodMs, last.maxConsecutiveOverruns)
     }
 
     private fun remember(state: Deployed) {
         runDir.resolve("deployed.json").writeText(
-            Json.write(mapOf("library" to state.library, "entry" to state.entry, "instance" to state.instance, "hwmap" to state.hwmap, "running" to state.running)),
+            Json.write(mapOf(
+                "library" to state.library,
+                "entry" to state.entry,
+                "instance" to state.instance,
+                "hwmap" to state.hwmap,
+                "running" to state.running,
+                "periodMs" to state.periodMs,
+                "maxConsecutiveOverruns" to state.maxConsecutiveOverruns,
+            )),
         )
     }
 
@@ -162,7 +238,8 @@ internal class ManagedPlc(
 
     private fun rows(raw: Any?): List<Map<String, Any?>> =
         (raw as? List<*>).orEmpty().filterIsInstance<Map<*, *>>().map { row ->
-            linkedMapOf("address" to row["address"], "tag" to row["tag"], "type" to (row["type"] ?: "BOOL"), "safe" to row["safe"])
+            val type = (row["type"] as? String)?.ifBlank { null } ?: "BOOL"
+            linkedMapOf("address" to row["address"], "tag" to row["tag"], "type" to type, "safe" to typedSafe(type, row["safe"]))
         }
 
     private fun toml(value: String) = "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"") + "\""

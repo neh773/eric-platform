@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { bindInstance, groupWatched, mappingDocument, rowsFromMapping, setMemberDirection, udtBindings } from "./logicModel";
+import { bindInstance, groupWatched, logicStatusLabel, mappingDocument, rowsFromMapping, setMemberDirection, udtBindings } from "./logicModel";
 
 describe("logic mapping", () => {
   it("writes the eric-plc mapping file from the form rows", () => {
@@ -14,6 +14,16 @@ describe("logic mapping", () => {
       { name: "Level", address: "%QW4", tag: "pid/level", type: "INT", safe: 0 },
     ]);
     expect(rowsFromMapping(file).map((row) => row.name)).toEqual(["Start", "Motor", "Level"]);
+    expect(file.periodMs).toBe(100);
+    expect(file.maxConsecutiveOverruns).toBe(10);
+    expect(mappingDocument([], [], { periodMs: 250, maxConsecutiveOverruns: 12 }).periodMs).toBe(250);
+  });
+
+  it("labels a watchdog latch and a stopped engine", () => {
+    expect(logicStatusLabel("running")).toBe("running");
+    expect(logicStatusLabel("stopped")).toBe("stopped");
+    expect(logicStatusLabel("faulted", "watchdog", "watchdog")).toBe("Faulted: watchdog");
+    expect(logicStatusLabel("stopped", "the scan engine stopped")).toBe("Stopped: the scan engine stopped");
   });
 });
 

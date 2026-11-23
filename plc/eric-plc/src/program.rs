@@ -158,33 +158,73 @@ pub fn safe_bits(ty: &str, value: Option<&serde_json::Value>) -> Result<u64, Str
     };
     match code {
         TYPE_BOOL => {
-            let flag = value.as_bool().ok_or("BOOL safe value must be true or false")?;
+            let flag = json_bool(value).ok_or("BOOL safe value must be true or false")?;
             Ok(u64::from(flag))
         }
         TYPE_INT => {
-            let n = value.as_i64().ok_or("INT safe value must be an integer")?;
+            let n = json_int(value).ok_or("INT safe value must be an integer")?;
             if !(-32768..=32767).contains(&n) {
                 return Err(format!("INT safe value {n} is out of range"));
             }
             Ok((n as u16) as u64)
         }
         TYPE_DINT => {
-            let n = value.as_i64().ok_or("DINT safe value must be an integer")?;
+            let n = json_int(value).ok_or("DINT safe value must be an integer")?;
             if !(-2147483648..=2147483647).contains(&n) {
                 return Err(format!("DINT safe value {n} is out of range"));
             }
             Ok((n as u32) as u64)
         }
         TYPE_REAL => {
-            let n = value.as_f64().ok_or("REAL safe value must be a number")?;
+            let n = json_float(value).ok_or("REAL safe value must be a number")?;
             Ok(u64::from((n as f32).to_bits()))
         }
         TYPE_LREAL => {
-            let n = value.as_f64().ok_or("LREAL safe value must be a number")?;
+            let n = json_float(value).ok_or("LREAL safe value must be a number")?;
             Ok(n.to_bits())
         }
         _ => Ok(0),
     }
+}
+
+/// Mapping files from the Logic form sometimes store numbers and booleans as strings.
+fn json_bool(value: &serde_json::Value) -> Option<bool> {
+    if let Some(flag) = value.as_bool() {
+        return Some(flag);
+    }
+    if let Some(n) = value.as_i64() {
+        return Some(n != 0);
+    }
+    match value.as_str()?.trim().to_ascii_lowercase().as_str() {
+        "true" | "1" => Some(true),
+        "false" | "0" => Some(false),
+        _ => None,
+    }
+}
+
+fn json_int(value: &serde_json::Value) -> Option<i64> {
+    if let Some(n) = value.as_i64() {
+        return Some(n);
+    }
+    if let Some(n) = value.as_u64() {
+        return i64::try_from(n).ok();
+    }
+    if let Some(n) = value.as_f64() {
+        if n.is_finite() && n.fract() == 0.0 && n >= i64::MIN as f64 && n <= i64::MAX as f64 {
+            return Some(n as i64);
+        }
+    }
+    value.as_str()?.trim().parse().ok()
+}
+
+fn json_float(value: &serde_json::Value) -> Option<f64> {
+    if let Some(n) = value.as_f64() {
+        return Some(n);
+    }
+    if let Some(n) = value.as_i64() {
+        return Some(n as f64);
+    }
+    value.as_str()?.trim().parse().ok()
 }
 
 pub fn empty_slots(points: &[Point], quality: u8) -> Vec<Slot> {
@@ -398,6 +438,19 @@ mod tests {
     static CALLS: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
     unsafe extern "C" fn bump() {
         CALLS.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+    }
+
+    #[test]
+    fn safe_values_accept_typed_numbers_and_numeric_strings() {
+        use serde_json::json;
+        assert_eq!(safe_bits("INT", Some(&json!(0))).unwrap(), 0);
+        assert_eq!(safe_bits("INT", Some(&json!("0"))).unwrap(), 0);
+        assert_eq!(safe_bits("INT", Some(&json!("-3"))).unwrap(), (-3i16) as u16 as u64);
+        assert_eq!(safe_bits("DINT", Some(&json!("12"))).unwrap(), 12);
+        assert_eq!(safe_bits("BOOL", Some(&json!("false"))).unwrap(), 0);
+        assert_eq!(safe_bits("BOOL", Some(&json!("true"))).unwrap(), 1);
+        assert_eq!(safe_bits("REAL", Some(&json!("1.5"))).unwrap(), u64::from((1.5f32).to_bits()));
+        assert!(safe_bits("INT", Some(&json!("nope"))).unwrap_err().contains("integer"));
     }
 
     #[test]

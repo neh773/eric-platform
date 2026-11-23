@@ -13,6 +13,35 @@ export interface MappingFile {
   outputs: Array<Record<string, unknown>>;
   /** UDT instances bound to program structure variables (0.1.1). */
   udts?: UdtBinding[];
+  periodMs?: number;
+  maxConsecutiveOverruns?: number;
+}
+
+export const DEFAULT_PLC_PERIOD_MS = 100;
+export const DEFAULT_PLC_MAX_CONSECUTIVE_OVERRUNS = 10;
+
+export interface ScanSettings {
+  periodMs: number;
+  maxConsecutiveOverruns: number;
+}
+
+/** Label for the Logic runtime status line. */
+export function logicStatusLabel(state: string, message?: string | null, fault?: string | null): string {
+  const reason = (fault ?? "").trim();
+  const detail = (message ?? "").trim();
+  if (state === "faulted" && (reason === "watchdog" || /watchdog/i.test(detail))) return "Faulted: watchdog";
+  if (state === "faulted" && (reason || detail)) return `Faulted: ${reason || detail}`;
+  if (state === "stopped" && detail) return `Stopped: ${detail}`;
+  return state;
+}
+
+export function scanSettingsFromMapping(file: MappingFile | Record<string, unknown> | null | undefined): ScanSettings {
+  const period = Number((file as MappingFile | undefined)?.periodMs);
+  const overruns = Number((file as MappingFile | undefined)?.maxConsecutiveOverruns);
+  return {
+    periodMs: Number.isFinite(period) && period >= 1 ? Math.min(60_000, Math.floor(period)) : DEFAULT_PLC_PERIOD_MS,
+    maxConsecutiveOverruns: Number.isFinite(overruns) && overruns >= 0 ? Math.floor(overruns) : DEFAULT_PLC_MAX_CONSECUTIVE_OVERRUNS,
+  };
 }
 
 /** A gateway UDT instance bound to a structure variable; `members` overrides a member's direction. */
@@ -137,7 +166,7 @@ export const ST_COMPLETION = [
   "ERIC_TPO", "ERIC_LEADLAG", "ERIC_DEADTIME", "ERIC_SEQUENCER", "ERIC_ALTERNATOR",
 ];
 
-export function mappingDocument(rows: MapRow[], udts: UdtBinding[] = []): MappingFile {
+export function mappingDocument(rows: MapRow[], udts: UdtBinding[] = [], settings?: ScanSettings): MappingFile {
   const point = (row: MapRow) => ({
     name: row.name,
     address: row.address,
@@ -145,9 +174,12 @@ export function mappingDocument(rows: MapRow[], udts: UdtBinding[] = []): Mappin
     type: row.type,
     safe: row.type === "BOOL" ? row.safe === "true" : Number(row.safe || "0"),
   });
+  const scan = settings ?? { periodMs: DEFAULT_PLC_PERIOD_MS, maxConsecutiveOverruns: DEFAULT_PLC_MAX_CONSECUTIVE_OVERRUNS };
   const file: MappingFile = {
     inputs: rows.filter((row) => row.direction === "in").map(point),
     outputs: rows.filter((row) => row.direction === "out").map(point),
+    periodMs: scan.periodMs,
+    maxConsecutiveOverruns: scan.maxConsecutiveOverruns,
   };
   if (udts.length > 0) file.udts = udts;
   return file;
