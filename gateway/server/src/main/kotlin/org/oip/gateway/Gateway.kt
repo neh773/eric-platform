@@ -1388,6 +1388,8 @@ class Gateway(
             runCatching { runtime.close() }
             store.close()
         }
+        // After the listener is down. The service stop waits long enough for this delete.
+        runCatching { WindowsFirewall.removeOpenedRule() }
     }
 
     companion object {

@@ -237,6 +237,23 @@ do {
 } while ((Get-Date) -lt $ruleDeadline)
 if ($rule -match "No rules match") { throw "firewall rule was not added" }
 Write-Host "firewall rule present"
+$params = Get-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Services\$($layout.serviceName)\Parameters"
+$extra = @($params.AppEnvironmentExtra) -join "`n"
+if ($extra -notmatch 'ERIC_ADMIN_DIST=') { throw "service environment is missing ERIC_ADMIN_DIST: $extra" }
+if ($extra -notmatch 'ERIC_WEB_DIST=' -or $extra -notmatch 'ERIC_DOCS_DIR=' -or $extra -notmatch 'ERIC_PLC_COMPILER=') {
+    throw "service environment is missing an ERIC_ path: $extra"
+}
+if ($extra -match '(?m)^OIP_') { throw "service environment still sets a deprecated OIP_ variable: $extra" }
+if ([string]$params.AppStdout -notmatch 'service-stdout\.log$') { throw "service stdout is not captured ($($params.AppStdout))" }
+if ([int]$params.AppStopMethodConsole -lt 10000) { throw "service stop does not wait long enough for a clean exit ($($params.AppStopMethodConsole))" }
+Write-Host "service environment and stdout capture are current"
+Stop-Service -Name $layout.serviceName -Force
+Start-Sleep -Seconds 2
+$stoppedRule = & netsh advfirewall firewall show rule name="$($layout.serviceName)" | Out-String
+if ($stoppedRule -notmatch "No rules match") { throw "firewall rule survived service stop:`n$stoppedRule" }
+Write-Host "firewall rule removed on service stop"
+Start-Service -Name $layout.serviceName
+Wait-Health
 $menu = Join-Path $env:ProgramData "Microsoft\Windows\Start Menu\Programs\$($layout.menuGroup)"
 if (-not (Test-Path $menu)) { throw "no Start-menu folder at $menu" }
 if (-not (Test-Path (Join-Path $layout.dataDir "gateway.yaml"))) { throw "data dir was not created at $($layout.dataDir)" }

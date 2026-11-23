@@ -65,11 +65,26 @@ data class Layout(val productName: String) {
                                  Key="System\CurrentControlSet\Services\SERVICE_NAME\Parameters"
                                  Type="multiString"
                                  Name="AppEnvironmentExtra">
-                    <MultiStringValue>OIP_ADMIN_DIST=[INSTALLDIR]app\admin</MultiStringValue>
-                    <MultiStringValue>OIP_WEB_DIST=[INSTALLDIR]app\web</MultiStringValue>
+                    <MultiStringValue>ERIC_ADMIN_DIST=[INSTALLDIR]app\admin</MultiStringValue>
+                    <MultiStringValue>ERIC_WEB_DIST=[INSTALLDIR]app\web</MultiStringValue>
                     <MultiStringValue>ERIC_PLC_COMPILER=[INSTALLDIR]app\plc\rusty\plc.exe</MultiStringValue>
-                    <MultiStringValue>OIP_DOCS_DIR=[INSTALLDIR]app\docs</MultiStringValue>
+                    <MultiStringValue>ERIC_DOCS_DIR=[INSTALLDIR]app\docs</MultiStringValue>
                   </RegistryValue>
+                  <RegistryValue Root="HKLM"
+                                 Key="System\CurrentControlSet\Services\SERVICE_NAME\Parameters"
+                                 Type="string"
+                                 Name="AppStdout"
+                                 Value="[INSTALLDIR]service-stdout.log"/>
+                  <RegistryValue Root="HKLM"
+                                 Key="System\CurrentControlSet\Services\SERVICE_NAME\Parameters"
+                                 Type="string"
+                                 Name="AppStderr"
+                                 Value="[INSTALLDIR]service-stdout.log"/>
+                  <RegistryValue Root="HKLM"
+                                 Key="System\CurrentControlSet\Services\SERVICE_NAME\Parameters"
+                                 Type="integer"
+                                 Name="AppStopMethodConsole"
+                                 Value="15000"/>
                   <RegistryValue Root="HKLM" Key="Software\${xml(productName)}" Type="string" Name="InstallDir" Value="[INSTALLDIR]" />
                 </Component>
               </DirectoryRef>
