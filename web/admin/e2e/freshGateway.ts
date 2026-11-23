@@ -11,6 +11,7 @@ import { fileURLToPath } from "node:url";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(here, "../../..");
+export const REPO_ROOT = repoRoot;
 const bin = path.join(repoRoot, "gateway/server/build/install/server/bin", process.platform === "win32" ? "server.bat" : "server");
 
 export interface FreshGateway {
@@ -18,7 +19,7 @@ export interface FreshGateway {
   stop: () => void;
 }
 
-export async function startFreshGateway(port: number): Promise<FreshGateway> {
+export async function startFreshGateway(port: number, extraEnv: NodeJS.ProcessEnv = {}): Promise<FreshGateway> {
   const dataDir = mkdtempSync(path.join(tmpdir(), "eric-fresh-e2e-"));
   // gatewayNetwork port 0: never clash with 8060 held by another local gateway.
   writeFileSync(path.join(dataDir, "gateway.yaml"), "gatewayNetwork:\n  port: 0\n");
@@ -33,6 +34,7 @@ export async function startFreshGateway(port: number): Promise<FreshGateway> {
       OIP_WEB_DIST: path.join(repoRoot, "web/designer/dist"),
       OIP_HTTP_HOST: "127.0.0.1",
       OIP_OPCUA_ENABLED: "false",
+      ...extraEnv,
     },
   });
   const base = `http://127.0.0.1:${port}`;

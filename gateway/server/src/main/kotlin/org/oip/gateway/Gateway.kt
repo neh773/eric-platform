@@ -514,7 +514,12 @@ class Gateway(
     private val tagBinding: TagConfigBinding
     @Volatile private var drivers: TagDriverBridge? = null
     private var plcBridge: PlcBridge? = null
-    val logic: LogicService = LogicService(dataDir.resolve("logic"), engine = PlcControl.fromEnvironment(), udts = { udtCatalog() })
+    val logic: LogicService = LogicService(
+        dataDir.resolve("logic"),
+        compiler = PlcCompiler(engineEnv["OIP_PLC_COMPILER"]?.takeIf { it.isNotBlank() } ?: PlcCompiler.bundledCompiler()),
+        engine = PlcControl.fromEnvironment(),
+        udts = { udtCatalog() },
+    )
 
     /** Gateway UDTs as Structured Text structures, from the default tag provider (0.1.1). */
     private fun udtCatalog(): org.oip.plc.UdtCatalog {
