@@ -88,6 +88,10 @@ test.describe("Control Canvas", () => {
   test("/hmi without a project lists the projects, or opens the only one", async ({ page }) => {
     await page.goto("/hmi");
     // One project: /hmi opens it. Several: a list of links. Either way the user reaches the lift station.
-    await expect(page.getByRole("link", { name: /Lift Station|liftstation/ }).or(page.getByText("Wet well", { exact: true })).first()).toBeVisible();
+    // With no pages set up yet the project opens on its default view, which may be the popup view, so check the project, not a label.
+    await expect(async () => {
+      const links = await page.getByRole("link", { name: /Lift Station|liftstation/ }).count();
+      expect(links > 0 || /\/hmi\/liftstation(\/|$)/.test(page.url())).toBe(true);
+    }).toPass({ timeout: 15_000 });
   });
 });
