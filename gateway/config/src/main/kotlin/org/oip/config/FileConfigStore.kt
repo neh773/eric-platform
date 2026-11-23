@@ -810,10 +810,15 @@ open class FileConfigStore(
         loadFromDisk()
     }
 
-    /** Re-validate a module's indexed resources (after its schemas were registered); invalid ones are dropped from the index and reported. */
+    /**
+     * Re-validate a module's indexed resources (after its schemas were registered); invalid ones are dropped from the
+     * index and reported. A kind with no schema yet is left as loaded, the same as at startup: a module registers its
+     * kinds one at a time, and its manifest schema is revalidated before the driver registers `Device` (0.1.1 fix: a
+     * Modbus device vanished after a restart).
+     */
     fun revalidate(module: String): Map<ResourceId, String> = mutate { writeIndex {
         val bad = linkedMapOf<ResourceId, String>()
-        heads.filterKeys { it.module == module }.forEach { (id, head) ->
+        heads.filterKeys { it.module == module && (it.scope.isOverlay || registry.isRegistered(it.module, it.kind)) }.forEach { (id, head) ->
             val r = runCatching { materialize(head) }.getOrElse { bad[id] = it.message ?: it.toString(); return@forEach }
             runCatching { validate(id, r) }.onFailure { bad[id] = it.message ?: it.toString() }
         }

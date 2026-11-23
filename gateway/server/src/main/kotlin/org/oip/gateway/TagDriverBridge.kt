@@ -96,6 +96,9 @@ class TagDriverBridge(
     private var retuner: java.util.concurrent.ScheduledExecutorService? = null
     private var subscription: AutoCloseable? = null
     private var discovery: AutoCloseable? = null
+    /** UDT members bound straight to a device address have no config resource; they arrive as engine config events. */
+    private var memberWatch: AutoCloseable? = null
+    private val members = Executors.newSingleThreadExecutor { r -> Thread(r, "tag-udt-members").apply { isDaemon = true } }
 
     fun start() {
         engine.deviceWrite = DeviceWrite { config, raw -> enqueueWrite(config, raw) }
@@ -106,6 +109,11 @@ class TagDriverBridge(
         }
         subscription = store.subscribe { event -> onConfig(event) }
         for (stored in store.list(TAGS_MODULE, Scope.GATEWAY, TAG_KIND)) bindResource(stored.id.name, stored.resource.spec)
+        // UDT members with type opc (0.1.1 fix): the listener runs under the engine lock, so the bind runs on its own thread.
+        memberWatch = engine.addConfigListener { provider, path, config -> onEngineTag(provider, path, config) }
+        for ((provider, config) in engine.copyTagConfigs()) {
+            if (config.type == TagType.OPC) onEngineTag(provider, config.path, config)
+        }
         // A stalled socket may not report until its own timeout. The tag deadline is the
         // scan period plus the tag's comms timeout (SPEC §5), which can be sooner.
         // Sleep until that deadline. A fixed poll would add up to one period of lateness.
@@ -124,6 +132,9 @@ class TagDriverBridge(
         discovery = null
         subscription?.close()
         subscription = null
+        memberWatch?.close()
+        memberWatch = null
+        members.shutdownNow()
         commsWatch?.interrupt()
         commsWatch?.join(1_000)
         commsWatch = null
@@ -226,6 +237,38 @@ class TagDriverBridge(
             bind.handle = subscribe(bind)
             applyEngineRate(bind)
         }
+    }
+
+    private fun memberKey(provider: String, path: String) = "\u0001udt:" + provider.lowercase() + "\u0000" + path.lowercase()
+
+    /** Called under the engine write lock: only queues the work. */
+    private fun onEngineTag(provider: String, path: String, config: TagConfig?) {
+        val key = memberKey(provider, path)
+        if (config == null || config.type != TagType.OPC) {
+            if (binds.containsKey(key)) members.execute { unbind(key) }
+            return
+        }
+        try {
+            members.execute {
+                runCatching { bindMember(key, config) }.onFailure { e -> log.log(Level.FINE, "udt member $path", e) }
+            }
+        } catch (_: java.util.concurrent.RejectedExecutionException) {
+            // Closing.
+        }
+    }
+
+    private fun bindMember(key: String, config: TagConfig) {
+        val path = userPath(config)
+        // A tag with its own config resource is bound by bindResource.
+        if (!engine.isGeneratedMember(path)) return
+        unbind(key)
+        val server = config.opcServer
+        val item = config.opcItemPath
+        if (server.isNullOrBlank() || item.isNullOrBlank()) return
+        val configured = config.scanPeriodMillis.let { if (it < 10) 1000 else it }
+        val bind = Bind(engine.openSample(path), Canon.share(server), item, configured)
+        binds[key] = bind
+        synchronized(bind) { bind.handle = subscribe(bind) }
     }
 
     /**

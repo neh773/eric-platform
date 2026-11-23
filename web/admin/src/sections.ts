@@ -68,6 +68,8 @@ export const ADMIN_SECTIONS: readonly AdminSection[] = [
   // OAuth2 client registrations used by outbound services such as email profiles (SEC-029).
   { id: "oauth2-clients", label: "OAuth2 Clients", group: "security", keywords: ["oauth", "oauth2", "token", "client credentials", "refresh token", "xoauth2", "smtp"] },
   { id: "tags", label: "Tags", group: "services", keywords: ["udt", "instances", "wizard"] },
+  // UDT definition editor (0.1.1): types, members, device binding, alarms, history.
+  { id: "udt-types", label: "UDT Definitions", group: "services", keywords: ["udt", "type", "template", "members", "data type", "structure"] },
   { id: "historian", label: "Historian", group: "services", keywords: ["tag history", "providers", "storage"] },
   { id: "alarming", label: "Alarming", group: "services", keywords: ["alarm", "notification", "roster", "pipeline", "schedule"] },
   { id: "event-streams", label: "Event Streams", group: "services", keywords: ["event", "stream", "kafka", "handler", "source", "pipeline"] },

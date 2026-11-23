@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { allows, errorMessage } from "./access";
-import type { ApiClient, DbConnection, DbRunResult, JdbcDriverInfo, NamedQueryInfo } from "./api";
+import type { ApiClient, DbConnection, DbConnectionFields, DbRunResult, JdbcDriverInfo, NamedQueryInfo } from "./api";
 import { describeJournalStorage, describeUse, loadJournalStorage, saveJournalConnection, type JournalStorage } from "./journalStorage";
 import { NamedQueryEditor } from "./namedQueryEditor";
 import { TransactionGroups } from "./transactionGroups";
@@ -31,6 +31,8 @@ export function DatabasesPage({ section, client, session }: AdminPageProps) {
   /** The named query in the editor: its name, "" for a new one, or null when closed. */
   const [editing, setEditing] = useState<string | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
+  /** The connection in the editor: its name, "" for a new one, or null when closed. */
+  const [editingConnection, setEditingConnection] = useState<string | null>(null);
 
   useEffect(() => {
     if (!client) return;
@@ -51,6 +53,24 @@ export function DatabasesPage({ section, client, session }: AdminPageProps) {
       cancelled = true;
     };
   }, [client, reloadToken]);
+
+  async function deleteConnection(name: string) {
+    if (!client || pending) return;
+    if (!window.confirm(`Delete the database connection ${name}? Anything that uses it stops working.`)) return;
+    setPending(true);
+    setError(null);
+    setNotice(null);
+    try {
+      await client.deleteDbConnection(name);
+      setNotice(`Connection ${name} was deleted.`);
+      if (editingConnection === name) setEditingConnection(null);
+      setReloadToken((token) => token + 1);
+    } catch (err) {
+      setError(errorMessage(err, "Could not delete the connection"));
+    } finally {
+      setPending(false);
+    }
+  }
 
   async function testConnection(name: string) {
     if (!client || pending) return;
@@ -76,16 +96,47 @@ export function DatabasesPage({ section, client, session }: AdminPageProps) {
 
       <h2>Connections</h2>
       {connections ? (
-        <ConnectionTable items={connections} canWrite={canWrite} pending={pending} onTest={(name) => void testConnection(name)} />
+        <ConnectionTable
+          items={connections}
+          canWrite={canWrite}
+          pending={pending}
+          onTest={(name) => void testConnection(name)}
+          onEdit={(name) => setEditingConnection(name)}
+          onDelete={(name) => void deleteConnection(name)}
+        />
       ) : error ? null : (
         <p>Loading the connections.</p>
       )}
       {connections ? (
         <p>
+          {canWrite ? (
+            <button type="button" disabled={pending} onClick={() => setEditingConnection("")}>
+              New connection
+            </button>
+          ) : null}{" "}
           <button type="button" disabled={pending} onClick={() => setReloadToken((token) => token + 1)}>
             Reload
           </button>
         </p>
+      ) : null}
+      {editingConnection !== null && client && connections ? (
+        <ConnectionEditor
+          key={editingConnection}
+          client={client}
+          existing={editingConnection === "" ? null : (connections.find((item) => item.name === editingConnection) ?? null)}
+          onSaved={(saved, message) => {
+            setNotice(message);
+            setError(null);
+            setConnections((current) => {
+              const list = current ?? [];
+              return list.some((item) => item.name === saved.name)
+                ? list.map((item) => (item.name === saved.name ? saved : item))
+                : [...list, saved];
+            });
+            setEditingConnection(null);
+          }}
+          onClose={() => setEditingConnection(null)}
+        />
       ) : null}
 
       {client ? <TransactionGroups client={client} canWrite={canWrite} /> : null}
@@ -270,11 +321,15 @@ function ConnectionTable({
   canWrite,
   pending,
   onTest,
+  onEdit,
+  onDelete,
 }: {
   items: DbConnection[];
   canWrite: boolean;
   pending: boolean;
   onTest: (name: string) => void;
+  onEdit: (name: string) => void;
+  onDelete: (name: string) => void;
 }) {
   return (
     <table className="data-table" aria-label="Database connections">
@@ -321,6 +376,12 @@ function ConnectionTable({
               <td className="row-actions">
                 <button type="button" disabled={pending} onClick={() => onTest(item.name)}>
                   Test {item.name}
+                </button>
+                <button type="button" disabled={pending} onClick={() => onEdit(item.name)}>
+                  Edit {item.name}
+                </button>
+                <button type="button" disabled={pending} onClick={() => onDelete(item.name)}>
+                  Delete {item.name}
                 </button>
               </td>
             ) : null}
@@ -496,7 +557,7 @@ function JournalStoragePanel({
         <form className="inline-form" aria-label="Change journal storage" onSubmit={(event) => void submit(event)}>
           <label>
             Journal connection
-            <select value={selected} onChange={(event) => setChoice(event.target.value)}>
+            <select aria-label="Journal connection" value={selected} onChange={(event) => setChoice(event.target.value)}>
               <option value="">Built-in journal file</option>
               {storage?.connection && !connections.some((c) => c.name === storage.connection) ? (
                 <option value={storage.connection}>{`${storage.connection} (missing)`}</option>
@@ -554,7 +615,7 @@ function QueryBrowser({ client, connections }: { client: ApiClient; connections:
       </p>
       <label>
         Connection
-        <select value={connection} onChange={(event) => setConnection(event.target.value)}>
+        <select aria-label="Connection" value={connection} onChange={(event) => setConnection(event.target.value)}>
           {connections.map((c) => (
             <option key={c.name} value={c.name}>
               {c.name}
@@ -638,4 +699,225 @@ export function formatCell(value: unknown): string {
 /** Empty text is SQL NULL. Anything else is sent as typed; the gateway coerces it to the declared type or refuses it. */
 export function parameterValue(raw: string): string | null {
   return raw === "" ? null : raw;
+}
+
+/** JDBC URL shapes for the drivers the form offers. "custom" keeps the URL the user typed. */
+const DRIVERS: { id: string; label: string; port: number; url: (host: string, port: string, database: string) => string }[] = [
+  { id: "postgres", label: "PostgreSQL", port: 5432, url: (h, p, d) => `jdbc:postgresql://${h}:${p}/${d}` },
+  { id: "mysql", label: "MySQL", port: 3306, url: (h, p, d) => `jdbc:mysql://${h}:${p}/${d}` },
+  { id: "mariadb", label: "MariaDB", port: 3306, url: (h, p, d) => `jdbc:mariadb://${h}:${p}/${d}` },
+  { id: "sqlserver", label: "Microsoft SQL Server", port: 1433, url: (h, p, d) => `jdbc:sqlserver://${h}:${p};databaseName=${d}` },
+  { id: "sqlite", label: "SQLite file", port: 0, url: (_h, _p, d) => `jdbc:sqlite:${d}` },
+];
+
+/** Splits a JDBC URL the form built back into host, port and database. Anything else opens as a custom URL. */
+export function parseJdbcUrl(driver: string, url: string): { host: string; port: string; database: string } | null {
+  if (driver === "sqlite") {
+    const m = /^jdbc:sqlite:(.+)$/.exec(url);
+    return m ? { host: "", port: "", database: m[1]! } : null;
+  }
+  if (driver === "sqlserver") {
+    const m = /^jdbc:sqlserver:\/\/([^:;/]+):(\d+);databaseName=([^;]+)$/.exec(url);
+    return m ? { host: m[1]!, port: m[2]!, database: m[3]! } : null;
+  }
+  const m = /^jdbc:(?:postgresql|mysql|mariadb):\/\/([^:/?]+):(\d+)\/([^?]+)$/.exec(url);
+  return m ? { host: m[1]!, port: m[2]!, database: m[3]! } : null;
+}
+
+/**
+ * Add or edit a database connection (0.1.1). The password field is write-only: the gateway stores it in its secret
+ * store and never sends it back, so editing shows "Stored" and an empty field keeps it. Saving runs the connection's
+ * validation query, so the status column shows straight away whether the gateway can reach the database.
+ */
+export function ConnectionEditor({
+  client,
+  existing,
+  onSaved,
+  onClose,
+}: {
+  client: ApiClient;
+  existing: DbConnection | null;
+  onSaved: (saved: DbConnection, message: string) => void;
+  onClose: () => void;
+}) {
+  const parsed = existing ? parseJdbcUrl(existing.driver, existing.url) : null;
+  const known = DRIVERS.some((item) => item.id === existing?.driver);
+  const [name, setName] = useState(existing?.name ?? "");
+  const [driver, setDriver] = useState(existing ? (known ? existing.driver : "custom") : "postgres");
+  const [host, setHost] = useState(parsed?.host ?? "localhost");
+  const [port, setPort] = useState(parsed?.port ?? "5432");
+  const [database, setDatabase] = useState(parsed?.database ?? "");
+  const [customUrl, setCustomUrl] = useState(existing && (!parsed || !known) ? existing.url : "");
+  const [customDriver, setCustomDriver] = useState(existing && !known ? existing.driver : "");
+  const [username, setUsername] = useState(existing?.username ?? "");
+  const [password, setPassword] = useState("");
+  const [clearPassword, setClearPassword] = useState(false);
+  const [description, setDescription] = useState(existing?.description ?? "");
+  const [enabled, setEnabled] = useState(existing?.enabled ?? true);
+  const [defaultConnection, setDefaultConnection] = useState(existing?.defaultConnection ?? false);
+  const [allowBrowserWrites, setAllowBrowserWrites] = useState(existing?.allowBrowserWrites ?? false);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+
+  const shape = DRIVERS.find((item) => item.id === driver);
+  const url = customUrl.trim() || (shape ? shape.url(host.trim(), port.trim(), database.trim()) : "");
+
+  function pickDriver(next: string) {
+    setDriver(next);
+    const nextShape = DRIVERS.find((item) => item.id === next);
+    if (nextShape && nextShape.port > 0) setPort(String(nextShape.port));
+  }
+
+  async function submit(event: FormEvent) {
+    event.preventDefault();
+    setPending(true);
+    setError(null);
+    const fields: DbConnectionFields = {
+      driver: driver === "custom" ? customDriver.trim() : driver,
+      url,
+      username: username.trim(),
+      description: description.trim(),
+      enabled,
+      defaultConnection,
+      allowBrowserWrites,
+    };
+    if (password !== "") fields.password = password;
+    else if (clearPassword) fields.password = "";
+    else if (!existing) delete fields.password;
+    try {
+      const saved = await client.saveDbConnection(name.trim(), fields, existing === null);
+      let tested = saved;
+      try {
+        tested = await client.testDbConnection(saved.name);
+      } catch {
+        // The save worked; the status column still shows the last known state.
+      }
+      onSaved(
+        tested,
+        tested.status === "Valid"
+          ? `Connection ${tested.name} was saved and is valid.`
+          : `Connection ${tested.name} was saved. Status: ${tested.status.toLowerCase()}${tested.error ? ` (${tested.error})` : ""}.`,
+      );
+    } catch (err) {
+      setError(errorMessage(err, "Could not save the connection"));
+    } finally {
+      setPassword("");
+      setPending(false);
+    }
+  }
+
+  return (
+    <form className="stack-form" aria-label="Database connection" onSubmit={submit}>
+      <h2>{existing ? `Edit connection ${existing.name}` : "New database connection"}</h2>
+      {error ? <p role="alert">{error}</p> : null}
+      <label>
+        Connection name
+        <input
+          name="db-name"
+          value={name}
+          disabled={existing !== null}
+          pattern="[a-z0-9]([a-z0-9\-]{0,61}[a-z0-9])?"
+          title="Lowercase letters, digits and '-'"
+          onChange={(event) => setName(event.target.value)}
+          required
+        />
+      </label>
+      <label>
+        Database type
+        <select aria-label="Database type" name="db-driver" value={driver} onChange={(event) => pickDriver(event.target.value)}>
+          {DRIVERS.map((item) => (
+            <option key={item.id} value={item.id}>
+              {item.label}
+            </option>
+          ))}
+          <option value="custom">Other (uploaded JDBC driver)</option>
+        </select>
+      </label>
+      {driver === "custom" ? (
+        <label>
+          Driver name
+          <input name="db-custom-driver" value={customDriver} onChange={(event) => setCustomDriver(event.target.value)} required />
+        </label>
+      ) : null}
+      {driver !== "sqlite" && driver !== "custom" ? (
+        <>
+          <label>
+            Host
+            <input name="db-host" value={host} onChange={(event) => setHost(event.target.value)} required={!customUrl} />
+          </label>
+          <label>
+            Port
+            <input name="db-port" inputMode="numeric" pattern="\d{1,5}" value={port} onChange={(event) => setPort(event.target.value)} required={!customUrl} />
+          </label>
+        </>
+      ) : null}
+      {driver !== "custom" ? (
+        <label>
+          {driver === "sqlite" ? "Database file" : "Database"}
+          <input name="db-database" value={database} onChange={(event) => setDatabase(event.target.value)} required={!customUrl} />
+        </label>
+      ) : null}
+      <label>
+        JDBC URL {driver === "custom" ? "" : "(optional, overrides the fields above)"}
+        <input
+          name="db-url"
+          value={customUrl}
+          placeholder={shape ? shape.url(host || "host", port || "port", database || "database") : "jdbc:..."}
+          onChange={(event) => setCustomUrl(event.target.value)}
+          required={driver === "custom"}
+        />
+      </label>
+      <p className="muted" data-testid="db-url-preview">
+        Connects to <code>{url}</code>
+      </p>
+      <label>
+        Username
+        <input name="db-username" autoComplete="off" value={username} onChange={(event) => setUsername(event.target.value)} />
+      </label>
+      <label>
+        Password
+        <input
+          name="db-password"
+          type="password"
+          autoComplete="new-password"
+          value={password}
+          placeholder={existing?.passwordSet ? "Stored. Leave empty to keep it." : ""}
+          onChange={(event) => {
+            setPassword(event.target.value);
+            if (event.target.value) setClearPassword(false);
+          }}
+        />
+      </label>
+      {existing?.passwordSet ? (
+        <label className="check-field">
+          <input type="checkbox" checked={clearPassword} onChange={(event) => setClearPassword(event.target.checked)} disabled={password !== ""} />
+          Remove the stored password
+        </label>
+      ) : null}
+      <label>
+        Description
+        <input name="db-description" value={description} onChange={(event) => setDescription(event.target.value)} />
+      </label>
+      <label className="check-field">
+        <input type="checkbox" checked={enabled} onChange={(event) => setEnabled(event.target.checked)} />
+        Enabled
+      </label>
+      <label className="check-field">
+        <input type="checkbox" checked={defaultConnection} onChange={(event) => setDefaultConnection(event.target.checked)} />
+        Default connection
+      </label>
+      <label className="check-field">
+        <input type="checkbox" checked={allowBrowserWrites} onChange={(event) => setAllowBrowserWrites(event.target.checked)} />
+        Allow write statements in the query browser
+      </label>
+      <p>
+        <button type="submit" disabled={pending || !name.trim() || !url}>
+          {existing ? "Save and test" : "Create and test"}
+        </button>{" "}
+        <button type="button" onClick={onClose} disabled={pending}>
+          Cancel
+        </button>
+      </p>
+    </form>
+  );
 }

@@ -238,6 +238,24 @@ private fun tagFields(requirePath: Boolean): Map<String, Any?> {
         "engUnit" to mapOf("type" to "string"),
         "commsLoss" to mapOf("type" to "string", "enum" to listOf("badNotConnected", "uncertainLastKnown"), "default" to "badNotConnected"),
         "scanPeriodMillis" to mapOf("type" to "integer", "minimum" to 0, "default" to 1000),
+        // 0.1.1: history on a UDT member, applied to that member in every instance (org.oip.historian.UdtMemberHistory).
+        "history" to mapOf(
+            "type" to "object",
+            "properties" to mapOf(
+                "enabled" to mapOf("type" to "boolean", "default" to true),
+                "storageProvider" to mapOf("type" to "string", "pattern" to "^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$"),
+                "sampleMode" to mapOf("type" to "string", "enum" to listOf("onChange", "periodic")),
+                "sampleRateMillis" to mapOf("type" to "integer", "minimum" to 1),
+                "maxTimeBetweenSamplesMillis" to mapOf("type" to "integer", "minimum" to 0),
+                "deadband" to mapOf(
+                    "type" to "object",
+                    "properties" to mapOf(
+                        "mode" to mapOf("type" to "string", "enum" to listOf("off", "absolute", "percent")),
+                        "value" to mapOf("type" to "number", "minimum" to 0),
+                    ),
+                ),
+            ),
+        ),
         // Unset means max(3 x scan period, 5000 ms); 0 means no margin past one scan period (review-3 F6).
         "commsTimeoutMillis" to mapOf("type" to "integer", "minimum" to 0),
         "writable" to mapOf("type" to "boolean", "default" to true),

@@ -17,6 +17,7 @@ import { EmailProfilesPage } from "./emailProfilesPage";
 import { OAuth2ClientsPage } from "./oauth2ClientsPage";
 import type { AdminSection } from "./sections";
 import { TagsSection } from "./tags/TagsSection";
+import { UdtTypesPage } from "./udt/udtTypesPage";
 import { UsersPage } from "./usersPage";
 import { DiagnosticsPage } from "./diagnosticsPage";
 import { MetricsPage } from "./metricsPage";
@@ -72,6 +73,7 @@ export function resetAdminPages(): void {
 export function installAdminPages(): void {
   registerAdminPage("config", ConfigPage);
   registerAdminPage("tags", TagsSection);
+  registerAdminPage("udt-types", UdtTypesPage);
   registerAdminPage("modules", ModulesPage);
   registerAdminPage("users", UsersPage);
   registerAdminPage("api-keys", ApiKeysPage);

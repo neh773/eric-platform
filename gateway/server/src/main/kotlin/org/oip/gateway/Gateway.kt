@@ -441,6 +441,7 @@ class Gateway(
     val diskCacheArchives: org.oip.historian.DiskCacheArchives
     private val historyProviderBinding: HistoryProviderBinding
     private val historyBinding: HistoryConfigBinding
+    private val udtMemberHistory: org.oip.historian.UdtMemberHistory
     private var historyRunner: HistoryRunner? = null
     val redundancy: RedundancyRuntime
     val edgeSync: EdgeSyncRuntime
@@ -877,6 +878,7 @@ class Gateway(
         ).also { it.attach() }
         historyCollector = HistoryCollector(tags, historyRouter, clock, queueCapacity = storeAndForwardSettings.memoryBufferSize, divert = historyRouter::divert)
         historyBinding = HistoryConfigBinding(historyCollector, store, schemas, historyRouter).also { it.attach() }
+        udtMemberHistory = org.oip.historian.UdtMemberHistory(tags, historyCollector, historyRouter, historyBinding).also { it.attach() }
         reports = ReportService(
             store,
             ReportEngine(DatabaseQueries(databases), RouterHistoryAccess(historyCollector, historyRouter), { c, p -> reportTagCheck.canRead(c, p) }, clock, AlarmJournalReports(alarms.journal)),
@@ -1363,6 +1365,7 @@ class Gateway(
             runCatching { hmiProjects.close() }
             runCatching { hmiScripts.close() }
             runCatching { reports.close() }
+            runCatching { udtMemberHistory.close() }
             runCatching { historyBinding.close() }
             runCatching { historyProviderBinding.close() }
             runCatching { historyCollector.close() }

@@ -4,6 +4,7 @@ import type { ApiClient, ResourceDocument } from "./api";
 import {
   emptyHistoryTag,
   emptyProvider,
+  historyTagFromSpec,
   historyTagProblem,
   providerFromSpec,
   providerProblem,
@@ -69,12 +70,7 @@ function TagHistory({ client, canWrite }: { client: ApiClient; canWrite: boolean
       empty={() => emptyHistoryTag()}
       problem={(name, draft, creating) => historyTagProblem(name, draft as HistoryTagDraft, creating)}
       toSpec={(draft) => specFromHistoryTag(draft as HistoryTagDraft)}
-      fromSpec={(spec) => ({
-        ...emptyHistoryTag(),
-        tagPath: typeof spec.tagPath === "string" ? spec.tagPath : "",
-        sampleMode: spec.sampleMode === "periodic" ? "periodic" : "onChange",
-        storageProvider: typeof spec.storageProvider === "string" ? spec.storageProvider : "local",
-      })}
+      fromSpec={(spec) => historyTagFromSpec(spec)}
       fields={(draft, onChange, creating, name, onName) => (
         <TagFields draft={draft as HistoryTagDraft} onChange={onChange as (draft: HistoryTagDraft) => void} creating={creating} name={name} onName={onName} />
       )}
@@ -216,11 +212,11 @@ function ProviderFields({ draft, onChange, creating, name, onName }: { draft: Pr
       <label>
         Type
         <select aria-label="Provider type" value={draft.type} onChange={(event) => onChange(emptyProvider(event.target.value as ProviderType))}>
-          <option value="simulator">Simulator</option>
           <option value="sql">SQL database</option>
           <option value="csv">CSV file</option>
           <option value="table">Existing table, read only</option>
           <option value="splitter">Splitter</option>
+          <option value="simulator">Simulator (test data)</option>
         </select>
       </label>
       <label>Enabled<input type="checkbox" checked={draft.enabled} onChange={(event) => set({ enabled: event.target.checked })} /></label>
@@ -274,6 +270,8 @@ function TagFields({ draft, onChange, creating, name, onName }: { draft: History
           <option value="percent">Percent</option>
         </select>
       </label>
+      {draft.deadbandMode !== "off" ? <label>Deadband value<input aria-label="Deadband value" inputMode="decimal" value={draft.deadbandValue} onChange={(event) => set({ deadbandValue: event.target.value })} /></label> : null}
+      <label>Max time between samples (ms)<input aria-label="Max time between samples" inputMode="numeric" value={draft.maxTimeBetweenSamplesMillis} onChange={(event) => set({ maxTimeBetweenSamplesMillis: event.target.value })} /></label>
       <label>Provider<input aria-label="Storage provider" value={draft.storageProvider} onChange={(event) => set({ storageProvider: event.target.value })} placeholder="local" /></label>
     </div>
   );
