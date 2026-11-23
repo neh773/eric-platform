@@ -283,6 +283,14 @@ class OpcUaDriverTest {
                 spec + ("password" to "nope"),
             ))
         }
+        // A username sign-in keeps only a secret:// reference to the password.
+        val signIn = opcUaConnectionConfig("bench-opc", applied + mapOf("username" to "op1", "password" to "secret://opcua-bench-opc"))
+        assertEquals(OpcUaAuth.Username("op1", "secret://opcua-bench-opc"), signIn.auth)
+        registry.check(org.oip.config.Resource(
+            CONNECTION_KIND,
+            org.oip.config.Metadata("bench-opc", OpcUaClientModule.MODULE_ID),
+            spec + mapOf("username" to "op1", "password" to "secret://opcua-bench-opc"),
+        ))
         val file = javaClass.getResource("/module.yaml")!!.readText().replace("\r\n", "\n").trim()
         assertEquals(file, OpcUaClientModule.MANIFEST_YAML.trim())
     }

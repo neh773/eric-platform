@@ -37,7 +37,7 @@ fun opcUaConnectionSchema(): Map<String, Any?> = linkedMapOf(
         "trustAllServerCertificates" to mapOf("type" to "boolean", "default" to false),
         // Username sign-in. The password is a secret:// reference to the gateway secret store.
         "username" to mapOf("type" to "string"),
-        "password" to mapOf("type" to "string"),
+        "password" to mapOf("type" to "string", "pattern" to "^secret://[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$"),
         "pkiDir" to mapOf("type" to "string", "minLength" to 1),
         "connectHost" to mapOf("type" to "string"),
         "connectPort" to mapOf("type" to "integer", "minimum" to -1, "maximum" to 65535),

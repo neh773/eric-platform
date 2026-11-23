@@ -207,7 +207,7 @@ class ProjectCrudApiTest {
         val steps = (setup["steps"] as List<*>).map { it as Map<*, *> }
         assertEquals(listOf("system-name", "users", "plc-resources", "project"), steps.map { it["id"] })
         assertTrue(steps.none { it["done"] == true })
-        assertEquals(listOf("admin", "designer", "hmi"), (fresh.json["links"] as List<*>).map { (it as Map<*, *>)["id"] })
+        assertEquals(listOf("admin", "designer", "hmi", "manual"), (fresh.json["links"] as List<*>).map { (it as Map<*, *>)["id"] })
 
         assertEquals(201, create("plant", "\"title\":\"Plant floor\"").status)
         assertEquals(201, create("base", "\"inheritable\":true,\"runnable\":false").status)
