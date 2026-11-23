@@ -20,9 +20,9 @@ This is not a safety controller. On Windows it is not a real-time controller. Re
 
 ## What a Linux computer needs
 
-The Linux package includes the Structured Text compiler and the scan engine. Deploy also needs a C compiler to link
-the program: install `gcc` (`sudo apt install gcc`, or `sudo dnf install gcc`). Without one, deploy says so. Check
-works without it.
+Nothing extra. The Linux package includes the Structured Text compiler, the scan engine and the linker that turns a
+program into the file the engine loads (LLVM's `ld.lld`, in `lib/app/plc/llvm`). Deploy needs no C compiler or other
+developer tools.
 
 ## What a Windows computer needs
 

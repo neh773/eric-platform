@@ -201,6 +201,34 @@ fun pinnedLldLink(): File {
     return exe
 }
 
+// The Linux bundle takes bin/lld from the same LLVM release and ships it as plc/llvm/ld.lld, so Linux PLC
+// deploy needs no gcc. It needs only libc, libm, libstdc++, libgcc_s and zlib, which every desktop Linux has.
+val llvmLinuxArchive = "LLVM-$llvmVersion-Linux-X64"
+val llvmLinuxUrl = "https://github.com/llvm/llvm-project/releases/download/llvmorg-$llvmVersion/$llvmLinuxArchive.tar.xz"
+val llvmLinuxSha256 = "bd4d1c434ff69ef06d19e7934c04708da677e5f2eb51f5bcf052ab91818f0094"
+val lldLinuxSha256 = "5c275e61d9b5e53475b1b82f8aa99490dc4345cd788f08b9cdab6be819094216"
+
+/** The pinned Linux lld, cut out of the LLVM release once per build directory, then stripped when `strip` exists. */
+fun pinnedLinuxLld(): File {
+    val raw = layout.buildDirectory.file("llvm/lld-linux-$llvmVersion").get().asFile
+    if (!raw.isFile || sha256(raw) != lldLinuxSha256) {
+        val archive = layout.buildDirectory.file("llvm/$llvmLinuxArchive.tar.xz").get().asFile
+        downloadPinned(llvmLinuxUrl, archive, llvmLinuxSha256)
+        extractFromTarXz(archive, "$llvmLinuxArchive/bin/lld", raw)
+        archive.delete()
+        if (sha256(raw) != lldLinuxSha256) throw GradleException("checksum mismatch for lld from $llvmLinuxUrl")
+    }
+    val stripped = layout.buildDirectory.file("llvm/ld.lld-$llvmVersion").get().asFile
+    if (!stripped.isFile) {
+        val strip = try {
+            ProcessBuilder("strip", "-o", stripped.absolutePath, raw.absolutePath).inheritIO().start().waitFor()
+        } catch (ex: java.io.IOException) { -1 }
+        if (strip != 0) raw.copyTo(stripped, true)
+    }
+    stripped.setExecutable(true, false)
+    return stripped
+}
+
 tasks.register("stageWindowsLinker") {
     group = "distribution"
     description = "Downloads the pinned LLVM release and keeps only lld-link.exe (runs on any OS)."
@@ -301,6 +329,7 @@ tasks.register("stageLinuxPlcBundle") {
         val unpack = ProcessBuilder("tar", "-xzf", tar.absolutePath, "-C", rusty.absolutePath).inheritIO().start()
         if (unpack.waitFor() != 0) throw GradleException("could not unpack the RuSTy standard library")
         tar.delete()
+        pinnedLinuxLld().copyTo(bundle.resolve("llvm/ld.lld"), true).setExecutable(true, false)
         rootProject.file("packaging/windows/third-party").copyRecursively(bundle.resolve("licenses"), true)
         rootProject.file("packaging/windows/SOURCE-OFFER.txt").copyTo(bundle.resolve("licenses/SOURCE-OFFER.txt"), true)
     }
@@ -322,7 +351,7 @@ fun stagePayload(dest: File, windowsExtras: Boolean) {
     else linuxPlcBundle.get().asFile.takeIf { it.isDirectory }?.let { plcDir ->
         plcDir.copyRecursively(dest.resolve("plc"), true)
         // copyRecursively drops the execute bit.
-        listOf("plc/eric-plc", "plc/rusty/plc").forEach { dest.resolve(it).setExecutable(true, false) }
+        listOf("plc/eric-plc", "plc/rusty/plc", "plc/llvm/ld.lld").forEach { dest.resolve(it).setExecutable(true, false) }
     }
     val docsOut = dest.resolve("docs")
     docsOut.mkdirs()

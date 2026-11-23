@@ -559,12 +559,18 @@ class PlcCompiler(
             run(listOf(plc.path, unit.absolutePath, "-i", "${include.path}/*.st", "-c", "--fpic", "-o", unitObj.toString()))
             objects += unitObj.toString()
         }
-        val linker = linuxLinker()
-            ?: throw IllegalArgumentException(
-                "Deploying a PLC program needs a C linker on this computer (cc, gcc or clang). " +
-                    "Install one, for example 'sudo apt install gcc' or 'sudo dnf install gcc', then deploy again.",
-            )
-        run(listOf(linker, "-shared", "-o", so.toString()) + objects + listOf("-L", lib.path, "-liec61131std", "-Wl,-rpath,\$ORIGIN"))
+        val lld = bundledLinuxLinker(plc)
+        if (lld != null) {
+            // The bundled LLVM linker needs no C toolchain: the program's libc and libm calls resolve
+            // against the scan engine process when it loads the library.
+            run(listOf(lld.path, "-shared", "-o", so.toString()) + objects + listOf("-L", lib.path, "-liec61131std", "-rpath", "\$ORIGIN"))
+        } else {
+            val linker = linuxLinker()
+                ?: throw IllegalArgumentException(
+                    "The PLC linker (plc/llvm/ld.lld) is missing from this ERIC install. Reinstall ERIC, then deploy again.",
+                )
+            run(listOf(linker, "-shared", "-o", so.toString()) + objects + listOf("-L", lib.path, "-liec61131std", "-Wl,-rpath,\$ORIGIN"))
+        }
         val stdlib = lib.resolve("libiec61131std.so")
         if (stdlib.exists()) java.nio.file.Files.copy(stdlib.toPath(), out.resolve("libiec61131std.so"), java.nio.file.StandardCopyOption.REPLACE_EXISTING)
         return so
@@ -619,7 +625,11 @@ internal fun processLibraryUnits(binary: java.io.File): List<java.io.File> {
     return st.listFiles { f -> f.isFile && f.name.endsWith(".st") }?.sortedBy { it.name }.orEmpty()
 }
 
-/** The first C compiler driver on PATH that can link a shared library. */
+/** `plc/llvm/ld.lld` shipped beside the bundled compiler (`plc/rusty/plc`). */
+internal fun bundledLinuxLinker(binary: java.io.File): java.io.File? =
+    binary.absoluteFile.parentFile?.parentFile?.resolve("llvm")?.resolve("ld.lld")?.takeIf { it.isFile && it.canExecute() }
+
+/** The first C compiler driver on PATH that can link a shared library (used only without the bundled linker). */
 internal fun linuxLinker(path: String? = System.getenv("PATH")): String? {
     val dirs = path.orEmpty().split(java.io.File.pathSeparator).filter { it.isNotBlank() }
     return listOf("cc", "gcc", "clang").firstOrNull { name -> dirs.any { java.io.File(it, name).canExecute() } }

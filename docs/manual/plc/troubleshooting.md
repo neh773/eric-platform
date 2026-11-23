@@ -8,10 +8,11 @@ The compiler rejected that line. The message names the token it did not expect. 
 
 The running program is unchanged. Read the problem list. Deploy again after the source checks clean. If the list is empty and deploy still fails, the engine did not accept the compiled file. Read the gateway log for `eric-plc`.
 
-## Deploy says it needs a C linker
+## Deploy says the PLC linker is missing
 
-On Linux, deploy links the compiled program with the system C compiler. Install `gcc` (`sudo apt install gcc`), then
-deploy again. Check program does not need it.
+ERIC links the compiled program with the LLVM linker it ships (`plc/llvm/ld.lld` on Linux, `plc\llvm\lld-link.exe` on
+Windows). If deploy says that file is missing, the install is incomplete: reinstall ERIC, then deploy again. Check
+program does not need it.
 
 ## A UDT member never changes
 

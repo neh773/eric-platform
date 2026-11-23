@@ -11,7 +11,7 @@
 # 3. eric-plc tests                              every feature through the admin page and Control Canvas forms,
 # 4. Web lint, typecheck, unit tests, e2e        plus restart, kill, backup restore and reinstall
 #
-# Needs JDK 21, Rust (cargo), Node 22 with corepack, Python 3, a C compiler (gcc), and network access for the pinned
+# Needs JDK 21, Rust (cargo), Node 22 with corepack, Python 3, and network access for the pinned
 # Structured Text compiler download. Ports: FRESH_PORT (8196) and ERIC_UI_PORT (8291) must be free.
 set -euo pipefail
 repo="$(cd "$(dirname "$0")/.." && pwd)"
