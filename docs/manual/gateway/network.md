@@ -6,7 +6,7 @@ These pages are in the Connections group, except Enterprise Admin, which is its 
 
 **Network** edits the web server and TLS.
 
-- HTTP bind address and port. The default listen port in a profile file is 8090. Installers often use 8088. A test gateway uses whatever port it was started with.
+- HTTP bind address and port. The default is 8090, for the Windows and Linux installers too (`http://localhost:8090/admin`). The container image listens on 8088. A test gateway uses whatever port it was started with.
 - HTTPS: tick **Serve HTTPS**, set the HTTPS port (default 8043), and choose **Save web server settings**. HTTPS
   starts at once with the gateway's own certificate; the page says "HTTPS is on now". Turning it off stops the
   HTTPS listener the same way. A change to the HTTP port, the bind address, the public address or the redirect
