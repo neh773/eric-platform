@@ -5,6 +5,12 @@ import java.security.MessageDigest
 import java.util.concurrent.TimeUnit
 import java.util.zip.ZipFile
 
+buildscript {
+    repositories { mavenCentral() }
+    // Pure-Java xz reader for the pinned LLVM release archive (the Windows PLC linker comes out of it).
+    dependencies { classpath("org.tukaani:xz:1.10") }
+}
+
 val productName = providers.gradleProperty("oip.productName").orElse("Open Industrial Platform")
 val gatewayUpgradeUuid = providers.gradleProperty("oip.gatewayUpgradeUuid")
 val designerUpgradeUuid = providers.gradleProperty("oip.designerUpgradeUuid")
@@ -127,6 +133,80 @@ fun downloadPinned(url: String, dest: File, sha: String) {
     if (sha256(dest) != sha) throw GradleException("checksum mismatch for $url")
 }
 
+// LLVM's linker (Apache-2.0 WITH LLVM-exception) links PLC programs on Windows, so deploy needs no Visual Studio.
+// Only bin/lld-link.exe is taken from the release archive; it uses no runtime beyond Windows system DLLs.
+val llvmVersion = "23.1.6"
+val llvmArchive = "clang+llvm-$llvmVersion-x86_64-pc-windows-msvc"
+val llvmUrl = "https://github.com/llvm/llvm-project/releases/download/llvmorg-$llvmVersion/clang%2Bllvm-$llvmVersion-x86_64-pc-windows-msvc.tar.xz"
+val llvmSha256 = "16af05919cf36958dfb4ddaa4fc4d9d4ff577f5daeb76bc112ea49cd8ced82b2"
+val lldLinkSha256 = "89f2d0a22ee690ded87a59c396ab38139dde7efe56a749e6b3ea21490af692ce"
+val lldLinkCache = layout.buildDirectory.file("llvm/lld-link-$llvmVersion.exe")
+
+/** Copies one regular file out of a `.tar.xz` without unpacking the rest. Stops reading once it is found. */
+fun extractFromTarXz(archive: File, entry: String, dest: File) {
+    org.tukaani.xz.XZInputStream(archive.inputStream().buffered(1 shl 20)).use { input ->
+        val header = ByteArray(512)
+        var longName: String? = null
+        while (true) {
+            if (input.readNBytes(header, 0, 512) < 512) break
+            if (header.all { it.toInt() == 0 }) break
+            fun field(from: Int, len: Int) = String(header, from, len, Charsets.UTF_8).substringBefore('\u0000')
+            val sizeField = field(124, 12).trim()
+            val size = if (sizeField.isEmpty()) 0L else sizeField.toLong(8)
+            val type = header[156].toInt().toChar()
+            val prefix = field(345, 155)
+            val name = longName ?: if (prefix.isNotEmpty()) "$prefix/${field(0, 100)}" else field(0, 100)
+            longName = null
+            val padded = (size + 511) / 512 * 512
+            when {
+                type == 'L' -> {
+                    longName = String(input.readNBytes(padded.toInt()), Charsets.UTF_8).substringBefore('\u0000')
+                    continue
+                }
+                type == 'x' -> {
+                    val pax = String(input.readNBytes(padded.toInt()), Charsets.UTF_8)
+                    longName = Regex("""\d+ path=([^\n]*)\n""").find(pax)?.groupValues?.get(1)
+                    continue
+                }
+                (type == '0' || type == '\u0000') && name == entry -> {
+                    dest.parentFile.mkdirs()
+                    dest.outputStream().use { out ->
+                        val buf = ByteArray(1 shl 16)
+                        var left = size
+                        while (left > 0) {
+                            val n = input.read(buf, 0, minOf(buf.size.toLong(), left).toInt())
+                            if (n < 0) throw GradleException("truncated $entry in $archive")
+                            out.write(buf, 0, n)
+                            left -= n
+                        }
+                    }
+                    return
+                }
+                else -> input.skipNBytes(padded)
+            }
+        }
+    }
+    throw GradleException("$entry is not in $archive")
+}
+
+/** The pinned lld-link.exe, downloaded and cut out of the LLVM release once per build directory. */
+fun pinnedLldLink(): File {
+    val exe = lldLinkCache.get().asFile
+    if (exe.isFile && sha256(exe) == lldLinkSha256) return exe
+    val archive = layout.buildDirectory.file("llvm/$llvmArchive.tar.xz").get().asFile
+    downloadPinned(llvmUrl, archive, llvmSha256)
+    extractFromTarXz(archive, "$llvmArchive/bin/lld-link.exe", exe)
+    archive.delete()
+    if (sha256(exe) != lldLinkSha256) throw GradleException("checksum mismatch for lld-link.exe from $llvmUrl")
+    return exe
+}
+
+tasks.register("stageWindowsLinker") {
+    group = "distribution"
+    description = "Downloads the pinned LLVM release and keeps only lld-link.exe (runs on any OS)."
+    doLast { println("lld-link.exe: ${pinnedLldLink()}") }
+}
+
 val gatewayStage = layout.buildDirectory.dir("gateway-stage")
 val plcBundle = layout.buildDirectory.dir("plc-bundle")
 
@@ -169,7 +249,8 @@ tasks.register("stagePlcBundle") {
         val base = "https://github.com/PLC-lang/rusty/releases/download/v1.0.8"
         downloadPinned("$base/plc.exe", rusty.resolve("plc.exe"), "26b8a0f8e4f6eb4c145692e84fca478bc6357997d9a5a56e64b1309a505d32f3")
         downloadPinned("$base/iec61131std.dll", rusty.resolve("iec61131std.dll"), "bc0c2b2d0f10438590ebe28c9a588aadf3758d95bf3917209a718e9a807d8b0f")
-        downloadPinned("$base/iec61131std.lib", rusty.resolve("iec61131std.lib"), "62bf3de6c98a4bc466e7204de61adf3bc6c257468835fc1f839908570978363b")
+        // Programs link against iec61131std.dll through an import library made at deploy time, so the
+        // 13 MB static iec61131std.lib is not shipped.
         val tar = rusty.resolve("stdlib.tar.gz")
         downloadPinned("$base/stdlib-1.0.8.tar.gz", tar, "f0bf72ed4df3ef5cab0d5887f8e06c5b0fd5f43ca1a10cd6ade249d0decb0c4e")
         val unpack = ProcessBuilder("tar", "-xzf", tar.absolutePath, "-C", rusty.absolutePath).inheritIO().start()
@@ -184,6 +265,7 @@ tasks.register("stagePlcBundle") {
             jdkBin.resolve(dll).copyTo(rusty.resolve(dll), true)
             jdkBin.resolve(dll).copyTo(bundle.resolve(dll), true)
         }
+        pinnedLldLink().copyTo(bundle.resolve("llvm/lld-link.exe"), true)
         rootProject.file("packaging/windows/third-party").copyRecursively(bundle.resolve("licenses"), true)
         rootProject.file("packaging/windows/SOURCE-OFFER.txt").copyTo(bundle.resolve("licenses/SOURCE-OFFER.txt"), true)
     }

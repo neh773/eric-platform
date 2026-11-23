@@ -31,13 +31,24 @@ class PlcCompilerIncludesTest {
         assertEquals("LevelLoop", libraryStem("LevelLoop.dll"))
     }
 
-    @Test fun dumpbinExportsSkipUndefinedSymbols() {
-        val dump = """
-            00E 00000000 UNDEF  notype ()    External     | TON
-            013 00000000 SECT1  notype ()    External     | SealIn
-            024 00000010 SECT3  notype       External     | SealIn_instance
-        """.trimIndent()
-        assertEquals(listOf("SealIn", "SealIn_instance"), exportedSymbols(dump))
+    @Test fun ctorMarkerObjectDefinesBothMarkers() {
+        assertEquals(listOf(CTORS_BEGIN, CTORS_END), Coff.definedExternals(Coff.ctorMarkers()))
+    }
+
+    @Test fun undefinedSymbolsReadAsAMissingLibraryFunction() {
+        val text = "lld-link: error: undefined symbol: FOO\n>>> referenced by main.obj\nwarning: something"
+        assertEquals("the program calls FOO, which this ERIC install's standard library does not provide", linkErrors(text))
+    }
+
+    @Test fun theBundledLinkerSitsInPlcLlvm() {
+        val binary = tmp.resolve("plc/rusty/plc.exe").toFile()
+        binary.parentFile.mkdirs()
+        binary.writeText("")
+        assertEquals(null, windowsLinker(binary, path = ""))
+        val lld = tmp.resolve("plc/llvm/lld-link.exe").toFile()
+        lld.parentFile.mkdirs()
+        lld.writeText("")
+        assertEquals(lld.absoluteFile, windowsLinker(binary, path = ""))
     }
 
     @Test fun aCompilerWithNoSiblingLibrariesAddsNothing() {

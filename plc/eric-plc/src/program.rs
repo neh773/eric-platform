@@ -78,6 +78,7 @@ impl Program {
         // without baking a run path into the shared library.
         let stdlib = preload_stdlib(so)?;
         let lib = open_library(so)?;
+        run_constructor_table(&lib);
         let entry_fn = load_fn(&lib, entry)?;
         let instance_ptr = if instance.is_empty() {
             std::ptr::null_mut()
@@ -316,6 +317,28 @@ fn open_global(sibling: &Path) -> Result<Option<Library>, String> {
     }
 }
 
+/// ERIC's Windows link step builds the program DLL with no C runtime entry point, so the loader does not
+/// run LLVM's constructor table (`.CRT$XCU`). The link step brackets that table with two exported zero
+/// slots; call every non-null entry between them, in order. Libraries without the markers are untouched.
+fn run_constructor_table(lib: &Library) {
+    let (Ok(begin), Ok(end)) = (load_data(lib, "__eric_ctors_begin"), load_data(lib, "__eric_ctors_end")) else {
+        return;
+    };
+    unsafe { call_table(begin as *const usize, end as *const usize) }
+}
+
+unsafe fn call_table(begin: *const usize, end: *const usize) {
+    let mut slot = begin;
+    while slot < end {
+        let fun = slot.read();
+        if fun != 0 {
+            let ctor: unsafe extern "C" fn() = std::mem::transmute(fun);
+            ctor();
+        }
+        slot = slot.add(1);
+    }
+}
+
 fn load_fn(lib: &Library, name: &str) -> Result<unsafe extern "C" fn(*mut u8), String> {
     let addr = load_data(lib, name)?;
     Ok(unsafe { std::mem::transmute(addr) })
@@ -370,5 +393,18 @@ mod tests {
         assert_eq!(mangle("%IW2").unwrap(), "__PI_2");
         assert_eq!(mangle("%QX1.0").unwrap(), "__PI_1_0");
         assert_eq!(mangle("%QW4").unwrap(), "__PI_4");
+    }
+
+    static CALLS: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
+    unsafe extern "C" fn bump() {
+        CALLS.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+    }
+
+    #[test]
+    fn constructor_table_calls_each_entry_and_skips_empty_slots() {
+        let table: [usize; 5] = [0, bump as usize, 0, bump as usize, 0];
+        let range = table.as_ptr_range();
+        unsafe { call_table(range.start, range.end) };
+        assert_eq!(CALLS.load(std::sync::atomic::Ordering::SeqCst), 2);
     }
 }
