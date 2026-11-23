@@ -43,8 +43,9 @@ class DocsUi(private val root: Path?) {
 
     companion object {
         fun locate(
-            env: Map<String, String> = System.getenv(),
+            env: Map<String, String> = LegacyEnv.current,
             property: String? = System.getProperty("oip.docs.dir"),
+            bundled: Path? = Bundled.dir("docs"),
         ): Path? {
             val raw = property?.takeIf { it.isNotBlank() } ?: env["OIP_DOCS_DIR"]?.takeIf { it.isNotBlank() }
             if (!raw.isNullOrBlank()) {
@@ -56,6 +57,7 @@ class DocsUi(private val root: Path?) {
                 val sibling = Path.of(admin).parent?.resolve("docs")?.toAbsolutePath()?.normalize()
                 if (sibling != null && sibling.isDirectory()) return sibling
             }
+            if (bundled != null && bundled.resolve("manual").isDirectory()) return bundled
             val local = Path.of("docs").toAbsolutePath().normalize()
             return if (local.resolve("manual").isDirectory()) local else null
         }

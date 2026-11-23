@@ -71,16 +71,18 @@ fun JavaExec.plan(vararg extra: String) {
     args(extra.toList())
 }
 
+val linuxStage = layout.buildDirectory.dir("gateway-stage-linux")
+
 tasks.register<JavaExec>("gatewayAppImage") {
     group = "distribution"
-    description = "jpackage app image of the gateway with a bundled jlink runtime."
-    dependsOn(":gateway:server:installDist")
+    description = "jpackage app image of the gateway with a bundled jlink runtime, the admin UI, Control Canvas and the manual."
+    dependsOn("stageLinuxGatewayPayload")
     val jar = serverLib.map { it.file("server-${project(":gateway:server").version}.jar") }
     plan(
         "gateway-image",
         "--product", productName.get(),
         "--version", version.toString(),
-        "--input", serverLib.get().asFile.absolutePath,
+        "--input", linuxStage.get().asFile.absolutePath,
         "--main-jar", jar.get().asFile.name,
         "--dest", imageDest.get().asFile.absolutePath,
         "--launcher-path-file", gatewayLauncherPath.get().asFile.absolutePath,
@@ -174,38 +176,47 @@ tasks.register("stagePlcBundle") {
     }
 }
 
+/** Jars, admin UI, Control Canvas and the manual into [dest]; the PLC bundle and uninstaller only on Windows. */
+fun stagePayload(dest: File, windowsExtras: Boolean) {
+    dest.deleteRecursively()
+    dest.mkdirs()
+    val lib = serverLib.get().asFile
+    lib.listFiles()?.forEach { file -> file.copyRecursively(dest.resolve(file.name), true) }
+    val admin = rootProject.file("web/admin/dist")
+    val web = rootProject.file("web/designer/dist")
+    if (!admin.isDirectory) throw GradleException("missing $admin — build the admin UI first")
+    if (!web.isDirectory) throw GradleException("missing $web — build Control Canvas first")
+    admin.copyRecursively(dest.resolve("admin"), true)
+    web.copyRecursively(dest.resolve("web"), true)
+    if (windowsExtras) plcBundle.get().asFile.copyRecursively(dest.resolve("plc"), true)
+    val docsOut = dest.resolve("docs")
+    docsOut.mkdirs()
+    listOf("manual", "install", "ops").forEach { name ->
+        val src = rootProject.file("docs/$name")
+        if (src.isDirectory) src.copyRecursively(docsOut.resolve(name), true)
+    }
+    val opsPage = rootProject.file("docs/ops.md")
+    if (opsPage.isFile) opsPage.copyTo(docsOut.resolve("ops.md"), true)
+    val guide = rootProject.file("docs-site/docs")
+    if (guide.isDirectory) guide.copyRecursively(docsOut.resolve("guide"), true)
+    if (windowsExtras) rootProject.file("packaging/windows/uninstall.ps1").copyTo(dest.resolve("uninstall.ps1"), true)
+    rootProject.file("LICENSE").copyTo(dest.resolve("LICENSE"), true)
+    rootProject.file("LICENSE-EXCEPTION.md").copyTo(dest.resolve("LICENSE-EXCEPTION.md"), true)
+    rootProject.file("THIRD_PARTY.md").copyTo(dest.resolve("THIRD_PARTY.md"), true)
+}
+
 tasks.register("stageGatewayPayload") {
     group = "distribution"
     description = "Jars plus the admin UI, Control Canvas, and the PLC bundle."
     dependsOn(":gateway:server:installDist", "stagePlcBundle")
-    doLast {
-        val dest = gatewayStage.get().asFile
-        dest.deleteRecursively()
-        dest.mkdirs()
-        val lib = serverLib.get().asFile
-        lib.listFiles()?.forEach { file -> file.copyRecursively(dest.resolve(file.name), true) }
-        val admin = rootProject.file("web/admin/dist")
-        val web = rootProject.file("web/designer/dist")
-        if (!admin.isDirectory) throw GradleException("missing $admin — build the admin UI first")
-        if (!web.isDirectory) throw GradleException("missing $web — build Control Canvas first")
-        admin.copyRecursively(dest.resolve("admin"), true)
-        web.copyRecursively(dest.resolve("web"), true)
-        plcBundle.get().asFile.copyRecursively(dest.resolve("plc"), true)
-        val docsOut = dest.resolve("docs")
-        docsOut.mkdirs()
-        listOf("manual", "install", "ops").forEach { name ->
-            val src = rootProject.file("docs/$name")
-            if (src.isDirectory) src.copyRecursively(docsOut.resolve(name), true)
-        }
-        val opsPage = rootProject.file("docs/ops.md")
-        if (opsPage.isFile) opsPage.copyTo(docsOut.resolve("ops.md"), true)
-        val guide = rootProject.file("docs-site/docs")
-        if (guide.isDirectory) guide.copyRecursively(docsOut.resolve("guide"), true)
-        rootProject.file("packaging/windows/uninstall.ps1").copyTo(dest.resolve("uninstall.ps1"), true)
-        rootProject.file("LICENSE").copyTo(dest.resolve("LICENSE"), true)
-        rootProject.file("LICENSE-EXCEPTION.md").copyTo(dest.resolve("LICENSE-EXCEPTION.md"), true)
-        rootProject.file("THIRD_PARTY.md").copyTo(dest.resolve("THIRD_PARTY.md"), true)
-    }
+    doLast { stagePayload(gatewayStage.get().asFile, windowsExtras = true) }
+}
+
+tasks.register("stageLinuxGatewayPayload") {
+    group = "distribution"
+    description = "Jars plus the admin UI, Control Canvas, and the manual, for the Linux app image."
+    dependsOn(":gateway:server:installDist")
+    doLast { stagePayload(linuxStage.get().asFile, windowsExtras = false) }
 }
 
 tasks.register<JavaExec>("gatewayExe") {

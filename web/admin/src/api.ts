@@ -412,6 +412,19 @@ export interface DbConnection {
   usedBy: DbConnectionUse[];
 }
 
+/** The editable fields of a database connection. [password] undefined keeps the stored one. */
+export interface DbConnectionFields {
+  driver: string;
+  url: string;
+  username: string;
+  description: string;
+  enabled: boolean;
+  defaultConnection: boolean;
+  allowBrowserWrites: boolean;
+  validationQuery?: string;
+  password?: string;
+}
+
 /** An uploaded JDBC driver JAR (DAT-016). */
 export interface JdbcDriverInfo {
   id: string;
@@ -591,6 +604,26 @@ export class ApiClient {
   }
 
   /** Enabled identity providers for the sign-in page. Needs no session. */
+  /** First-run status (0.1.1): true when the gateway has no users yet and this browser may create the first one. */
+  async setupStatus(): Promise<{ needsAdmin: boolean; fromThisMachine: boolean }> {
+    const res = await this.send("GET", "/api/v1/setup", undefined, "none");
+    if (!res.ok) return { needsAdmin: false, fromThisMachine: false };
+    const body = (await res.json()) as { needsAdmin?: unknown; fromThisMachine?: unknown };
+    return { needsAdmin: body.needsAdmin === true, fromThisMachine: body.fromThisMachine === true };
+  }
+
+  /** Creates the first administrator and signs in as it. Refused once any user exists. */
+  async createFirstAdmin(username: string, password: string): Promise<SessionState> {
+    const res = await this.send("POST", "/api/v1/setup/admin", { username, password }, "none");
+    if (!res.ok) throw new ApiError(await problemDetail(res), res.status);
+    const body = (await res.json()) as { username?: unknown; roles?: unknown; csrfToken?: unknown };
+    const csrf = typeof body.csrfToken === "string" ? body.csrfToken : "";
+    const name = typeof body.username === "string" ? body.username : "";
+    if (!csrf || !name) throw new ApiError("Setup response was incomplete", 500);
+    this.csrf = csrf;
+    return { username: name, roles: stringList(body.roles), permissions: [], csrfToken: csrf };
+  }
+
   async loginProviders(): Promise<LoginProvider[]> {
     const res = await this.send("GET", "/api/v1/auth/providers", undefined, "none");
     if (!res.ok) throw await problemError(res);
@@ -1268,6 +1301,25 @@ export class ApiClient {
     const res = await this.send("GET", "/api/v1/db/connections", undefined, "session");
     if (!res.ok) throw await problemError(res);
     return objectList(await res.json(), "items").map(parseDbConnection);
+  }
+
+  /**
+   * Creates (create = true) or updates a database connection. The password is sent only when the form has one:
+   * leaving it out keeps the stored password, an empty string clears it. The gateway never returns it.
+   */
+  async saveDbConnection(name: string, fields: DbConnectionFields, create: boolean): Promise<DbConnection> {
+    const body: Record<string, unknown> = { ...fields };
+    if (body.password === undefined) delete body.password;
+    const res = create
+      ? await this.send("POST", "/api/v1/db/connections", { name, ...body }, "session")
+      : await this.send("PUT", dbConnectionPath(name), { name, ...body }, "session");
+    if (!res.ok) throw await problemError(res);
+    return parseDbConnection(await res.json());
+  }
+
+  async deleteDbConnection(name: string): Promise<void> {
+    const res = await this.send("DELETE", dbConnectionPath(name), undefined, "session");
+    if (!res.ok) throw await problemError(res);
   }
 
   /** Runs the connection's validation query now and returns the new status. */

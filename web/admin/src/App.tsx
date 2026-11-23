@@ -145,6 +145,22 @@ export function Login({
   );
   const [pending, setPending] = useState(false);
   const [providers, setProviders] = useState<LoginProvider[]>([]);
+  const [setup, setSetup] = useState<{ needsAdmin: boolean; fromThisMachine: boolean } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    client
+      .setupStatus()
+      .then((next) => {
+        if (!cancelled) setSetup(next);
+      })
+      .catch(() => {
+        if (!cancelled) setSetup(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [client]);
 
   useEffect(() => {
     let cancelled = false;
@@ -174,6 +190,10 @@ export function Login({
       setPassword("");
       setPending(false);
     }
+  }
+
+  if (setup?.needsAdmin) {
+    return <FirstRun client={client} fromThisMachine={setup.fromThisMachine} onSignedIn={onSignedIn} />;
   }
 
   return (
@@ -216,6 +236,97 @@ export function Login({
             ))}
           </nav>
         ) : null}
+      </form>
+    </div>
+  );
+}
+
+/**
+ * First run (0.1.1): a gateway with no users asks for the administrator account here instead of showing a sign-in
+ * that nobody can pass. The gateway accepts it only from a browser on the gateway machine, and only once.
+ */
+export function FirstRun({
+  client,
+  fromThisMachine,
+  onSignedIn,
+}: {
+  client: ApiClient;
+  fromThisMachine: boolean;
+  onSignedIn: (session: SessionState) => void;
+}) {
+  const [username, setUsername] = useState("admin");
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+
+  async function submit(event: FormEvent) {
+    event.preventDefault();
+    if (password !== confirm) {
+      setError("The two passwords do not match.");
+      return;
+    }
+    setPending(true);
+    setError(null);
+    try {
+      await client.createFirstAdmin(username.trim(), password);
+      onSignedIn(await client.session());
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "The administrator was not created");
+    } finally {
+      setPassword("");
+      setConfirm("");
+      setPending(false);
+    }
+  }
+
+  return (
+    <div className="gate">
+      <Banners client={client} />
+      <form className="gate-card" onSubmit={submit} aria-label="Create the administrator">
+        <p className="mark">ERIC</p>
+        <ThemeSwitcher />
+        <h1>Create administrator account</h1>
+        <p className="lede">
+          This gateway has no users yet. Create the administrator account. You will be signed in as this user, and you can add
+          more users later under Users and roles.
+        </p>
+        {fromThisMachine ? null : (
+          <p role="alert">
+            Open this page in a browser on the gateway machine (http://127.0.0.1:8090/admin) to create the administrator, or set
+            ERIC_ADMIN_PASSWORD before the first start.
+          </p>
+        )}
+        <label>
+          Administrator username
+          <input name="username" autoComplete="username" value={username} onChange={(event) => setUsername(event.target.value)} required />
+        </label>
+        <label>
+          New password
+          <input
+            name="new-password"
+            type="password"
+            autoComplete="new-password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            required
+          />
+        </label>
+        <label>
+          Confirm password
+          <input
+            name="confirm-password"
+            type="password"
+            autoComplete="new-password"
+            value={confirm}
+            onChange={(event) => setConfirm(event.target.value)}
+            required
+          />
+        </label>
+        {error ? <p role="alert">{error}</p> : null}
+        <button type="submit" disabled={pending || !fromThisMachine}>
+          Create administrator
+        </button>
       </form>
     </div>
   );

@@ -52,6 +52,57 @@ class GatewayAuth(private val gw: Gateway) {
         app.post("/api/v1/auth/logout") { logout(it) }
         app.get("/api/v1/auth/session") { session(it) }
         app.get("/api/v1/audit") { audit(it) }
+        app.get(SETUP_PATH) { setupStatus(it) }
+        app.post(SETUP_ADMIN_PATH) { createFirstAdmin(it) }
+    }
+
+    /**
+     * First-run setup (0.1.1): a gateway with no users and no ERIC_ADMIN_PASSWORD shows a "Create the administrator"
+     * form at /admin instead of a sign-in that nobody can pass. Only a browser on this machine can use it: the
+     * request must come straight from a loopback address (no proxy header), as JSON, from this gateway's own origin.
+     * Once any user exists the route answers 409 for good.
+     */
+    private fun setupStatus(ctx: Context) {
+        val needs = security.users.list().isEmpty() && externalSource() == null
+        ctx.status(200).contentType("application/json").result(Json.write(mapOf("needsAdmin" to needs, "fromThisMachine" to firstRunAllowed(ctx))))
+    }
+
+    private fun firstRunAllowed(ctx: Context): Boolean {
+        val remote = runCatching { InetAddress.getByName(ctx.req().remoteAddr) }.getOrNull() ?: return false
+        if (!remote.isLoopbackAddress) return false
+        if (ctx.header("X-Forwarded-For") != null || ctx.header("Forwarded") != null) return false
+        val origin = ctx.header("Origin") ?: return true
+        val host = ctx.header("Host") ?: return false
+        return origin == "http://$host" || origin == "https://$host"
+    }
+
+    private fun createFirstAdmin(ctx: Context) {
+        if (!firstRunAllowed(ctx)) throw Problems.forbidden("the first administrator can only be created from a browser on the gateway machine")
+        val type = ctx.contentType()?.substringBefore(';')?.trim()?.lowercase()
+        if (type != "application/json") throw Problems.badRequest("send JSON")
+        val body = jsonObject(ctx)
+        val username = (body["username"] as? String)?.trim().takeUnless { it.isNullOrEmpty() } ?: "admin"
+        val password = body["password"] as? String ?: throw Problems.badRequest("password is required")
+        if (password.length > org.oip.security.PasswordRules.MAX_CODE_POINTS) throw Problems.badRequest("password is too long")
+        val chars = password.toCharArray()
+        synchronized(FIRST_RUN_LOCK) {
+            if (security.users.list().isNotEmpty() || externalSource() != null) {
+                throw ProblemException(409, "already-set-up", "Conflict", "this gateway already has users; sign in instead")
+            }
+            try {
+                security.users.create(
+                    org.oip.security.CreateUser(username, chars, setOf(org.oip.security.DefaultRoles.ADMINISTRATOR)),
+                    actor = "first-run",
+                    host = clientIp(ctx),
+                )
+            } catch (e: IllegalArgumentException) {
+                throw Problems.unprocessable(e.message ?: "the user was not created")
+            } finally {
+                chars.fill('\u0000')
+            }
+        }
+        finishLogin(ctx, username, setOf(org.oip.security.DefaultRoles.ADMINISTRATOR), connectionOf(ctx))
+        ctx.status(201)
     }
 
     private fun guard(ctx: Context) {
@@ -609,6 +660,9 @@ class GatewayAuth(private val gw: Gateway) {
     companion object {
         private const val CALLER = "oip.caller"
         /** Session user for a project with public HMI. Created on first use, not at install. */
+        const val SETUP_PATH = "/api/v1/setup"
+        const val SETUP_ADMIN_PATH = "/api/v1/setup/admin"
+        private val FIRST_RUN_LOCK = Any()
         const val PUBLIC_USER = "public-hmi"
         const val PUBLIC_ROLE = "public-hmi"
         private val HMI_PROJECT = Regex("^/api/v1/hmi/projects/([^/]+)(?:/.*)?$")
@@ -769,6 +823,9 @@ class GatewayAuth(private val gw: Gateway) {
                 else Access.Permission(Permissions.GATEWAY_WRITE)
             }
             if (path == "/api/v1/auth/login" && verb == "POST") return Access.Public
+            // First-run setup checks its own conditions (no users yet, loopback, same origin).
+            if (path == SETUP_PATH && (verb == "GET" || verb == "HEAD")) return Access.Public
+            if (path == SETUP_ADMIN_PATH && verb == "POST") return Access.Public
             // Identity-provider login (SEC-013): the provider list, the login start, the OIDC redirect back and the SAML
             // assertion consumer are reached before any session exists. Each checks its own state (IdpLogin).
             // Doc source: FEATURES SEC-013.

@@ -63,12 +63,13 @@ class AdminUi(private val root: Path?) {
 
     companion object {
         fun locate(
-            env: Map<String, String> = System.getenv(),
+            env: Map<String, String> = LegacyEnv.current,
             property: String? = System.getProperty("oip.admin.dist"),
+            bundled: Path? = Bundled.dir("admin"),
         ): Path? {
-            val raw = property?.takeIf { it.isNotBlank() } ?: env["OIP_ADMIN_DIST"]?.takeIf { it.isNotBlank() } ?: return null
+            val raw = property?.takeIf { it.isNotBlank() } ?: env["OIP_ADMIN_DIST"]?.takeIf { it.isNotBlank() } ?: return bundled
             val path = Path.of(raw).toAbsolutePath().normalize()
-            return if (path.isDirectory()) path else null
+            return if (path.isDirectory()) path else bundled
         }
 
         /** A file inside [root], or null when [relative] escapes the bundle. */

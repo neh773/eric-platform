@@ -1198,6 +1198,26 @@ object OpenApi {
                         "403" to problem("Disabled account or expired password"),
                         "429" to problem("Account locked, or too many login attempts from this address"),
                     ), public = true)),
+                "/api/v1/setup" to mapOf("get" to op(
+                    "summary" to "First-run status",
+                    "description" to "needsAdmin is true while the gateway has no users. fromThisMachine is true when this request may create the first administrator (straight from a loopback address, same origin, no proxy header).",
+                    "responses" to mapOf(
+                        "200" to json(mapOf("type" to "object", "properties" to mapOf(
+                            "needsAdmin" to mapOf("type" to "boolean"),
+                            "fromThisMachine" to mapOf("type" to "boolean"),
+                        )), "Status"),
+                    ), public = true)),
+                "/api/v1/setup/admin" to mapOf("post" to op(
+                    "summary" to "Create the first administrator",
+                    "description" to "Only while the gateway has no users, and only from a browser on the gateway machine. Creates the user with the Administrator role and signs in as it (same answer as login). The password must meet the password policy.",
+                    "requestBody" to mapOf("required" to true, "content" to mapOf("application/json" to mapOf("schema" to ref("LoginRequest")))),
+                    "responses" to mapOf(
+                        "201" to json(ref("LoginResult"), "Administrator created and signed in"),
+                        "400" to problem("Not JSON, or no password"),
+                        "403" to problem("Not from a browser on the gateway machine"),
+                        "409" to problem("The gateway already has users"),
+                        "422" to problem("The password does not meet the policy"),
+                    ), public = true)),
                 "/api/v1/auth/logout" to mapOf("post" to op(
                     "summary" to "End the browser session",
                     "parameters" to listOf(csrf),
