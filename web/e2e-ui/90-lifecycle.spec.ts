@@ -40,7 +40,7 @@ async function verifyEverything(page: Page, label: string) {
   await test.step(`${label}: tag alarm configuration`, async () => {
     await openTag(page, ALARM_TAG);
     await tagTab(page, "Alarms");
-    await expect(main(page).getByRole("group", { name: /Alarm HighLevel/ }).getByLabel("Setpoint")).toHaveValue("80");
+    await expect(main(page).getByRole("group", { name: /Alarm HighLevel/ }).getByLabel("Setpoint", { exact: true })).toHaveValue("80");
   });
   await test.step(`${label}: history setting`, async () => {
     await section(page, "Historian");

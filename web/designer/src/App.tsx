@@ -99,8 +99,7 @@ function Routes({ runtime, route }: { runtime: TagRuntime; route: string }) {
       <ProjectGate
         client={gateway}
         project={projectFromLocation(window.location.search)}
-        starter={sampleProject.views}
-        starterStyleClasses={sampleProject.styleClasses}
+        starter={NO_STARTER_VIEWS}
       >
         {(opened) => <Studio key={opened.project} runtime={runtime} opened={opened} />}
       </ProjectGate>
@@ -109,6 +108,12 @@ function Routes({ runtime, route }: { runtime: TagRuntime; route: string }) {
 }
 
 const browseGatewayTags = gatewayBrowse(gateway);
+
+/**
+ * A new gateway project opens empty, as the Blank template promises: no unsaved sample views to save by mistake.
+ * The sample project still opens when the Studio runs without a gateway.
+ */
+const NO_STARTER_VIEWS: ViewDocument[] = [];
 
 /** Tag sources for the tag browser and picker: the gateway (tried even when the Studio opened offline, so Retry works), the Studio's local tags, and live values through the tag runtime. */
 function useTagSources(runtime: TagRuntime): TagSources {

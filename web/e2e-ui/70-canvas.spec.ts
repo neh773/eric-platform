@@ -66,8 +66,8 @@ test.describe("Control Canvas", () => {
       await actions.getByRole("combobox", { name: "New onClick action type" }).selectOption({ label: "Popup" });
       await actions.getByRole("button", { name: "+ Add action" }).click();
       const action = actions.getByRole("listitem", { name: "onClick action 1: Popup" });
-      await action.getByRole("textbox", { name: "Popup view" }).fill("detail");
-      await action.getByRole("textbox", { name: "Popup view" }).press("Tab");
+      await action.getByLabel("Popup view").fill("detail");
+      await action.getByLabel("Popup view").press("Tab");
       await action.getByLabel("Popup title").fill("Wet well detail");
     }
     await studioSave(page);
@@ -84,8 +84,9 @@ test.describe("Control Canvas", () => {
     await expect(page.getByRole("dialog", { name: /Wet well detail/ })).toBeVisible();
   });
 
-  test("/hmi without a project lists the projects a user can open", async ({ page }) => {
+  test("/hmi without a project lists the projects, or opens the only one", async ({ page }) => {
     await page.goto("/hmi");
-    await expect(page.getByRole("link", { name: /Lift Station|liftstation/ })).toBeVisible();
+    // One project: /hmi opens it. Several: a list of links. Either way the user reaches the lift station.
+    await expect(page.getByRole("link", { name: /Lift Station|liftstation/ }).or(page.getByText("Wet well", { exact: true })).first()).toBeVisible();
   });
 });

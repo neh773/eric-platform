@@ -6,12 +6,8 @@ test("PLC: new ST program, check, compile and deploy, run", async ({ page }) => 
   await login(page);
   await openStudio(page);
   await page.getByRole("button", { name: "Logic", exact: true }).click();
+  await page.getByLabel("Program name").fill("lead_lag");
   await page.getByRole("button", { name: "New program" }).click();
-  const name = page.getByRole("textbox", { name: /Program name/i });
-  if (await name.count()) {
-    await name.fill("lead_lag");
-    await page.getByRole("button", { name: /^(Create|OK)$/ }).click();
-  }
   const editor = page.locator(".cm-content, textarea").first();
   await editor.click();
   await page.keyboard.press("ControlOrMeta+A");

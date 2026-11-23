@@ -35,6 +35,9 @@ fun opcUaConnectionSchema(): Map<String, Any?> = linkedMapOf(
         "applicationName" to mapOf("type" to "string", "minLength" to 1, "default" to "ERIC OPC UA Client"),
         "applicationUri" to mapOf("type" to "string", "minLength" to 1, "default" to "urn:oip:driver-opcua-client"),
         "trustAllServerCertificates" to mapOf("type" to "boolean", "default" to false),
+        // Username sign-in. The password is a secret:// reference to the gateway secret store.
+        "username" to mapOf("type" to "string"),
+        "password" to mapOf("type" to "string"),
         "pkiDir" to mapOf("type" to "string", "minLength" to 1),
         "connectHost" to mapOf("type" to "string"),
         "connectPort" to mapOf("type" to "integer", "minimum" to -1, "maximum" to 65535),
@@ -66,6 +69,9 @@ fun opcUaConnectionConfig(resourceName: String, spec: Map<String, Any?>): OpcUaC
         connectPort = spec.int("connectPort") ?: -1,
         pkiDir = pki,
         trustAllServerCertificates = spec.bool("trustAllServerCertificates") ?: false,
+        auth = spec.str("username")?.takeIf { it.isNotBlank() }
+            ?.let { OpcUaAuth.Username(it, spec.str("password") ?: "") }
+            ?: OpcUaAuth.Anonymous,
         commsLossQuality = when (spec.str("commsLossQuality") ?: "Bad_NotConnected") {
             "Bad_NotConnected" -> QualityCode.Bad_NotConnected
             "Uncertain_LastKnownValue" -> QualityCode.Uncertain_LastKnownValue

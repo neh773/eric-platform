@@ -1001,6 +1001,9 @@ class Gateway(
      * Sparkplug edge nodes get their tag feed here as well.
      */
     private fun wireDriverSecrets() {
+        (host.instance(org.oip.opcua.OpcUaClientModule.MODULE_ID) as? org.oip.opcua.OpcUaClientModule)?.secretSource = { reference ->
+            security.secrets.getText(SecretReferences.parse(reference))
+        }
         val mqtt = host.instance(MqttDriverModule.MODULE_ID) as? MqttDriverModule ?: return
         mqtt.secretSource = SecretSource { reference ->
             security.secrets.getText(SecretReferences.parse(reference))

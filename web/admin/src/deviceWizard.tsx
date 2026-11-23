@@ -99,6 +99,19 @@ export function DeviceWizard({ client, canWrite }: { client: ApiClient; canWrite
       const problem = deviceProblem(editing.name.trim(), draft, editing.version == null);
       if (problem) throw new Error(problem);
       const type = deviceType(draft.kind);
+      if (draft.kind === "mqtt" && editing.mode === "form") {
+        const name = editing.name.trim();
+        if (draft.username.trim()) {
+          spec.username = (await client.saveSecret(`mqtt-${name}-user`, draft.username.trim(), `Username for MQTT device ${name}`)).reference;
+        }
+        if (draft.newPassword) {
+          spec.password = (await client.saveSecret(`mqtt-${name}-password`, draft.newPassword, `Password for MQTT device ${name}`)).reference;
+        }
+      }
+      if (draft.kind === "opcua" && draft.newPassword && editing.mode === "form") {
+        const secret = await client.saveSecret(`opcua-${editing.name.trim()}`, draft.newPassword, `Password for OPC UA device ${editing.name.trim()}`);
+        spec.password = secret.reference;
+      }
       const saved = editing.version == null
         ? await client.createResource(type.module, "gateway", type.resourceKind, editing.name.trim(), spec)
         : await client.putResource(type.module, "gateway", type.resourceKind, editing.name, {
@@ -263,6 +276,16 @@ function DeviceFields({
               {["NONE", "SIGN", "SIGN_AND_ENCRYPT"].map((item) => <option key={item}>{item}</option>)}
             </select>
           </label>
+          <label>
+            Trust the server certificate
+            <input type="checkbox" aria-label="Trust the server certificate" checked={draft.trustServerCertificate} onChange={(event) => set("trustServerCertificate", event.target.checked)} />
+          </label>
+          <label>Username<input aria-label="Username" value={draft.username} onChange={(event) => set("username", event.target.value)} placeholder="Blank signs in anonymously" autoComplete="off" /></label>
+          <label>
+            Password
+            <input aria-label="Password" type="password" value={draft.newPassword} onChange={(event) => set("newPassword", event.target.value)} placeholder={draft.passwordRef ? "Saved. Type to replace it." : ""} autoComplete="new-password" />
+          </label>
+          <p className="hint">The password is kept in the gateway's encrypted secret store. A secure policy needs the server certificate trusted.</p>
         </>
       ) : null}
       {draft.kind === "simulator" ? (
@@ -286,6 +309,29 @@ function DeviceFields({
           <label>Ports<input aria-label="Ports" value={draft.ports} onChange={(event) => set("ports", event.target.value)} placeholder="9100" /></label>
         </>
       ) : null}
+      {draft.kind === "mqtt" ? (
+        <>
+          <label>
+            MQTT version
+            <select aria-label="MQTT version" value={draft.mqttProtocol} onChange={(event) => set("mqttProtocol", event.target.value)}>
+              <option value="MQTT_3_1_1">3.1.1</option>
+              <option value="MQTT_5">5</option>
+            </select>
+          </label>
+          <label>Client ID<input aria-label="Client ID" value={draft.clientId} onChange={(event) => set("clientId", event.target.value)} placeholder="Blank picks one" /></label>
+          <label>
+            Use TLS
+            <input type="checkbox" aria-label="Use TLS" checked={draft.tls} onChange={(event) => set("tls", event.target.checked)} />
+          </label>
+          <label>Sparkplug host ID<input aria-label="Sparkplug host ID" value={draft.sparkplugHostId} onChange={(event) => set("sparkplugHostId", event.target.value)} placeholder="Blank: not a Sparkplug primary host" /></label>
+          <label>Username<input aria-label="Username" value={draft.username} onChange={(event) => set("username", event.target.value)} placeholder={draft.usernameRef ? "Saved. Type to replace it." : "Blank: no sign-in"} autoComplete="off" /></label>
+          <label>
+            Password
+            <input aria-label="Password" type="password" value={draft.newPassword} onChange={(event) => set("newPassword", event.target.value)} placeholder={draft.passwordRef ? "Saved. Type to replace it." : ""} autoComplete="new-password" />
+          </label>
+          <p className="hint">The username and password are kept in the gateway's encrypted secret store.</p>
+        </>
+      ) : null}
       {draft.kind === "bacnet-local" ? (
         <>
           <label>Device name<input aria-label="BACnet device name" value={draft.deviceName} onChange={(event) => set("deviceName", event.target.value)} /></label>
@@ -298,7 +344,7 @@ function DeviceFields({
           <label>Device instance<input aria-label="Device instance" inputMode="numeric" value={draft.deviceInstance} onChange={(event) => set("deviceInstance", event.target.value)} /></label>
         </>
       ) : null}
-      {draft.kind === "modbus" || draft.kind === "logix" || draft.kind === "s7" || draft.kind === "dnp3" || draft.kind === "bacnet-remote" ? (
+      {draft.kind === "modbus" || draft.kind === "logix" || draft.kind === "s7" || draft.kind === "dnp3" || draft.kind === "bacnet-remote" || draft.kind === "mqtt" ? (
         <label>Host<input aria-label="Host" value={draft.host} onChange={(event) => set("host", event.target.value)} placeholder="10.1.1.20" /></label>
       ) : null}
       {draft.kind !== "simulator" && draft.kind !== "opcua" && draft.kind !== "udp" ? (

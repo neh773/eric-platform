@@ -87,7 +87,11 @@ import java.util.logging.Logger
  * attribute) is not retried; its watcher gets that status as the tag quality.
  * Status codes: https://reference.opcfoundation.org/Core/Part6/v105/docs/A.2
  */
-class OpcUaConnection(val config: OpcUaConnectionConfig) : TagSource, AutoCloseable {
+class OpcUaConnection(
+    val config: OpcUaConnectionConfig,
+    /** Turns a `secret://` password into its text at connect time. Plain text passes through. */
+    private val secrets: (String) -> String = { it },
+) : TagSource, AutoCloseable {
     private val log = Logger.getLogger("org.oip.opcua.${config.name}")
     private val cache = ConcurrentHashMap<String, QualifiedValue>()
     /** Last good sample per node. A comms-loss cache entry must not hide it from keep-alives. */
@@ -1085,7 +1089,7 @@ class OpcUaConnection(val config: OpcUaConnectionConfig) : TagSource, AutoClosea
         }
         val identity = when (val auth = config.auth) {
             OpcUaAuth.Anonymous -> AnonymousProvider()
-            is OpcUaAuth.Username -> UsernameProvider(auth.username, auth.password)
+            is OpcUaAuth.Username -> UsernameProvider(auth.username, secrets(auth.password))
             is OpcUaAuth.Certificate -> X509IdentityProvider(auth.certificate, auth.privateKey)
         }
         val validator = certificateValidator()

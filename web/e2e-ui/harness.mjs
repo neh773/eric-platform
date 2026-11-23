@@ -75,7 +75,7 @@ function alive(pid) {
  */
 export function newDataDir() {
   const dir = mkdtempSync(path.join(process.env.ERIC_UI_TMP ?? tmpdir(), "eric-ui-"));
-  writeFileSync(path.join(dir, "gateway.yaml"), "opcua:\n  port: 0\ngatewayNetwork:\n  port: 0\nhttp:\n  loginRatePerMinute: 600\n");
+  writeFileSync(path.join(dir, "gateway.yaml"), `opcua:\n  port: ${process.env.ERIC_UI_OPCUA_PORT ?? "48411"}\n  bindAddress: 127.0.0.1\ngatewayNetwork:\n  port: 0\nhttp:\n  loginRatePerMinute: 600\n`);
   return dir;
 }
 
@@ -92,8 +92,11 @@ export async function start(dataDir = readState()?.dataDir ?? newDataDir(), laun
     env: {
       ...process.env,
       ...env,
-      // First administrator for a fresh data dir until first-run setup is driven through the UI (see ui-audit.md).
-      ...(process.env.ERIC_UI_FIRST_RUN === "ui" ? {} : { ERIC_ADMIN_PASSWORD: ADMIN_PASSWORD }),
+      // The first administrator is created in the first-run form (ui.ts login). ERIC_UI_FIRST_RUN=env seeds it instead.
+      // 0.1.0-beta (upgrade tests) has no first-run form, so its first administrator can only come from the environment.
+      ...(process.env.ERIC_UI_FIRST_RUN === "env" || (launcherOverride && launcherOverride === process.env.ERIC_UI_UPGRADE_FROM)
+        ? { ERIC_ADMIN_PASSWORD: ADMIN_PASSWORD }
+        : {}),
       OIP_HTTP_HOST: "127.0.0.1",
     },
   });

@@ -16,6 +16,17 @@ export const BACKUP_PASSPHRASE = "audit-backup-phrase-1";
 
 export async function login(page: Page, username = "admin", password: string = ADMIN_PASSWORD) {
   await page.goto("/admin/login");
+  // Fresh install: the first visit asks for the administrator account instead of a sign-in.
+  const firstRun = page.getByRole("form", { name: "Create the administrator" });
+  await expect(firstRun.or(page.getByRole("button", { name: "Sign in", exact: true }))).toBeVisible();
+  if (await firstRun.count()) {
+    await firstRun.getByLabel("Administrator username").fill(username);
+    await firstRun.getByLabel("New password").fill(password);
+    await firstRun.getByLabel("Confirm password").fill(password);
+    await firstRun.getByRole("button", { name: "Create administrator" }).click();
+    await expect(page.getByRole("navigation", { name: "Gateway sections" })).toBeVisible();
+    return;
+  }
   await page.getByLabel("Username").fill(username);
   await page.getByLabel("Password").fill(password);
   await page.getByRole("button", { name: "Sign in" }).click();

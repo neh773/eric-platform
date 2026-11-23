@@ -74,7 +74,7 @@ export function HomePage({ section, client, session, onVisit }: AdminPageProps) 
         </section>
       ) : null}
 
-      {data && !showSetup ? (
+      {data ? (
         <section aria-label="Launch" data-testid="launch">
           <h2>Launch</h2>
           {data.links.length === 0 ? <p>Your roles do not include a client you can launch from here.</p> : null}

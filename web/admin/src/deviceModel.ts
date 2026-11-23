@@ -13,7 +13,8 @@ export type DeviceKind =
   | "bacnet-remote"
   | "dnp3"
   | "simulator"
-  | "udp";
+  | "udp"
+  | "mqtt";
 
 export interface DeviceTypeInfo {
   kind: DeviceKind;
@@ -33,6 +34,7 @@ export const DEVICE_TYPES: DeviceTypeInfo[] = [
   { kind: "bacnet-remote", label: "BACnet remote device", module: "org.oip.driver-bacnet", resourceKind: "RemoteDevice", hint: "A BACnet/IP device reached through a local device." },
   { kind: "dnp3", label: "DNP3 outstation", module: "org.oip.driver-dnp3", resourceKind: "Outstation", hint: "A DNP3 outstation this gateway polls as master." },
   { kind: "simulator", label: "Simulator", module: "org.oip.driver-simulator", resourceKind: "Device", hint: "A programmed device for testing, with no hardware." },
+  { kind: "mqtt", label: "MQTT broker", module: "org.oip.driver-mqtt", resourceKind: "Connection", hint: "An MQTT broker. Sparkplug B devices on it become tags." },
   { kind: "udp", label: "UDP/TCP listener", module: "org.oip.driver-udp-tcp", resourceKind: "Device", hint: "A scanner, scale, or other device that sends delimited text." },
 ];
 
@@ -53,6 +55,20 @@ export interface DeviceDraft {
   endpointUrl: string;
   securityPolicy: string;
   securityMode: string;
+  /** OPC UA sign-in user. Blank signs in anonymously. */
+  username: string;
+  /** Stored secret:// reference for the OPC UA password. */
+  passwordRef: string;
+  /** A new OPC UA password typed in the form. It is saved to the secret store, never to the device. */
+  newPassword: string;
+  trustServerCertificate: boolean;
+  /** MQTT protocol version, client id, TLS, Sparkplug host id. */
+  mqttProtocol: string;
+  clientId: string;
+  tls: boolean;
+  sparkplugHostId: string;
+  /** Stored secret:// reference for the MQTT username. */
+  usernameRef: string;
   deviceInstance: string;
   deviceName: string;
   localDevice: string;
@@ -67,7 +83,7 @@ export interface DeviceDraft {
 
 const OWNED = new Set([
   "enabled", "host", "port", "mode", "unitId", "wordOrder", "byteOrder", "slot", "connectionPath", "profile",
-  "model", "rack", "endpointUrl", "securityPolicy", "securityMode", "deviceInstance", "deviceName", "localDevice",
+  "model", "rack", "endpointUrl", "securityPolicy", "securityMode", "username", "password", "trustAllServerCertificates", "clientId", "tls", "sparkplugHostId", "deviceInstance", "deviceName", "localDevice",
   "ports", "protocol", "address", "program", "masterAddress", "outstationAddress", "name",
 ]);
 
@@ -95,6 +111,15 @@ export function emptyDevice(kind: DeviceKind = "modbus"): DeviceDraft {
     endpointUrl: "opc.tcp://",
     securityPolicy: "NONE",
     securityMode: "NONE",
+    username: "",
+    passwordRef: "",
+    newPassword: "",
+    trustServerCertificate: false,
+    mqttProtocol: "MQTT_3_1_1",
+    clientId: "",
+    tls: false,
+    sparkplugHostId: "",
+    usernameRef: "",
     deviceInstance: "1",
     deviceName: "",
     localDevice: "",
@@ -129,6 +154,15 @@ export function draftFromSpec(kind: DeviceKind, spec: Record<string, unknown>): 
     endpointUrl: text(spec.endpointUrl) || base.endpointUrl,
     securityPolicy: text(spec.securityPolicy) || base.securityPolicy,
     securityMode: text(spec.securityMode) || base.securityMode,
+    username: text(spec.username),
+    passwordRef: text(spec.password),
+    trustServerCertificate: spec.trustAllServerCertificates === true,
+    mqttProtocol: kind === "mqtt" ? text(spec.protocol) || base.mqttProtocol : base.mqttProtocol,
+    clientId: text(spec.clientId),
+    tls: spec.tls === true,
+    sparkplugHostId: text(spec.sparkplugHostId),
+    usernameRef: kind === "mqtt" ? text(spec.username) : "",
+    ...(kind === "mqtt" ? { username: "" } : {}),
     deviceInstance: spec.deviceInstance === undefined ? base.deviceInstance : String(spec.deviceInstance),
     deviceName: text(spec.deviceName),
     localDevice: text(spec.localDevice),
@@ -179,7 +213,12 @@ export function specFromDraft(draft: DeviceDraft): Record<string, unknown> {
         endpointUrl: draft.endpointUrl.trim(),
         securityPolicy: draft.securityPolicy,
         securityMode: draft.securityMode,
+        trustAllServerCertificates: draft.trustServerCertificate,
       });
+      if (draft.username.trim()) {
+        spec.username = draft.username.trim();
+        if (draft.passwordRef) spec.password = draft.passwordRef;
+      }
       break;
     case "bacnet-local":
       Object.assign(spec, {
@@ -207,6 +246,18 @@ export function specFromDraft(draft: DeviceDraft): Record<string, unknown> {
     case "simulator":
       spec.program = draft.program;
       break;
+    case "mqtt":
+      Object.assign(spec, {
+        host: draft.host.trim(),
+        port: port ?? (draft.tls ? 8883 : 1883),
+        protocol: draft.mqttProtocol,
+        tls: draft.tls,
+      });
+      if (draft.clientId.trim()) spec.clientId = draft.clientId.trim();
+      if (draft.sparkplugHostId.trim()) spec.sparkplugHostId = draft.sparkplugHostId.trim();
+      if (draft.usernameRef) spec.username = draft.usernameRef;
+      if (draft.passwordRef) spec.password = draft.passwordRef;
+      break;
     case "udp":
       Object.assign(spec, {
         protocol: draft.protocol,
@@ -224,6 +275,12 @@ export function deviceProblem(name: string, draft: DeviceDraft, creating: boolea
   if (creating && !/^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$/.test(name)) {
     return "Use a short lowercase name: letters, digits, and hyphens.";
   }
+  if (draft.kind === "opcua" && (draft.securityPolicy === "NONE") !== (draft.securityMode === "NONE")) {
+    return "Choose NONE for both the security policy and the security mode, or neither.";
+  }
+  if (draft.kind === "opcua" && draft.newPassword && !draft.username.trim()) {
+    return "Enter the username that goes with the password.";
+  }
   if (draft.kind === "opcua" && !/^opc\.tcp:\/\/.+/.test(draft.endpointUrl.trim())) {
     return "The endpoint must start with opc.tcp:// and name a host.";
   }
@@ -231,6 +288,9 @@ export function deviceProblem(name: string, draft: DeviceDraft, creating: boolea
   if (draft.kind === "bacnet-remote" && !draft.localDevice.trim()) return "Name the local BACnet device this remote device uses.";
   if (draft.kind === "udp" && specFromDraft(draft).ports && (specFromDraft(draft).ports as number[]).length === 0) {
     return "A listener needs at least one port.";
+  }
+  if (draft.kind === "mqtt" && draft.newPassword && !draft.username.trim() && !draft.usernameRef) {
+    return "Enter the username that goes with the password.";
   }
   if (needsHost(draft.kind) && !draft.host.trim()) return "A host name or address is required.";
   return null;
@@ -241,7 +301,7 @@ export function kindFor(moduleName: string, resourceKind: string): DeviceKind | 
 }
 
 function needsHost(kind: DeviceKind): boolean {
-  return kind === "modbus" || kind === "logix" || kind === "s7" || kind === "dnp3" || kind === "bacnet-remote";
+  return kind === "modbus" || kind === "logix" || kind === "s7" || kind === "dnp3" || kind === "bacnet-remote" || kind === "mqtt";
 }
 
 function defaultPort(kind: DeviceKind): string {
@@ -250,6 +310,7 @@ function defaultPort(kind: DeviceKind): string {
     case "logix": return "44818";
     case "s7": return "102";
     case "dnp3": return "20000";
+    case "mqtt": return "1883";
     case "bacnet-local":
     case "bacnet-remote": return "47808";
     default: return "";
