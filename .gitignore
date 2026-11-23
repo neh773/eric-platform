@@ -16,3 +16,10 @@ plc/eric-plc/.cache/
 plc/eric-plc/target/
 plc/eric-plc/examples/sealin/build/
 plc/eric-plc/build/
+
+# Public manual site: generated from docs/manual, and the PDF copied in at publish time.
+docs-site/manual-generated/
+docs-site/static/downloads/
+docs-site/build/
+docs-site/.docusaurus/
+docs-site/node_modules/

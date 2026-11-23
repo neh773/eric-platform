@@ -2,12 +2,15 @@
 
 This document describes how **ERIC** (Engineered Runtime Interface & Control) is steered, released, and funded. The longer system design for agents, payments, and support is in [docs/governance/ARCHITECTURE.md](docs/governance/ARCHITECTURE.md). Goals and non-goals are in [GOALS.md](GOALS.md). How to contribute is in [CONTRIBUTING.md](CONTRIBUTING.md).
 
+ERIC is a hobby project. Nick Hepburn maintains it in his spare time, with no guaranteed support, review time, or release dates. The cadences and funding plans below are targets, not promises. ERIC is beta software for testing with hardware under safe conditions only.
+
 Nothing in this file is legal advice. Payment and tax rules will also appear in the terms published with Open Collective and any paid checkout, and those terms control if there is a conflict.
 
 ## Human final say
 
 ERIC uses agents heavily: they review pull requests, estimate work, implement funded features, and help paying operators with logs. They do not own the project.
 
+- Only Nick Hepburn merges to `main`; the branch is protected so nobody else can.
 - A human maintainer clicks merge. Agents may label a pull request ready and may make small integration fixes; they may not merge.
 - Safety-critical changes always need human approval, even when CI is green and the review agent is satisfied. That includes drivers that write to controllers, security, secrets, identity, authentication, authorization, and anything that signs or publishes a release.
 - Agents never hold merge rights or release-signing keys by themselves. Those credentials stay with human maintainers, or with a protected automation path that still requires a human approval gate.

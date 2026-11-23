@@ -14,12 +14,18 @@ How payment works is in [Funding and support](funding.md). The payment page is n
 
 ## Build it for the shared version
 
-1. Read CONTRIBUTING.md and sign the contributor agreement (CLA.md).
-2. Branch from the current line of development.
-3. Open a pull request. Describe the behaviour and how you tested it.
-4. Review checks safety (device writes, secrets, scope). Nick Hepburn decides whether it merges. Review does not merge by itself.
+ERIC is a hobby project with no guaranteed support or timelines, so the fastest way to get a feature is often to build it. The full steps are in [CONTRIBUTING.md](../../CONTRIBUTING.md). In short:
+
+1. **Pick an item.** Choose a row on [Future features](wishlist.md) or an issue labeled `good first issue`. Comment on the issue to claim it, or open a Feature request issue if there is none.
+2. **Fork and branch.** Fork `neh773/eric-platform` on GitHub and create a branch named `feature/<issue-number>-short-name`.
+3. **Build it.** Add tests, and a page in this manual if a user will see the change.
+4. **Run the local check.** `scripts/check.sh` (Linux, macOS, WSL) or `pwsh scripts/check.ps1` (Windows) runs the same build, lint, and tests CI runs, then prints a summary.
+5. **Open a pull request against `main`.** Fill in the template: link the issue, paste the check summary, add screenshots for anything on screen, and tick the CLA box.
+6. **Review.** Nick Hepburn reviews and decides whether it merges. Only he merges. Changes that write to devices or touch security get extra care.
 
 A merged change is written up in the manual.
+
+ERIC is beta software. Test your change only with hardware on a bench, under safe conditions. See [Safety](safety.md).
 
 ## Keep your own branch
 

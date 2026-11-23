@@ -4,7 +4,7 @@ Health and performance numbers are on Overview, Diagnostics, Metrics Dashboards 
 
 ## Overview
 
-**Overview** (Platform group) shows health, version, profile, installed modules, uptime, the deployment mode and a live performance block: CPU, heap, data disk free and clock drift. **Deployment** shows the active deployment mode and has a **Deployment mode** box with **Switch mode** and **Clear mode**. A mode applies per-environment overrides, for example a different database URL in dev, test and prod: see [docs/ops/deployment-modes.md](../ops/deployment-modes.md). A warning appears at the top when a threshold is crossed, for example a nearly full data disk.
+**Overview** (Platform group) shows health, version, profile, installed modules, uptime, the deployment mode and a live performance block: CPU, heap, data disk free and clock drift. **Deployment** shows the active deployment mode and has a **Deployment mode** box with **Switch mode** and **Clear mode**. A mode applies per-environment overrides, for example a different database URL in dev, test and prod: see [docs/ops/deployment-modes.md](../../ops/deployment-modes.md). A warning appears at the top when a threshold is crossed, for example a nearly full data disk.
 
 ![Overview](../img/admin-overview.png)
 
@@ -34,4 +34,4 @@ The **Scripts** tab lists the running scripts with their type, whether they are 
 
 ## Log files on disk
 
-The gateway also writes plain-text rolling log files to `<dataDir>/logs/` (`gateway.log` and older `gateway.log.1`, `.2`, and so on), next to the structured `gateway.jsonl`. Size and count are set under `logging:` in `gateway.yaml` (`files`, `maxFileKb`, `maxFiles`); changes apply at the next start. See [docs/ops.md](../ops.md#log-files).
+The gateway also writes plain-text rolling log files to `<dataDir>/logs/` (`gateway.log` and older `gateway.log.1`, `.2`, and so on), next to the structured `gateway.jsonl`. Size and count are set under `logging:` in `gateway.yaml` (`files`, `maxFileKb`, `maxFiles`); changes apply at the next start. See [docs/ops.md](../../ops.md#log-files).

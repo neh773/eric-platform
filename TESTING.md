@@ -49,6 +49,10 @@ Open an issue with the template that matches:
 - The pipe router makes one or two right-angle bends. A route you do not like can be nudged with a waypoint.
 - RuSTy is LGPL and runs as its own program. It is not part of the AGPL grant.
 
+## Contributing a fix or feature
+
+If you want to change the code, follow [CONTRIBUTING.md](CONTRIBUTING.md). Before a pull request, run `scripts/check.sh` (or `pwsh scripts/check.ps1` on Windows). It runs the same build, lint, and tests CI runs, and prints a summary to paste into the pull request.
+
 ## Logs
 
 The Windows service writes under `C:\ProgramData\ERIC\gateway`. Remove passwords and plant addresses before you attach a log to an issue.
