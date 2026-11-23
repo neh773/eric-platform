@@ -228,6 +228,11 @@ test.describe("every admin page", () => {
     await expect(main(page).getByText(/saved|restart/i).first()).toBeVisible();
     const res = await page.request.get(`https://127.0.0.1:${process.env.ERIC_UI_HTTPS_PORT ?? "8293"}/admin/`, { ignoreHTTPSErrors: true }).catch((e) => e);
     expect(res && typeof res.status === "function" ? res.status() : String(res)).toBe(200);
+    // The page shows the live state, not the state from before Save.
+    const port = process.env.ERIC_UI_HTTPS_PORT ?? "8293";
+    await expect(page.getByTestId("https-status")).toContainText("HTTPS is on");
+    await expect(page.getByTestId("https-details")).toContainText(port);
+    await expect(page.getByTestId("settings-restart")).toHaveCount(0);
     // Back to plain HTTP for the rest of the suite.
     await main(page).getByLabel("Serve HTTPS").uncheck();
     await main(page).getByRole("button", { name: "Save web server settings" }).click();
