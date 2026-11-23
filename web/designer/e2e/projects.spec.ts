@@ -31,8 +31,9 @@ test("creates a project, saves a view, saves a copy, and a session sees the chan
   await expect(dialog.getByLabel("Parent project").locator(`option[value="${parent}"]`)).toHaveCount(1);
   await dialog.getByLabel("Parent project").selectOption(parent);
   await dialog.getByRole("button", { name: "Create project" }).click();
-  await page.getByRole("alertdialog", { name: "Unsaved changes" }).getByRole("button", { name: "Open anyway" }).click();
+  // A blank project has nothing unsaved, so the new project opens without the unsaved-changes prompt.
   await expect(page).toHaveURL(new RegExp(`[?&]project=${child}`));
+  await expect(page.getByRole("alertdialog", { name: "Unsaved changes" })).toHaveCount(0);
   await expect(page.locator(".oip-project-name")).toHaveText(child);
 
   const storedParent = await page.request.get(`/api/v1/projects/${child}`);
