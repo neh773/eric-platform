@@ -63,6 +63,9 @@ class HttpsEndpoint(
     @Volatile private var material: TlsMaterial? = null
     @Volatile private var source: String = "stored"
     private var ssl: SslContextFactory.Server? = null
+    /** The listener's factory while [releaseFiles] has it stopped for a restore; [reloadStored] starts it again. */
+    private var released: SslContextFactory.Server? = null
+    private var wasWatching = false
     private var tls: ServerConnector? = null
     private var watcher: java.util.concurrent.ScheduledExecutorService? = null
     private var pending: Map<String, Long>? = null
@@ -271,6 +274,14 @@ class HttpsEndpoint(
      */
     fun reloadStored() {
         synchronized(lock) {
+            // A restore stopped the listener's factory to free `https/` (Windows). Start that same factory again,
+            // so the running HTTPS connector keeps answering without a gateway restart.
+            released?.let { factory ->
+                released = null
+                ssl = factory
+                runCatching { factory.start() }
+                if (wasWatching) runCatching { watchIncoming() }
+            }
             policy = readPolicy()
             val loaded = if (certFile.exists() && keyFile.exists()) readActive() else null
             if (loaded != null) {
@@ -335,11 +346,15 @@ class HttpsEndpoint(
 
     /** Stop the drop watcher and the TLS factory so Windows can rename or delete `https/`. */
     fun releaseFiles() {
+        wasWatching = watcher != null
         watcher?.shutdownNow()
         watcher = null
         val factory = ssl
         ssl = null
-        if (factory != null) runCatching { factory.stop() }
+        if (factory != null) {
+            released = factory
+            runCatching { factory.stop() }
+        }
     }
 
     private fun resolveForListener(): Pair<TlsMaterial, String> {

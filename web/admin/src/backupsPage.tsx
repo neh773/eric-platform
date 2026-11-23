@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { allows, errorMessage } from "./access";
 import { MIN_BACKUP_PASSPHRASE, type BackupItem } from "./api";
 import type { AdminPageProps } from "./pages";
+import { RESTORED_KEY } from "./restoredNotice";
 
 /**
  * List, create, download, and restore gateway backups.
@@ -24,6 +25,9 @@ export function BackupsPage({ section, client, session }: AdminPageProps) {
   const tooShort = [...passphrase].length < MIN_BACKUP_PASSPHRASE;
   const mismatch = passphraseAgain !== passphrase;
   const [reloadToken, setReloadToken] = useState(0);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadPassphrase, setUploadPassphrase] = useState("");
+  const [uploadKey, setUploadKey] = useState(0);
 
   useEffect(() => {
     if (!client) return;
@@ -86,6 +90,32 @@ export function BackupsPage({ section, client, session }: AdminPageProps) {
     } catch (err) {
       setError(errorMessage(err, "Could not restore the backup"));
     } finally {
+      setPending(false);
+    }
+  }
+
+  async function restoreUpload() {
+    if (!client || pending || !uploadFile) return;
+    if (!window.confirm(`Restore ${uploadFile.name}? This replaces the running gateway configuration, users and secrets with the ones in the file.`)) return;
+    setPending(true);
+    setError(null);
+    setNotice(null);
+    try {
+      await client.restoreUploadedBackup(await uploadFile.arrayBuffer(), uploadPassphrase || undefined);
+      // The restored users replace this session, so the app usually moves to sign-in next; it shows this there.
+      try {
+        window.sessionStorage.setItem(RESTORED_KEY, uploadFile.name);
+      } catch {
+        // storage off: the notice below is enough
+      }
+      setNotice(`Restored ${uploadFile.name}. Users now come from the backup: sign in again with an account from it if this page stops responding.`);
+      setUploadFile(null);
+      setUploadKey((key) => key + 1);
+      setReloadToken((token) => token + 1);
+    } catch (err) {
+      setError(errorMessage(err, "Could not restore the backup file"));
+    } finally {
+      setUploadPassphrase("");
       setPending(false);
     }
   }
@@ -176,6 +206,35 @@ export function BackupsPage({ section, client, session }: AdminPageProps) {
             ))}
           </tbody>
         </table>
+      ) : null}
+      {canAdmin ? (
+        <form
+          className="stack-form"
+          aria-label="Restore from a file"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void restoreUpload();
+          }}
+        >
+          <h2>Restore from a file</h2>
+          <p className="muted">Restore a backup made on this or another gateway (a .oipbk file). This replaces the configuration, users and secrets here.</p>
+          <label>
+            Backup file
+            <input
+              key={uploadKey}
+              type="file"
+              accept=".oipbk,.zip,application/octet-stream,application/zip"
+              onChange={(event) => setUploadFile(event.target.files?.[0] ?? null)}
+            />
+          </label>
+          <label>
+            Passphrase for the file
+            <input type="password" autoComplete="off" value={uploadPassphrase} onChange={(event) => setUploadPassphrase(event.target.value)} />
+          </label>
+          <button type="submit" disabled={pending || !uploadFile}>
+            Restore from file
+          </button>
+        </form>
       ) : null}
       {confirming ? (
         <div role="dialog" aria-labelledby="restore-title" className="confirm-panel">

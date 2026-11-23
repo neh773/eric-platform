@@ -106,6 +106,14 @@ test("creates, edits and deletes a UDT definition from the form", async ({ page 
   expect((editedLevel.alarms as Record<string, unknown>[])[0]!.setpointA).toBe(88);
   expect((editedLevel.history as Record<string, unknown>).enabled).toBe(false);
 
+  // The Tags page links to the definitions, and ?type= opens one in the editor.
+  await openSection(page, "Tags");
+  await page.getByRole("navigation", { name: "Tags views" }).getByRole("link", { name: "UDT definitions" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "UDT Definitions" })).toBeVisible();
+  await page.goto(`/admin/udt-types?type=${encodeURIComponent(typePath)}`);
+  await expect(page.getByRole("form", { name: "UDT definition" }).getByRole("heading", { name: `Edit ${typePath}` })).toBeVisible();
+  await page.getByRole("button", { name: "Cancel" }).click();
+
   await page.getByRole("button", { name: `Delete ${typePath}`, exact: true }).click();
   await expect(page.getByRole("status").filter({ hasText: `Deleted ${typePath}` })).toBeVisible();
   await page.getByRole("button", { name: `Delete ${innerPath}`, exact: true }).click();

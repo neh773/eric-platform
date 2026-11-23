@@ -22,6 +22,7 @@ import {
   type AccessRule,
   type CategoryId,
 } from "./tagModel";
+import { AlarmRows } from "../udt/AlarmRows";
 import { formatTime } from "./TagTree";
 import { useLiveValues } from "./useLiveValues";
 
@@ -258,8 +259,18 @@ export function TagEditor({
                   onChange={(next) => change(next && typeof next === "object" ? (next as Record<string, unknown>) : spec)}
                 />
               ) : null}
-              {category === "alarms" && currentKeys.includes("alarms") ? <AlarmSummary alarms={spec.alarms} /> : null}
-              {[...(category === "alarms" && currentKeys.includes("alarms") ? ["alarms"] : []), ...jsonKeys].map((key) => (
+              {category === "alarms" && currentKeys.includes("alarms") ? (
+                <fieldset aria-label="Alarms on this tag" className="alarm-list">
+                  <legend>Alarms</legend>
+                  <AlarmRows
+                    alarms={(Array.isArray(spec.alarms) ? spec.alarms : []).map((a) => (a && typeof a === "object" ? (a as Record<string, unknown>) : {}))}
+                    emptyText="No alarms are configured on this tag."
+                    onChange={(next) => change(withKey(spec, "alarms", next.length > 0 ? next : undefined))}
+                  />
+                  <p className="muted">Choose Save to apply the alarm changes.</p>
+                </fieldset>
+              ) : null}
+              {jsonKeys.map((key) => (
                 <JsonField
                   key={`${key}:${doc.metadata.version}:${reloadToken}:${discardToken}`}
                   name={key}
@@ -465,46 +476,3 @@ function AccessEditor({ name, raw, onChange }: { name: string; raw: unknown; onC
   );
 }
 
-function AlarmSummary({ alarms }: { alarms: unknown }) {
-  const list = Array.isArray(alarms) ? alarms : [];
-  if (list.length === 0) return <p className="muted">No alarms are configured on this tag.</p>;
-  return (
-    <table className="data-table" aria-label="Alarms">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Mode</th>
-          <th>Priority</th>
-          <th>Setpoint</th>
-          <th>Enabled</th>
-        </tr>
-      </thead>
-      <tbody>
-        {list.map((item, index) => {
-          const a = item && typeof item === "object" ? (item as Record<string, unknown>) : {};
-          return (
-            <tr key={index}>
-              <td>{String(a.name ?? "")}</td>
-              <td>{String(a.mode ?? "")}</td>
-              <td>{String(a.priority ?? "")}</td>
-              <td>{bound(a.setpointA)}</td>
-              <td>{a.enabled === undefined ? "true" : bound(a.enabled)}</td>
-            </tr>
-          );
-        })}
-      </tbody>
-    </table>
-  );
-}
-
-function bound(value: unknown): string {
-  if (value === undefined) return "";
-  if (value && typeof value === "object") {
-    const b = value as Record<string, unknown>;
-    if (typeof b.tag === "string") return `tag ${b.tag}`;
-    if (typeof b.expression === "string") return `expr ${b.expression}`;
-    if (typeof b.parameter === "string") return `param ${b.parameter}`;
-    return JSON.stringify(value);
-  }
-  return String(value);
-}

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { parseJdbcUrl } from "./databasesPage";
-import { cleanDefinition, definitionProblems, resourceNameForType } from "./udt/udtModel";
+import { parseJdbcUrl } from "../databasesPage";
+import { cleanDefinition, definitionProblems, resourceNameForType } from "./udtModel";
 
 describe("database connection form", () => {
   it("round-trips the URLs it builds", () => {

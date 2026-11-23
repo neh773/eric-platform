@@ -2,10 +2,9 @@ import { useEffect, useState, type FormEvent } from "react";
 import { allows, errorMessage } from "../access";
 import type { ApiClient, ResourceDocument } from "../api";
 import type { AdminPageProps } from "../pages";
+import { AlarmRows, NumberField } from "./AlarmRows";
 import { listDevices, type DeviceInfo } from "../tags/tagClient";
 import {
-  ALARM_MODES,
-  ALARM_PRIORITIES,
   DATA_TYPES,
   MEMBER_KINDS,
   PARAMETER_TYPES,
@@ -34,7 +33,7 @@ const KIND = "Udt";
  *
  * Reading needs gateway.read; saving and deleting need tags.write and config.write, which the gateway checks.
  */
-export function UdtTypesPage({ section, client, session }: AdminPageProps) {
+export function UdtTypesPage({ section, client, session, search }: AdminPageProps) {
   const canWrite = allows(session, "gateway.write") || allows(session, "tags.write");
   const [items, setItems] = useState<ResourceDocument[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -42,6 +41,15 @@ export function UdtTypesPage({ section, client, session }: AdminPageProps) {
   /** Resource name in the editor, "" for a new definition, null when closed. */
   const [editing, setEditing] = useState<string | null>(null);
   const [reload, setReload] = useState(0);
+  /** `?type=Types/Pump` (from the Tags page) opens that definition once the list loads. */
+  const [wanted, setWanted] = useState(() => new URLSearchParams(search ?? "").get("type") ?? "");
+
+  useEffect(() => {
+    if (!wanted || !items) return;
+    const hit = items.find((item) => str(item.spec.path) === wanted || item.metadata.name === wanted);
+    if (hit) setEditing(hit.metadata.name);
+    setWanted("");
+  }, [wanted, items]);
 
   useEffect(() => {
     if (!client) return;
@@ -452,9 +460,6 @@ function MemberForm({
   function patchHistory(patch: Spec) {
     onPatch({ history: patchSpec(history, patch) });
   }
-  function patchAlarm(index: number, patch: Spec) {
-    onPatch({ alarms: alarms.map((a, i) => (i === index ? patchSpec(a, patch) : a)) });
-  }
 
   return (
     <section className="member-form" aria-label={`Member ${label}`}>
@@ -627,46 +632,7 @@ function MemberForm({
 
           <fieldset aria-label="Alarms">
             <legend>Alarms</legend>
-            {alarms.length === 0 ? <p className="muted">No alarms on this member.</p> : null}
-            {alarms.map((alarm, i) => (
-              <div className="form-grid alarm-row" key={i} role="group" aria-label={`Alarm ${str(alarm.name) || i + 1}`}>
-                <label>
-                  Alarm name
-                  <input value={str(alarm.name)} onChange={(event) => patchAlarm(i, { name: event.target.value })} />
-                </label>
-                <label>
-                  Condition
-                  <select aria-label="Condition" value={str(alarm.mode) || "AboveValue"} onChange={(event) => patchAlarm(i, { mode: event.target.value })}>
-                    {ALARM_MODES.map((m) => (
-                      <option key={m} value={m}>
-                        {alarmModeLabel(m)}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label>
-                  Priority
-                  <select aria-label="Priority" value={str(alarm.priority) || "Medium"} onChange={(event) => patchAlarm(i, { priority: event.target.value })}>
-                    {ALARM_PRIORITIES.map((p) => (
-                      <option key={p}>{p}</option>
-                    ))}
-                  </select>
-                </label>
-                {alarm.mode !== "OutOfEngRange" && alarm.mode !== "Bit" ? (
-                  <NumberField label={alarm.mode === "OutsideValues" ? "Low setpoint" : "Setpoint"} value={alarm.setpointA} onChange={(v) => patchAlarm(i, { setpointA: v })} />
-                ) : null}
-                {alarm.mode === "OutsideValues" ? <NumberField label="High setpoint" value={alarm.setpointB} onChange={(v) => patchAlarm(i, { setpointB: v })} /> : null}
-                {alarm.mode === "Bit" ? <NumberField label="Bit" value={alarm.bitPosition} onChange={(v) => patchAlarm(i, { bitPosition: v })} /> : null}
-                <NumberField label="Deadband" value={alarm.deadband} onChange={(v) => patchAlarm(i, { deadband: v })} />
-                <NumberField label="On delay (s)" value={alarm.timeOnDelaySeconds} onChange={(v) => patchAlarm(i, { timeOnDelaySeconds: v })} />
-                <button type="button" onClick={() => onPatch({ alarms: alarms.filter((_, j) => j !== i) })}>
-                  Remove alarm {str(alarm.name) || i + 1}
-                </button>
-              </div>
-            ))}
-            <button type="button" onClick={() => onPatch({ alarms: [...alarms, { name: "", mode: "AboveValue", priority: "Medium" }] })}>
-              Add alarm
-            </button>
+            <AlarmRows alarms={alarms} emptyText="No alarms on this member." onChange={(next) => onPatch({ alarms: next })} />
           </fieldset>
 
           <fieldset aria-label="History">
@@ -745,46 +711,6 @@ function MemberForm({
   );
 }
 
-function NumberField({ label, name, value, onChange }: { label: string; name?: string; value: unknown; onChange: (value: number | undefined) => void }) {
-  const [text, setText] = useState(numText(value));
-  useEffect(() => {
-    if (toNumber(text) !== value) setText(numText(value));
-  }, [value]);
-  return (
-    <label>
-      {label}
-      <input
-        name={name}
-        type="number"
-        step="any"
-        value={text}
-        onChange={(event) => {
-          setText(event.target.value);
-          onChange(toNumber(event.target.value));
-        }}
-      />
-    </label>
-  );
-}
-
-function alarmModeLabel(mode: string): string {
-  switch (mode) {
-    case "AboveValue":
-      return "Above setpoint";
-    case "BelowValue":
-      return "Below setpoint";
-    case "Equality":
-      return "Equal to setpoint";
-    case "Bit":
-      return "Bit is set";
-    case "OutOfEngRange":
-      return "Outside engineering range";
-    case "OutsideValues":
-      return "Outside low/high setpoints";
-    default:
-      return mode;
-  }
-}
 
 function typedValue(text: string, dataType: string): unknown {
   if (text === "") return undefined;

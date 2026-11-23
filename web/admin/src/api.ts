@@ -1078,6 +1078,17 @@ export class ApiClient {
     if (!res.ok) throw await problemError(res);
   }
 
+  /**
+   * Restore a backup file chosen on this computer (0.1.1), for example one made on another gateway. The file is
+   * sent as base64 with its passphrase; a wrong passphrase is refused and changes nothing.
+   */
+  async restoreUploadedBackup(archive: ArrayBuffer, passphrase?: string): Promise<void> {
+    const body: Record<string, string> = { archive: toBase64(archive) };
+    if (passphrase) body.passphrase = passphrase;
+    const res = await this.send("POST", "/api/v1/backups/restore", body, "session");
+    if (!res.ok) throw await problemError(res);
+  }
+
   async secrets(): Promise<Array<{ name: string; description: string; reference: string }>> {
     const res = await this.send("GET", "/api/v1/secrets", undefined, "session");
     if (!res.ok) throw await problemError(res);
@@ -2074,6 +2085,13 @@ function parseOpcUaCertificate(value: unknown): OpcUaClientCertificate {
     notAfter: typeof body.notAfter === "string" ? body.notAfter : "",
     expired: body.expired === true,
   };
+}
+
+function toBase64(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  let binary = "";
+  for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  return btoa(binary);
 }
 
 function parseBackup(value: unknown): BackupItem {

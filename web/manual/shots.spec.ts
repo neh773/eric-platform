@@ -123,9 +123,13 @@ test("manual screenshots", async ({ page, browser }) => {
     await page.getByRole("button", { name: "tank-level", exact: true }).click();
     await shot(page, "admin-tag-editor");
     await page.getByRole("tab", { name: "Alarms", exact: true }).click();
-    await page.getByLabel("alarms (JSON)").fill(JSON.stringify([{ name: "High level", mode: "AboveValue", priority: "High", setpointA: 50 }], null, 2));
+    await page.getByRole("button", { name: "Add alarm" }).click();
+    const alarm = page.getByRole("group", { name: /Alarm/ }).first();
+    await alarm.getByLabel("Alarm name").fill("High level");
+    await alarm.getByLabel("Priority").selectOption("High");
+    await alarm.getByLabel("Setpoint").fill("50");
     await page.getByRole("button", { name: "Save", exact: true }).click();
-    await page.getByRole("table", { name: "Alarms" }).waitFor();
+    await page.getByRole("group", { name: "Alarm High level" }).waitFor();
     await shot(page, "admin-tag-alarms");
     await page.getByRole("button", { name: "demo", exact: true }).click();
     await page.getByRole("button", { name: "New tag" }).click();

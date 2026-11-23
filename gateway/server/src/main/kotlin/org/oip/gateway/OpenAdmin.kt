@@ -38,7 +38,15 @@ internal fun openInBrowser(url: String) {
     val command = when {
         os.contains("win") -> listOf("rundll32", "url.dll,FileProtocolHandler", url)
         os.contains("mac") -> listOf("open", url)
-        else -> listOf("xdg-open", url)
+        else -> {
+            // No desktop session (ssh, a service, a test): the URL is already printed, so do not try.
+            if (System.getenv("DISPLAY").isNullOrBlank() && System.getenv("WAYLAND_DISPLAY").isNullOrBlank()) return
+            listOf("xdg-open", url)
+        }
     }
-    ProcessBuilder(command).inheritIO().start()
+    // The opener's own messages (xdg-open lists every browser it tried) are not ours to print.
+    ProcessBuilder(command)
+        .redirectOutput(ProcessBuilder.Redirect.DISCARD)
+        .redirectError(ProcessBuilder.Redirect.DISCARD)
+        .start()
 }

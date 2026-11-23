@@ -1,3 +1,4 @@
+import { sectionPath } from "./sections";
 import { useEffect, useMemo, useState } from "react";
 import { allows, errorMessage } from "./access";
 import type { TagImportPolicy, TagImportReport, UdtInstancePlan, UdtTypeInfo } from "./api";
@@ -137,7 +138,7 @@ export function TagsPage({ section, client, session, search }: AdminPageProps) {
       ) : null}
       {error ? <p role="alert">{error}</p> : null}
       {notice ? <p role="status">{notice}</p> : null}
-      {types && types.length === 0 ? <p>No UDT definitions exist yet. Create one in Config (module tags, kind Udt).</p> : null}
+      {types && types.length === 0 ? <p>No UDT definitions exist yet. Create one on the <a href={sectionPath("udt-types")}>UDT Definitions</a> page.</p> : null}
       {types && types.length > 0 ? (
         <div className="stack-form" data-testid="udt-wizard">
           <label>

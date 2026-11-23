@@ -4,6 +4,7 @@ import { AdminPage, installAdminPages } from "./pages";
 import { matchResources, matchSections } from "./search";
 import { ADMIN_SECTIONS, resourceHref, routeFromPath, sectionPath, sectionsByGroup, type ConfigHit } from "./sections";
 import { BetaNotice } from "./betaNotice";
+import { RESTORED_KEY } from "./restoredNotice";
 
 const APPEARANCE_KEY = "oip-appearance";
 
@@ -177,6 +178,16 @@ export function Login({
     };
   }, [client]);
 
+  const [restored] = useState<string | null>(() => {
+    try {
+      const name = window.sessionStorage.getItem(RESTORED_KEY);
+      if (name) window.sessionStorage.removeItem(RESTORED_KEY);
+      return name;
+    } catch {
+      return null;
+    }
+  });
+
   async function submit(event: FormEvent) {
     event.preventDefault();
     setPending(true);
@@ -204,6 +215,7 @@ export function Login({
         <ThemeSwitcher />
         <h1>Sign in</h1>
         <p className="lede">Gateway administration. The session cookie stays on the gateway; this page does not store the password.</p>
+        {restored ? <p role="status">Restored {restored}. Sign in with an account from the backup.</p> : null}
         <label>
           Username
           <input name="username" autoComplete="username" value={username} onChange={(event) => setUsername(event.target.value)} required />

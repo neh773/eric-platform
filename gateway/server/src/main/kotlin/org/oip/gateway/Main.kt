@@ -45,7 +45,11 @@ private fun runGateway(a: Args) {
     if (g.security.users.list().isEmpty()) {
         println("ERIC gateway has no users yet. Open ${g.clientUrl()}/admin in a browser on this machine to create the administrator, or set ERIC_ADMIN_PASSWORD before the first start.")
     }
-    g.insecureCookieWarning?.let { println("ERIC gateway warning: $it") }
+    if (g.settings.plainHttpOnly()) {
+        println("ERIC gateway note: plain HTTP. That is fine on this computer; turn on HTTPS (admin > Network) before other computers sign in.")
+    } else {
+        g.insecureCookieWarning?.let { println("ERIC gateway warning: $it") }
+    }
 }
 
 internal fun isWindows(): Boolean = System.getProperty("os.name").lowercase().contains("win")

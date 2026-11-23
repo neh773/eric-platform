@@ -95,17 +95,22 @@ test("designates a controller, approves a first-boot agent, and runs a task on i
         body: JSON.stringify({ role: "none" }),
       });
     });
-    for (let attempt = 0; attempt < 10; attempt++) {
-      try {
-        rmSync(dataDir, { recursive: true, force: true });
-        break;
-      } catch (error) {
-        if (attempt === 9) throw error;
-        Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 200);
-      }
-    }
+    removeWithRetry(dataDir);
   }
 });
+
+/** Windows can hold the data dir briefly after the agent exits; retry, then report the last error. */
+function removeWithRetry(dir: string) {
+  for (let attempt = 0; attempt < 10; attempt++) {
+    try {
+      rmSync(dir, { recursive: true, force: true });
+      return;
+    } catch (error) {
+      if (attempt === 9) throw error;
+      Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 200);
+    }
+  }
+}
 
 /** Windows `shell: true` makes the child cmd.exe; the gateway JVM is a grandchild and keeps the data dir open. */
 function stopProcess(agent: ChildProcess | null) {

@@ -171,6 +171,9 @@ data class GatewaySettings(
         maxFailureRows = authFailureRowCap,
     )
 
+    /** Plain HTTP with no HTTPS and no proxy: the normal state of a new install. Not shown to a browser on this machine. */
+    fun plainHttpOnly(): Boolean = !secureCookiesEffective && !(secureCookies == false && (httpsEnabled || trustedProxies.isNotEmpty()))
+
     fun insecureCookieWarning(): String? = when {
         secureCookiesEffective -> null
         secureCookies == false && (httpsEnabled || trustedProxies.isNotEmpty()) ->
@@ -578,7 +581,11 @@ class Gateway(
         settings = GatewaySettings.load(gy).let { if (port != null) it.copy(port = port) else it }
         sessionPolicy = sessionPolicyOverride ?: SessionPolicy(settings.sessionAbsolute())
         insecureCookieWarning = settings.insecureCookieWarning()
-        insecureCookieWarning?.let { LoggerFactory.getLogger(Gateway::class.java).warn(it) }
+        insecureCookieWarning?.let { msg ->
+            val log = LoggerFactory.getLogger(Gateway::class.java)
+            // Plain HTTP on a new install is expected; Main prints a calm note. Other cases stay a warning.
+            if (settings.plainHttpOnly()) log.info(msg) else log.warn(msg)
+        }
         val schemas = SchemaRegistry()
         store = FileConfigStore(dataDir.resolve("config"), schemas, clock)
         tags = TagEngine(clock)

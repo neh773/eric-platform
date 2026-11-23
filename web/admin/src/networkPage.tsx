@@ -95,6 +95,12 @@ export function NetworkPage({ section, client, session }: AdminPageProps) {
             : "HTTPS is off. Plain HTTP stays available."
           : "Loading HTTPS status."}
       </p>
+      {status && !status.listening ? (
+        <p className="muted" data-testid="plain-http-note">
+          Plain HTTP is fine for a browser on this computer. Before people sign in from other computers, turn on HTTPS
+          below so passwords and session cookies are encrypted on the network.
+        </p>
+      ) : null}
       {error ? <p role="alert">{error}</p> : null}
       {notice ? <p role="status">{notice}</p> : null}
       {status ? (

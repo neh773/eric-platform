@@ -102,7 +102,9 @@ class Api(private val gw: Gateway) {
                 "profile" to gw.settings.profile,
                 "version" to Gateway.VERSION,
                 "modules" to gw.host.installed().size,
-                "warnings" to listOfNotNull(gw.insecureCookieWarning),
+                // 0.1.1: a plain-HTTP gateway viewed from its own machine is the normal first run, not a problem;
+                // the Network page carries a calm note instead. Other browsers still see the warning.
+                "warnings" to listOfNotNull(gw.insecureCookieWarning?.takeUnless { gw.settings.plainHttpOnly() && fromThisMachine(ctx) }),
                 "startedAt" to gw.startedAt?.toString(),
             ))
         }
@@ -395,6 +397,11 @@ class Api(private val gw: Gateway) {
      * (review-1 F3). The gateway does not keep the passphrase. A `.zip` left in `backups/` by an older version
      * is plaintext: it is listed with `encrypted: false`, can be restored, and is never served for download.
      */
+    private fun fromThisMachine(ctx: io.javalin.http.Context): Boolean {
+        if (ctx.header("X-Forwarded-For") != null || ctx.header("Forwarded") != null) return false
+        return runCatching { java.net.InetAddress.getByName(ctx.req().remoteAddr).isLoopbackAddress }.getOrDefault(false)
+    }
+
     private fun backupRoutes(app: Javalin) {
         app.post("/api/v1/backups") { ctx ->
             val bundle = when (ctx.queryParam("bundleModules")) {
