@@ -50,11 +50,13 @@ export function connectionRow(page: Page, name: string): Locator {
 /** Adds the Modbus TCP field device through the New device form unless it is already listed. */
 export async function ensureModbusDevice(page: Page) {
   await section(page, "Connections");
+  // The device list loads after the page; count rows only once it (or its empty state) is on screen.
+  await expect(main(page).getByRole("status").filter({ hasText: "Loading devices." })).toHaveCount(0);
   if (await connectionRow(page, DEVICE.name).count()) return;
   await page.getByRole("button", { name: "New device" }).click();
-  await page.getByLabel("Device name").fill(DEVICE.name);
+  await page.getByLabel("Device name", { exact: true }).fill(DEVICE.name);
   await page.getByLabel("Device type").selectOption("modbus");
-  await page.getByLabel("Host").fill(DEVICE.host);
+  await page.getByLabel("Host", { exact: true }).fill(DEVICE.host);
   await page.getByLabel("Port").fill(DEVICE.port);
   await page.getByLabel("Unit ID").fill("1");
   await page.getByRole("button", { name: "Save device" }).click();

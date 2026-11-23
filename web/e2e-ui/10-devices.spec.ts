@@ -26,28 +26,28 @@ test.describe("devices", () => {
   test("a bad device name gets a clear message", async ({ page }) => {
     await section(page, "Connections");
     await page.getByRole("button", { name: "New device" }).click();
-    await page.getByLabel("Device name").fill("Bad Name!");
-    await page.getByLabel("Host").fill("10.0.0.1");
+    await page.getByLabel("Device name", { exact: true }).fill("Bad Name!");
+    await page.getByLabel("Host", { exact: true }).fill("10.0.0.1");
     await page.getByRole("button", { name: "Save device" }).click();
     await expect(main(page).getByText(/lowercase/i).first()).toBeVisible();
   });
 
   for (const kind of [
-    { type: "modbus", name: "rtu01", fill: async (p: import("@playwright/test").Page) => { await p.getByLabel("Host").fill(DEVICE.host); await p.getByLabel("Mode").selectOption("RTU_OVER_TCP"); } },
+    { type: "modbus", name: "rtu01", fill: async (p: import("@playwright/test").Page) => { await p.getByLabel("Host", { exact: true }).fill(DEVICE.host); await p.getByLabel("Mode").selectOption("RTU_OVER_TCP"); } },
     { type: "simulator", name: "sim01", fill: async () => {} },
     { type: "opcua", name: "opc01", fill: async (p: import("@playwright/test").Page) => { const url = p.getByLabel(/Endpoint/i).first(); if (await url.count()) await url.fill("opc.tcp://127.0.0.1:4840/eric"); } },
-    { type: "s7", name: "s701", fill: async (p: import("@playwright/test").Page) => { await p.getByLabel("Host").fill("127.0.0.2"); } },
-    { type: "logix", name: "logix01", fill: async (p: import("@playwright/test").Page) => { await p.getByLabel("Host").fill("127.0.0.2"); } },
-    { type: "dnp3", name: "dnp01", fill: async (p: import("@playwright/test").Page) => { await p.getByLabel("Host").fill("127.0.0.2"); } },
+    { type: "s7", name: "s701", fill: async (p: import("@playwright/test").Page) => { await p.getByLabel("Host", { exact: true }).fill("127.0.0.2"); } },
+    { type: "logix", name: "logix01", fill: async (p: import("@playwright/test").Page) => { await p.getByLabel("Host", { exact: true }).fill("127.0.0.2"); } },
+    { type: "dnp3", name: "dnp01", fill: async (p: import("@playwright/test").Page) => { await p.getByLabel("Host", { exact: true }).fill("127.0.0.2"); } },
     { type: "bacnet-local", name: "bacl01", fill: async (p: import("@playwright/test").Page) => { await p.getByLabel("BACnet device name").fill("Audit gateway"); await p.getByLabel("Port").fill("47911"); } },
-    { type: "mqtt", name: "mqtt01", fill: async (p: import("@playwright/test").Page) => { await p.getByLabel("Host").fill("127.0.0.1"); await p.getByLabel("Port").fill("18830"); await p.getByLabel("Username").fill("broker-user"); await p.getByLabel("Password").fill("broker-pass-1"); } },
+    { type: "mqtt", name: "mqtt01", fill: async (p: import("@playwright/test").Page) => { await p.getByLabel("Host", { exact: true }).fill("127.0.0.1"); await p.getByLabel("Port").fill("18830"); await p.getByLabel("Username").fill("broker-user"); await p.getByLabel("Password").fill("broker-pass-1"); } },
     { type: "udp", name: "udp01", fill: async () => {} },
   ]) {
     test(`${kind.type}: create, list, delete through the form`, async ({ page }) => {
       await section(page, "Connections");
       await page.getByRole("button", { name: "New device" }).click();
       await page.getByLabel("Device type").selectOption(kind.type);
-      await page.getByLabel("Device name").fill(kind.name);
+      await page.getByLabel("Device name", { exact: true }).fill(kind.name);
       await kind.fill(page);
       await page.getByRole("button", { name: "Save device" }).click();
       await expect(main(page).getByText(`Saved ${kind.name}.`)).toBeVisible();
@@ -67,21 +67,21 @@ test.describe("devices", () => {
     await section(page, "Connections");
     await page.getByRole("button", { name: "New device" }).click();
     await page.getByLabel("Device type").selectOption("bacnet-remote");
-    await page.getByLabel("Device name").fill("bac01");
-    await page.getByLabel("Host").fill("127.0.0.2");
+    await page.getByLabel("Device name", { exact: true }).fill("bac01");
+    await page.getByLabel("Host", { exact: true }).fill("127.0.0.2");
     await page.getByRole("button", { name: "Save device" }).click();
     await expect(main(page).getByText("Name the local BACnet device this remote device uses.")).toBeVisible();
     for (const [type, name] of [["bacnet-local", "bacl02"], ["bacnet-remote", "bac01"]]) {
       await section(page, "Connections");
       await page.getByRole("button", { name: "New device" }).click();
       await page.getByLabel("Device type").selectOption(type);
-      await page.getByLabel("Device name").fill(name);
+      await page.getByLabel("Device name", { exact: true }).fill(name);
       if (type === "bacnet-local") {
         await page.getByLabel("BACnet device name").fill("Audit gateway 2");
         await page.getByLabel("Port").fill("47912");
       } else {
         await page.getByLabel("Local device").fill("bacl02");
-        await page.getByLabel("Host").fill("127.0.0.2");
+        await page.getByLabel("Host", { exact: true }).fill("127.0.0.2");
       }
       await page.getByRole("button", { name: "Save device" }).click();
       await expect(main(page).getByText(`Saved ${name}.`)).toBeVisible();
@@ -104,7 +104,7 @@ test.describe("devices", () => {
     if (!(await connectionRow(page, "selfua").count())) {
       await page.getByRole("button", { name: "New device" }).click();
       await page.getByLabel("Device type").selectOption("opcua");
-      await page.getByLabel("Device name").fill("selfua");
+      await page.getByLabel("Device name", { exact: true }).fill("selfua");
       await page.getByLabel("Endpoint URL").fill(`opc.tcp://127.0.0.1:${process.env.ERIC_UI_OPCUA_PORT ?? "48411"}/oip`);
       // This gateway's server turns anonymous sessions away, so sign in as a gateway user.
       await page.getByLabel("Username").fill("admin");

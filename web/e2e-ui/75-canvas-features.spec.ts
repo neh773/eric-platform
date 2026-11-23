@@ -60,7 +60,7 @@ test.describe("Control Canvas features", () => {
     const tree = page.getByRole("tree", { name: "Tags" });
     await expect(tree.getByRole("treeitem", { name: "default" })).toBeVisible();
     await tree.getByRole("treeitem", { name: "default" }).click();
-    await expect(tree.getByRole("treeitem", { name: "LiftStation" })).toBeVisible();
+    await expect(tree.getByRole("treeitem", { name: "LiftStation", exact: true })).toBeVisible();
   });
 
   test("Pages: customize pages so / opens the station screen, and the session follows it", async ({ page }) => {

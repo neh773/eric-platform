@@ -127,8 +127,16 @@ export function LogicWorkspace({ client }: { client: GatewayClient }) {
 
   async function createProgram() {
     setError(null);
+    const wanted = draftName.trim();
+    if (programs.includes(wanted)) {
+      // Asking for a program that already exists opens it.
+      setDraftName("");
+      await openProgram(wanted);
+      setNotice(`${wanted} already exists. Opened it.`);
+      return;
+    }
     const mine = ++ticket.current;
-    const created = await client.logicCreate(draftName);
+    const created = await client.logicCreate(wanted);
     if (mine !== ticket.current) return;
     setDraftName("");
     await refreshList();

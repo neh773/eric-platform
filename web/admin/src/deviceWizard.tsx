@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { errorMessage } from "./access";
-import type { ApiClient, ResourceDocument } from "./api";
+import { ApiError, type ApiClient, type ResourceDocument } from "./api";
 import {
   DEVICE_TYPES,
   deviceProblem,
@@ -38,17 +38,24 @@ export function DeviceWizard({ client, canWrite }: { client: ApiClient; canWrite
   const [failure, setFailure] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  const [listProblems, setListProblems] = useState<string[]>([]);
 
   const reload = useCallback(async () => {
+    const problems: string[] = [];
     const lists = await Promise.all(DEVICE_TYPES.map(async (type) => {
       try {
         const items = await client.listResources(type.module, "gateway", type.resourceKind);
         return items.map((resource) => ({ kind: type.kind, resource }));
-      } catch {
+      } catch (err) {
+        // 404: that driver is not installed, so it has no devices. Anything else is a real failure to show.
+        if (!(err instanceof ApiError && err.status === 404)) problems.push(`${type.label}: ${errorMessage(err, "could not be listed")}`);
         return [] as StoredDevice[];
       }
     }));
     setDevices(lists.flat());
+    setListProblems(problems);
+    setLoaded(true);
   }, [client]);
 
   useEffect(() => {
@@ -149,7 +156,10 @@ export function DeviceWizard({ client, canWrite }: { client: ApiClient; canWrite
       </p>
       {failure ? <p role="alert">{failure}</p> : null}
       {notice ? <p role="status">{notice}</p> : null}
-      {devices.length === 0 ? <p>No device connections yet.</p> : (
+      {listProblems.length ? (
+        <p role="alert">Some devices could not be listed, so this list may be incomplete. {listProblems.join("; ")}</p>
+      ) : null}
+      {!loaded ? <p role="status">Loading devices.</p> : devices.length === 0 ? <p>No device connections yet.</p> : (
         <table className="data-table" aria-label="Device connections">
           <thead>
             <tr><th>Name</th><th>Type</th><th>Address</th><th></th></tr>
