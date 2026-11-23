@@ -20,7 +20,8 @@ export async function signIn(request: APIRequestContext): Promise<string> {
 /** Signed-in Studio on [project]. Pass [csrf] when this page already signed in; a second login replaces the session. */
 export async function openStudio(page: Page, project: string, existingCsrf?: string): Promise<string> {
   const csrf = existingCsrf ?? (await signIn(page.request));
-  await page.goto(`/?project=${project}`);
+  // New gateway projects open blank; the specs build on the sample views, offered as unsaved drafts.
+  await page.goto(`/?project=${project}&starter=sample`);
   await expect(page.getByRole("tree").first()).toBeVisible();
   return csrf;
 }

@@ -285,7 +285,7 @@ class LogicService(
     }
 
     /** After a gateway restart: the program the engine resumed, so Start and Stop work without a redeploy. */
-    fun resumed(deployed: ManagedPlc.Deployed) {
+    internal fun resumed(deployed: ManagedPlc.Deployed) {
         val stem = libraryStem(java.io.File(deployed.library).name)
         val names = list()
         program = names.firstOrNull { it.equals(stem, ignoreCase = true) } ?: names.firstOrNull { it.equals(deployed.entry, ignoreCase = true) } ?: stem
