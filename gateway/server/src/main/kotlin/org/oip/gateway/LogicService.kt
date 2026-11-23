@@ -513,7 +513,19 @@ class PlcCompiler(
         compile += libraryIncludes(plc)
         compile += listOf("-c", "--fpic", "--hwmap-file=${hwmap}", "-o", obj.toString())
         run(compile)
-        run(listOf("cc", "-shared", "-o", so.toString(), obj.toString(), "-L", lib.path, "-liec61131std", "-Wl,-rpath,\$ORIGIN"))
+        val objects = mutableListOf(obj.toString())
+        // Process-library blocks (ERIC_PID ...) are declared to the program through -i; their bodies are their own units.
+        processLibraryUnits(plc).forEach { unit ->
+            val unitObj = out.resolve(unit.name.removeSuffix(".st") + ".o")
+            run(listOf(plc.path, unit.absolutePath, "-i", "${include.path}/*.st", "-c", "--fpic", "-o", unitObj.toString()))
+            objects += unitObj.toString()
+        }
+        val linker = linuxLinker()
+            ?: throw IllegalArgumentException(
+                "Deploying a PLC program needs a C linker on this computer (cc, gcc or clang). " +
+                    "Install one, for example 'sudo apt install gcc' or 'sudo dnf install gcc', then deploy again.",
+            )
+        run(listOf(linker, "-shared", "-o", so.toString()) + objects + listOf("-L", lib.path, "-liec61131std", "-Wl,-rpath,\$ORIGIN"))
         val stdlib = lib.resolve("libiec61131std.so")
         if (stdlib.exists()) java.nio.file.Files.copy(stdlib.toPath(), out.resolve("libiec61131std.so"), java.nio.file.StandardCopyOption.REPLACE_EXISTING)
         return so
@@ -560,6 +572,18 @@ internal fun compilerIncludes(binary: java.io.File): List<String> {
     val parent = binary.parentFile ?: return emptyList()
     val dirs = listOfNotNull(parent.resolve("stdlib/include"), parent.parentFile?.resolve("st"))
     return dirs.filter { it.isDirectory }.flatMap { listOf("-i", it.absolutePath + java.io.File.separator + "*.st") }
+}
+
+/** The process library's own `.st` units, beside a bundled compiler (`plc/rusty/plc` -> `plc/st`). */
+internal fun processLibraryUnits(binary: java.io.File): List<java.io.File> {
+    val st = binary.parentFile?.parentFile?.resolve("st") ?: return emptyList()
+    return st.listFiles { f -> f.isFile && f.name.endsWith(".st") }?.sortedBy { it.name }.orEmpty()
+}
+
+/** The first C compiler driver on PATH that can link a shared library. */
+internal fun linuxLinker(path: String? = System.getenv("PATH")): String? {
+    val dirs = path.orEmpty().split(java.io.File.pathSeparator).filter { it.isNotBlank() }
+    return listOf("cc", "gcc", "clang").firstOrNull { name -> dirs.any { java.io.File(it, name).canExecute() } }
 }
 
 /** Process-library include only. The Linux link step already names the standard library itself. */

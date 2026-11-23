@@ -5,7 +5,8 @@
 #
 # Extracts the archive into an empty folder, starts "ERIC Gateway" from its launcher with a clean environment
 # (no ERIC_*/OIP_* variables, an empty HOME and data folder), then runs web/fresh-install/fresh-install.spec.ts:
-# create the administrator in the first-run form, sign out and in, and load /admin, /designer and /docs.
+# create the administrator in the first-run form, sign out and in, load /admin, /designer and /docs, and deploy a
+# Structured Text program with the bundled compiler and scan engine (needs a C linker such as gcc on the machine).
 # Without an argument it packs packaging/build/image (run :packaging:gatewayAppImage first).
 #
 # FRESH_PORT (default 8090) and FRESH_GAN_PORT only matter on a machine that already runs another gateway.
@@ -25,6 +26,10 @@ launcher="$work/extract/image/ERIC Gateway/bin/ERIC Gateway"
 for d in admin web docs; do
   [[ -n "$(ls -A "$work/extract/image/ERIC Gateway/lib/app/$d" 2>/dev/null)" ]] \
     || { echo "FAIL: lib/app/$d is missing from the archive"; exit 1; }
+done
+for f in plc/eric-plc plc/rusty/plc; do
+  [[ -x "$work/extract/image/ERIC Gateway/lib/app/$f" ]] \
+    || { echo "FAIL: lib/app/$f is missing or not executable"; exit 1; }
 done
 if [[ -n "${FRESH_GAN_PORT:-}" ]]; then
   # Only to dodge a port held by another gateway on this machine. A real install has no such file.

@@ -176,6 +176,41 @@ tasks.register("stagePlcBundle") {
     }
 }
 
+val linuxPlcBundle = layout.buildDirectory.dir("plc-bundle-linux")
+
+tasks.register("stageLinuxPlcBundle") {
+    group = "distribution"
+    description = "eric-plc, the ST library, and the separate RuSTy Linux compiler with its standard library (x86_64)."
+    doLast {
+        if (windows()) throw GradleException("the Linux PLC bundle is built on Linux")
+        val cargo = ProcessBuilder(
+            "cargo", "build", "--release", "--locked",
+            "--manifest-path", rootProject.file("plc/eric-plc/Cargo.toml").absolutePath,
+        ).directory(rootProject.projectDir).inheritIO().start()
+        if (cargo.waitFor() != 0) throw GradleException("cargo build of eric-plc failed")
+        val built = rootProject.file("plc/eric-plc/target/release/eric-plc")
+        if (!built.isFile) throw GradleException("missing $built")
+        val bundle = linuxPlcBundle.get().asFile
+        bundle.deleteRecursively()
+        bundle.mkdirs()
+        built.copyTo(bundle.resolve("eric-plc"), true).setExecutable(true, false)
+        rootProject.file("plc/eric-plc/st").copyRecursively(bundle.resolve("st"), true)
+        rootProject.file("plc/eric-plc/examples").copyRecursively(bundle.resolve("examples"), true)
+        val rusty = bundle.resolve("rusty")
+        rusty.mkdirs()
+        val base = "https://github.com/PLC-lang/rusty/releases/download/v1.0.8"
+        downloadPinned("$base/plc-linux-x86_64", rusty.resolve("plc"), "e4b086ae4eac8613b609a5862a161b9095f7f73d5b5db4967cf4571a8c080833")
+        rusty.resolve("plc").setExecutable(true, false)
+        val tar = rusty.resolve("stdlib.tar.gz")
+        downloadPinned("$base/stdlib-1.0.8.tar.gz", tar, "f0bf72ed4df3ef5cab0d5887f8e06c5b0fd5f43ca1a10cd6ade249d0decb0c4e")
+        val unpack = ProcessBuilder("tar", "-xzf", tar.absolutePath, "-C", rusty.absolutePath).inheritIO().start()
+        if (unpack.waitFor() != 0) throw GradleException("could not unpack the RuSTy standard library")
+        tar.delete()
+        rootProject.file("packaging/windows/third-party").copyRecursively(bundle.resolve("licenses"), true)
+        rootProject.file("packaging/windows/SOURCE-OFFER.txt").copyTo(bundle.resolve("licenses/SOURCE-OFFER.txt"), true)
+    }
+}
+
 /** Jars, admin UI, Control Canvas and the manual into [dest]; the PLC bundle and uninstaller only on Windows. */
 fun stagePayload(dest: File, windowsExtras: Boolean) {
     dest.deleteRecursively()
@@ -189,6 +224,11 @@ fun stagePayload(dest: File, windowsExtras: Boolean) {
     admin.copyRecursively(dest.resolve("admin"), true)
     web.copyRecursively(dest.resolve("web"), true)
     if (windowsExtras) plcBundle.get().asFile.copyRecursively(dest.resolve("plc"), true)
+    else linuxPlcBundle.get().asFile.takeIf { it.isDirectory }?.let { plcDir ->
+        plcDir.copyRecursively(dest.resolve("plc"), true)
+        // copyRecursively drops the execute bit.
+        listOf("plc/eric-plc", "plc/rusty/plc").forEach { dest.resolve(it).setExecutable(true, false) }
+    }
     val docsOut = dest.resolve("docs")
     docsOut.mkdirs()
     listOf("manual", "install", "ops").forEach { name ->
@@ -214,8 +254,8 @@ tasks.register("stageGatewayPayload") {
 
 tasks.register("stageLinuxGatewayPayload") {
     group = "distribution"
-    description = "Jars plus the admin UI, Control Canvas, and the manual, for the Linux app image."
-    dependsOn(":gateway:server:installDist")
+    description = "Jars plus the admin UI, Control Canvas, the manual and the PLC bundle, for the Linux app image."
+    dependsOn(":gateway:server:installDist", "stageLinuxPlcBundle")
     doLast { stagePayload(linuxStage.get().asFile, windowsExtras = false) }
 }
 
