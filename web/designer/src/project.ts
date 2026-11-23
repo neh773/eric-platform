@@ -87,7 +87,7 @@ export function appendComponent(
     props: { ...defaults },
     bindings: {},
   };
-  placeInRoot(next.spec.root, node, title, count, size, next.spec.width);
+  placeInRoot(next.spec.root, node, title, count, size, next.spec.width, next.spec.height);
   next.spec.root.children.push(node);
   return { view: next, id };
 }
@@ -106,10 +106,10 @@ export function placeAt(view: ViewDocument, id: string, at: { x: number; y: numb
   return updateNode(view, id, { frame: { ...frame, x, y } });
 }
 
-function placeInRoot(root: ContainerNode, node: ViewNode, title: string, count: number, size = { width: 160, height: 40 }, viewWidth = 0) {
+function placeInRoot(root: ContainerNode, node: ViewNode, title: string, count: number, size = { width: 160, height: 40 }, viewWidth = 0, viewHeight = 0) {
   if (root.layout === "coordinate") {
     const taken = (root.props.mode ?? "fixed") === "percent" ? [] : root.children.flatMap((child) => (child.frame ? [child.frame] : []));
-    node.frame = { ...freeSpot(taken, size, viewWidth), ...size };
+    node.frame = { ...freeSpot(taken, size, viewWidth, viewHeight), ...size };
   } else if (root.layout === "flex") {
     node.flex = { grow: 0, shrink: 1, basis: `${size.width}px`, display: true };
   } else if (root.layout === "tab") {
@@ -127,20 +127,29 @@ function placeInRoot(root: ContainerNode, node: ViewNode, title: string, count: 
 
 /**
  * The first place for a new [size] box that covers no [taken] frame: rows from the top-left with a 16 px margin,
- * stepping 8 px, within [viewWidth] when it is known. Falls back below everything when the view is full across.
+ * stepping 8 px, inside [viewWidth] x [viewHeight] when they are known. A view with no free spot that fits gets the box
+ * at the top-left margin, still inside the view where it can be seen and moved; with no known height it goes below
+ * everything.
  */
-export function freeSpot(taken: Array<{ x: number; y: number; width: number; height: number }>, size: { width: number; height: number }, viewWidth: number): { x: number; y: number } {
+export function freeSpot(
+  taken: Array<{ x: number; y: number; width: number; height: number }>,
+  size: { width: number; height: number },
+  viewWidth: number,
+  viewHeight = 0,
+): { x: number; y: number } {
   const margin = 16;
   const gap = 8;
   const right = viewWidth > 0 ? viewWidth : 1280;
   const clear = (x: number, y: number) => taken.every((f) =>
     x + size.width + gap <= f.x || f.x + f.width + gap <= x || y + size.height + gap <= f.y || f.y + f.height + gap <= y);
   const bottom = taken.reduce((max, f) => Math.max(max, f.y + f.height), 0);
-  for (let y = margin; y <= bottom + gap; y += gap) {
+  const lastY = viewHeight > 0 ? viewHeight - size.height - margin : bottom + gap;
+  for (let y = margin; y <= lastY; y += gap) {
     for (let x = margin; x + size.width <= Math.max(right - margin, margin + size.width); x += gap) {
       if (clear(x, y)) return { x, y };
     }
   }
+  if (viewHeight > 0) return { x: margin, y: margin };
   return { x: margin, y: taken.length ? bottom + 2 * gap : margin };
 }
 
@@ -171,7 +180,7 @@ export function appendContainer(
       ...(child.size ? { size: child.size } : {}),
     })),
   };
-  placeInRoot(next.spec.root, node, title, count, { width: 320, height: 200 }, next.spec.width);
+  placeInRoot(next.spec.root, node, title, count, { width: 320, height: 200 }, next.spec.width, next.spec.height);
   next.spec.root.children.push(node);
   return { view: next, id };
 }

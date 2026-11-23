@@ -22,4 +22,13 @@ describe("freeSpot", () => {
     expect(taken[1]).toMatchObject({ x: 184, y: 16 });
     expect(new Set(taken.map((f) => f.y)).size).toBeGreaterThan(1);
   });
+
+  it("keeps a new box inside a full view instead of below it", () => {
+    const full = [{ x: 0, y: 0, width: 680, height: 360 }];
+    expect(freeSpot(full, { width: 320, height: 200 }, 680, 360)).toEqual({ x: 16, y: 16 });
+    const half = [{ x: 0, y: 0, width: 680, height: 120 }];
+    const at = freeSpot(half, { width: 320, height: 200 }, 680, 360);
+    expect(at.y + 200).toBeLessThanOrEqual(360);
+    expect(at.y).toBeGreaterThanOrEqual(128);
+  });
 });
