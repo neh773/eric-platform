@@ -86,6 +86,28 @@ class LogicServiceTest {
         logic.start()
     }
 
+    @Test fun `a running program is running again after a gateway restart, a stopped one stays stopped`() {
+        val first = LogicService(tmp, PlcCompiler(null, emptyList()))
+        first.create("Pump")
+        assertEquals(true, first.deploy("Pump")["ok"])
+        val second = LogicService(tmp, PlcCompiler(null, emptyList()))
+        assertEquals("running", second.status()["state"])
+        assertEquals("Pump", second.program)
+        second.stop()
+        val third = LogicService(tmp, PlcCompiler(null, emptyList()))
+        assertEquals("stopped", third.status()["state"])
+        third.start()
+        assertEquals("running", LogicService(tmp, PlcCompiler(null, emptyList())).status()["state"])
+    }
+
+    @Test fun `a program the engine could not resume says so`() {
+        val logic = LogicService(tmp, PlcCompiler(null, emptyList()))
+        logic.create("Pump")
+        logic.resumeFailed("the deployed program is missing")
+        assertEquals("stopped", logic.status()["state"])
+        assertTrue((logic.status()["message"] as String).contains("Deploy it again"))
+    }
+
     @Test fun `a failed compile does not mark the program running`() {
         val logic = LogicService(tmp, PlcCompiler(null, listOf(PlcDiagnostic(2, 1, "bad token", "E048"))))
         logic.create("Pump")

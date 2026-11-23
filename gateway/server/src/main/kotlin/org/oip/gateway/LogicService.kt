@@ -42,8 +42,37 @@ class LogicService(
     @Volatile var message: String = ""
         private set
 
+    /** The deployed program and whether it should run, so it comes back after a gateway restart (any engine mode). */
+    private val runStateFile = root.resolve("run-state.json")
+
     init {
         programs.createDirectories()
+        restoreRunState()
+    }
+
+    private fun rememberRunState() {
+        val name = program ?: return
+        runCatching { runStateFile.writeText(Json.write(mapOf("program" to name, "running" to (state == "running")))) }
+    }
+
+    private fun restoreRunState() {
+        if (!runStateFile.exists()) return
+        runCatching {
+            @Suppress("UNCHECKED_CAST")
+            val saved = Json.mapper.readValue(runStateFile.readText(), Map::class.java) as Map<String, Any?>
+            val name = saved["program"] as? String ?: return
+            if (!file(name).exists()) return
+            program = name
+            // An engine that is (or becomes) connected reports its own state; this is the state with no engine attached.
+            state = if (saved["running"] == true) "running" else "stopped"
+        }
+    }
+
+    /** After a gateway restart the managed engine could not start the deployed program again. */
+    internal fun resumeFailed(error: String) {
+        state = "stopped"
+        message = "the deployed program did not start again after the gateway restart: $error. Deploy it again."
+        applySafe()
     }
 
     fun list(): List<String> =
@@ -239,6 +268,7 @@ class LogicService(
         if (!engine.connected()) state = "running"
         if (state != "running") applySafe()
         message = ""
+        rememberRunState()
         return status() + mapOf("ok" to (state == "running"))
     }
 
@@ -250,6 +280,8 @@ class LogicService(
         pullEngine()
         if (state == "faulted") throw IllegalArgumentException("the engine is faulted; deploy again")
         if (!engine.connected()) state = "running"
+        message = ""
+        rememberRunState()
     }
 
     fun stop() {
@@ -260,6 +292,7 @@ class LogicService(
         pullEngine()
         if (!engine.connected()) state = "stopped"
         applySafe()
+        rememberRunState()
     }
 
     fun fault() {
@@ -289,6 +322,7 @@ class LogicService(
         val stem = libraryStem(java.io.File(deployed.library).name)
         val names = list()
         program = names.firstOrNull { it.equals(stem, ignoreCase = true) } ?: names.firstOrNull { it.equals(deployed.entry, ignoreCase = true) } ?: stem
+        if (managed?.control?.connected() != true) state = "stopped"
         pullEngine()
     }
 
