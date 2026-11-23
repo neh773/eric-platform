@@ -21,6 +21,11 @@ test("creates a program, shows a compile error, deploys, and forces a value", as
   await expect(page.getByRole("list", { name: "Problems" })).toContainText("Line 3, column 5");
 
   await replaceEditor(editor, "PROGRAM Pump\nVAR\n  Motor : BOOL;\nEND_VAR\nEND_PROGRAM\n");
+  // The tag map is shared by the gateway's programs: clear rows another test left, then map this one.
+  await expect(page.getByRole("region", { name: "Tag mapping and runtime" })).toHaveAttribute("data-mapping-loaded", "yes");
+  while (await page.getByRole("button", { name: "Remove mapping 0", exact: true }).count()) {
+    await page.getByRole("button", { name: "Remove mapping 0", exact: true }).click();
+  }
   await page.getByRole("button", { name: "Add mapping" }).click();
   await page.getByRole("textbox", { name: "Variable 0" }).fill("Motor");
   await page.getByRole("textbox", { name: "Tag 0" }).fill("pid/motor");
@@ -28,12 +33,14 @@ test("creates a program, shows a compile error, deploys, and forces a value", as
   await expect(page.locator("[aria-label='Logic status']")).toHaveText("running");
   await expect(page.getByRole("list", { name: "Watched variables" })).toContainText("Motor");
 
-  await page.getByRole("button", { name: "Force", exact: true }).click();
-  await expect(page.getByRole("status").filter({ hasText: "Forces are active" })).toBeVisible();
+  const motor = page.getByRole("list", { name: "Watched variables" }).getByRole("listitem").filter({ hasText: "Motor" });
+  await motor.getByRole("button", { name: "Force", exact: true }).click();
+  // 0.1.1: the forced banner names the count and the variables.
+  await expect(page.getByRole("alert").filter({ hasText: "1 value forced" })).toBeVisible();
   await expect(page.getByRole("list", { name: "Watched variables" })).toContainText("forced");
 
-  await page.getByRole("button", { name: "Unforce" }).click();
-  await expect(page.getByRole("status").filter({ hasText: "Forces are active" })).toHaveCount(0);
+  await motor.getByRole("button", { name: "Unforce" }).click();
+  await expect(page.getByRole("alert").filter({ hasText: "forced" })).toHaveCount(0);
 });
 
 /** Writes through the editor document so Check saves the same text the page shows. */
