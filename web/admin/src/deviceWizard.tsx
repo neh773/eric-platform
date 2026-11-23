@@ -207,6 +207,7 @@ export function DeviceWizard({ client, canWrite }: { client: ApiClient; canWrite
               name={editing.name}
               creating={editing.version == null}
               draft={editing.draft}
+              localDevices={devices.filter((item) => item.kind === "bacnet-local").map((item) => item.resource.metadata.name)}
               onName={(name) => setEditing({ ...editing, name })}
               onChange={(draft) => setEditing({ ...editing, draft })}
             />
@@ -227,12 +228,14 @@ function DeviceFields({
   name,
   creating,
   draft,
+  localDevices,
   onName,
   onChange,
 }: {
   name: string;
   creating: boolean;
   draft: DeviceDraft;
+  localDevices: string[];
   onName: (name: string) => void;
   onChange: (draft: DeviceDraft) => void;
 }) {
@@ -340,7 +343,16 @@ function DeviceFields({
       ) : null}
       {draft.kind === "bacnet-remote" ? (
         <>
-          <label>Local device<input aria-label="Local device" value={draft.localDevice} onChange={(event) => set("localDevice", event.target.value)} /></label>
+          <label>
+            Local device
+            <input aria-label="Local device" list="bacnet-local-devices" value={draft.localDevice} onChange={(event) => set("localDevice", event.target.value)} autoComplete="off" />
+            <datalist id="bacnet-local-devices">{localDevices.map((local) => <option key={local} value={local} />)}</datalist>
+          </label>
+          {localDevices.length === 0 ? (
+            <p className="hint">A remote device is reached through a BACnet local device on this gateway. Create a "BACnet local device" first.</p>
+          ) : draft.localDevice.trim() && !localDevices.includes(draft.localDevice.trim()) ? (
+            <p className="hint">No BACnet local device is named {draft.localDevice.trim()}. Local devices: {localDevices.join(", ")}.</p>
+          ) : null}
           <label>Device instance<input aria-label="Device instance" inputMode="numeric" value={draft.deviceInstance} onChange={(event) => set("deviceInstance", event.target.value)} /></label>
         </>
       ) : null}

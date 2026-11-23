@@ -64,3 +64,16 @@ test("after the first account exists the page is a normal sign-in", async ({ pag
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(page.getByRole("button", { name: "Log out" })).toBeVisible();
 });
+
+test("/hmi on a gateway with no projects says so instead of showing a sample", async ({ page }) => {
+  await page.goto(`${base}/admin`);
+  await page.getByLabel("Username").fill("nick");
+  await page.getByLabel("Password").fill(password);
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Log out" })).toBeVisible();
+  await page.goto(`${base}/hmi`);
+  const projects = page.getByRole("region", { name: "Projects" });
+  await expect(projects.getByText("This gateway has no saved projects yet.")).toBeVisible();
+  await expect(projects.getByRole("link", { name: "Control Canvas" })).toHaveAttribute("href", "/studio");
+  await expect(page.getByText("Built-in sample project")).toHaveCount(0);
+});
