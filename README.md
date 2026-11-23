@@ -1,6 +1,6 @@
 # ERIC
 
-**ERIC v0.1.0 is BETA software and must only be used with hardware for testing purposes under safe conditions — not for live production, life-safety, or equipment-protection use. It is provided AS IS with no warranty (AGPL-3.0).** See [docs/manual/safety.md](docs/manual/safety.md).
+**ERIC v0.1.1 is BETA software and must only be used with hardware for testing purposes under safe conditions — not for live production, life-safety, or equipment-protection use. It is provided AS IS with no warranty (AGPL-3.0).** See [docs/manual/safety.md](docs/manual/safety.md).
 
 ERIC (Engineered Runtime Interface & Control) connects to devices, holds tags, history and alarms, and serves operator screens. Control Canvas is the designer.
 

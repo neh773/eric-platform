@@ -1,12 +1,12 @@
 name: Bug report
-description: Something in ERIC 0.1.0-beta failed on the bench.
+description: Something in ERIC 0.1.x beta failed on the bench.
 title: "[bug] "
 labels: []
 body:
   - type: markdown
     attributes:
       value: |
-        ERIC v0.1.0 is BETA software. Use it only on hardware set up for testing. Remove passwords and plant addresses from logs before you attach them.
+        ERIC v0.1.1 is BETA software. Use it only on hardware set up for testing. Remove passwords and plant addresses from logs before you attach them.
   - type: textarea
     id: what
     attributes:
@@ -18,7 +18,7 @@ body:
     id: version
     attributes:
       label: Version
-      placeholder: 0.1.0-beta
+      placeholder: 0.1.1-beta
     validations:
       required: true
   - type: dropdown

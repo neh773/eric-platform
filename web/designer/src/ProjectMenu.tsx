@@ -433,7 +433,7 @@ function SaveAsDialog({
 function AboutDialog({ onClose }: { onClose: () => void }) {
   return (
     <Dialog title="About Control Canvas" onClose={onClose}>
-      <p>Control Canvas is the designer for ERIC (Engineered Runtime Interface & Control), version 0.1.0-beta.</p>
+      <p>Control Canvas is the designer for ERIC (Engineered Runtime Interface & Control), version 0.1.1-beta.</p>
       <p data-testid="about-beta">{BETA_NOTICE}</p>
       <p>Copyright (C) 2026 Nick Hepburn. Licensed under the GNU Affero General Public License v3.0 or later. No warranty.</p>
       <div className="oip-dialog-actions">

@@ -1,6 +1,6 @@
 # Safety and disclaimer
 
-**ERIC v0.1.0 is BETA software and must only be used with hardware for testing purposes under safe conditions — not for live production, life-safety, or equipment-protection use. It is provided AS IS with no warranty, as stated in the GNU Affero General Public License.**
+**ERIC v0.1.1 is BETA software and must only be used with hardware for testing purposes under safe conditions — not for live production, life-safety, or equipment-protection use. It is provided AS IS with no warranty, as stated in the GNU Affero General Public License.**
 
 Read that before you install, before you sign in, and before you connect a device.
 

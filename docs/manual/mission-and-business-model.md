@@ -1,6 +1,6 @@
 # Mission and business model
 
-**ERIC v0.1.0 is BETA software.** Use it only with hardware for testing purposes in safe conditions. It is provided AS IS with no warranty.
+**ERIC v0.1.1 is BETA software.** Use it only with hardware for testing purposes in safe conditions. It is provided AS IS with no warranty.
 
 ## What we are trying to do
 

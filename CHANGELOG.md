@@ -1,5 +1,34 @@
 # Changelog
 
+## 0.1.1-beta
+
+**ERIC v0.1.1 is BETA software and must only be used with hardware for testing purposes under safe conditions — not for live production, life-safety, or equipment-protection use. It is provided AS IS with no warranty (AGPL-3.0).**
+
+Everything a new user sets up can now be done in the admin page. No file imports, scripts or environment variables are needed.
+
+### Fixed
+
+- **Linux app image had no admin pages, Control Canvas or manual.** The gateway image now bundles `admin/`, `web/` and `docs/` in `lib/app`, and the gateway finds them next to its jar with no environment variables. The image launcher starts the gateway when none is running and opens the admin page. Data goes to `~/.local/share/eric/data` (or `$XDG_DATA_HOME/eric/data`).
+- **A fresh install had no way to sign in.** When the gateway has no users, `/admin` shows **Create administrator account** (username, password, confirm) instead of the sign-in form. It works only from a browser on the gateway machine (loopback, no proxy headers, same origin) and only until the first account exists; after that the route answers 409. `ERIC_ADMIN_PASSWORD` is still accepted for unattended installs. Applies to Linux and Windows.
+- **Device values did not reach UDT members.** A UDT member bound to a device address (for example `{Device}` + `HRUS30`) is now subscribed to the driver, follows definition edits, and is released when the instance is removed.
+- **Devices disappeared after a restart.** Config revalidation ran before a driver registered its schema and dropped the device. Kinds with no schema yet are now skipped until the driver registers.
+- `GET /api/v1/db/connections/{name}` and `/db/queries/{name}` answer 404 instead of 500 for a missing item.
+- Editing a tag-history entry on the Historian page no longer resets its sample rate, deadband and max time.
+- Environment names: the gateway and its launcher accept `ERIC_*` names everywhere (`OIP_*` still works).
+
+### Added
+
+- **UDT Definitions** page (Services): create, edit and delete UDT types. Parameters; members of kind device address, memory, expression, reference, derived and nested UDT; scaling, engineering units and range, value deadband; alarms (condition, priority, setpoints, deadband, on-delay); history (provider, sample mode and rate, deadband, max time).
+- History settings on a UDT member are collected for every instance and sent to the chosen provider. A tag-history entry on the Historian page for the same path wins.
+- **Databases**: **New connection**, **Edit** and **Delete** forms for PostgreSQL, MySQL, MariaDB, SQL Server, SQLite and uploaded drivers. The password is write-only; saving also tests the connection.
+- First-run endpoints `GET /api/v1/setup` and `POST /api/v1/setup/admin` (documented in the OpenAPI file).
+- Tests: `UdtDeviceMemberTest`, `DeviceRestartTest`, `FirstRunSetupTest`; e2e `first-run`, `udt-editor`, `db-connection-form`.
+
+### Changed
+
+- The history-provider form now starts at **SQL database** with table `oip_history`. The test-data provider is listed last.
+- Release notes take the version from the tag (`{{version}}`).
+
 ## 0.1.0-beta
 
 **ERIC v0.1.0 is BETA software and must only be used with hardware for testing purposes under safe conditions — not for live production, life-safety, or equipment-protection use. It is provided AS IS with no warranty (AGPL-3.0).**

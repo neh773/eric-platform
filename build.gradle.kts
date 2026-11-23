@@ -2,7 +2,7 @@ plugins { kotlin("jvm") version "2.0.21" apply false }
 subprojects {
     apply(plugin = "java-library")
     apply(plugin = "org.jetbrains.kotlin.jvm")
-    group = "org.oip"; version = "0.1.0-SNAPSHOT"
+    group = "org.oip"; version = "0.1.1-SNAPSHOT"
     repositories { mavenCentral() }
     extensions.configure<org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension> { jvmToolchain(21) }
     dependencies {

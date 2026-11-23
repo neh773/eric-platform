@@ -6,17 +6,16 @@ The **Databases** page (Connections group) shows database connections and named 
 
 ## Add a PostgreSQL connection
 
-Connections are created with the API; the password is stored as a secret and never shown on the page.
+1. Choose **New connection**.
+2. Fill in **Connection name** (for example `plant-db`), pick **Database type** `PostgreSQL`, then **Host**, **Port** (5432) and **Database**. The JDBC URL is built for you and shown under the fields. To paste a URL instead, fill in **JDBC URL**; the other fields are read from it.
+3. Fill in **Username** and **Password**. The password is stored as a secret. It is never shown again; when you edit the connection the field is empty and says a password is stored. Leave it empty to keep the stored password, or tick **Remove the stored password**.
+4. Choose **Create and test**. The connection is saved and tested, and the result is shown on the page.
 
-```
-curl -X POST -H "Authorization: Bearer $OIP_TOKEN" -H "Content-Type: application/json" \
-  http://127.0.0.1:8090/api/v1/db/connections \
-  -d '{"name":"plant-db","driver":"postgres",
-       "url":"jdbc:postgresql://db.example:5432/plant",
-       "username":"oip","password":"..."}'
-```
+To change a connection choose **Edit plant-db**, change the fields and choose **Save and test**. **Test plant-db** checks it again; **Delete plant-db** removes it after you confirm.
 
-Known `driver` values: postgres, sqlite, sqlserver, azuresql, mariadb, mysql, oracle, db2, snowflake and custom. If a driver's JAR is not bundled, upload it under **JDBC drivers** (driver id, optional driver class, JAR). Choose **Reload** to refresh the table, then **Test plant-db** to check the connection.
+Database types in the form: PostgreSQL, MySQL, MariaDB, Microsoft SQL Server, SQLite file, and Other (an uploaded JDBC driver with its own URL). If a driver's JAR is not bundled, upload it under **JDBC drivers** (driver id, optional driver class, JAR).
+
+The same connections can be scripted with `POST /api/v1/db/connections` (see [REST](rest.md)).
 
 ## Named queries
 

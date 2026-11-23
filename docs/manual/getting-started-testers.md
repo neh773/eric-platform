@@ -1,8 +1,8 @@
 # Getting started for testers
 
-**ERIC v0.1.0 is BETA software and must only be used with hardware for testing purposes under safe conditions — not for live production, life-safety, or equipment-protection use. It is provided AS IS with no warranty (AGPL-3.0).** Read [Safety and disclaimer](safety.md) before you connect a device.
+**ERIC v0.1.1 is BETA software and must only be used with hardware for testing purposes under safe conditions — not for live production, life-safety, or equipment-protection use. It is provided AS IS with no warranty (AGPL-3.0).** Read [Safety and disclaimer](safety.md) before you connect a device.
 
-This is the path for the 0.1.0-beta. It assumes you have the installer or a built checkout, and a bench device or no device at all.
+This is the path for the 0.1.1-beta. It assumes you have the installer or a built checkout, and a bench device or no device at all.
 
 ## Install on Windows
 

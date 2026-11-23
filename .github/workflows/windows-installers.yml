@@ -127,7 +127,7 @@ jobs:
           cp "$gateway" "release/ERIC-Gateway-${version}-windows-x64.exe"
           cp "$designer" "release/Control-Canvas-${version}-windows-x64.exe"
           cp dist/linux-app-images/linux-app-images.tar.gz "release/ERIC-${version}-linux-x64-app-images.tar.gz"
-          sed "s/0\.1\.0-beta/${version}/g" .github/release/notes.md > release-notes.md
+          sed "s/{{version}}/${version}/g" .github/release/notes.md > release-notes.md
           ls -l release
       - uses: softprops/action-gh-release@v2
         with:
