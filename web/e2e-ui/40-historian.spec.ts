@@ -20,6 +20,11 @@ export async function ensureHistory(page: Page, name: string, tagPath: string, p
 /** Samples for [tagPath] in the last 10 minutes, read through Control Canvas's History query tool. */
 export async function historyRows(page: Page, tagPath: string): Promise<number> {
   await openStudio(page);
+  // An empty project shows only the New view form; the tools need an open view. Leave it unsaved.
+  if (!(await page.getByRole("tree").count())) {
+    await page.getByRole("form", { name: "New view" }).getByRole("textbox").fill("historycheck");
+    await page.getByRole("form", { name: "New view" }).getByRole("button", { name: "Add view" }).click();
+  }
   await page.getByRole("tablist", { name: "Studio panels" }).getByRole("tab", { name: "Tools", exact: true }).click();
   await page.getByRole("tablist", { name: "Designer tools" }).getByRole("tab", { name: "History query" }).click();
   await page.getByLabel("History tag paths").fill(tagPath);

@@ -82,6 +82,8 @@ export function DeviceWizard({ client, canWrite }: { client: ApiClient; canWrite
   }
 
   function openNew() {
+    setFailure(null);
+    setNotice(null);
     const draft = emptyDevice();
     setEditing({ name: "", version: null, draft, jsonText: pretty(specFromDraft(draft)), mode: "form" });
   }
@@ -180,7 +182,7 @@ export function DeviceWizard({ client, canWrite }: { client: ApiClient; canWrite
           </tbody>
         </table>
       )}
-      {canWrite && !editing ? <p><button type="button" onClick={openNew}>New device</button></p> : null}
+      {canWrite ? <p><button type="button" onClick={openNew}>New device</button></p> : null}
       {editing ? (
         <form className="stack-form" aria-label={editing.version == null ? "New device" : `Device ${editing.name}`} onSubmit={save}>
           <h3>{editing.version == null ? "New device" : editing.name}</h3>

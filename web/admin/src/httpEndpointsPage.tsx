@@ -228,7 +228,9 @@ export function HttpEndpointsPage({ section, client, session }: AdminPageProps) 
             <tr key={row.name}>
               <td>{row.name}</td>
               <td>{row.type}</td>
-              <td>{`/system/webdev/gateway/${row.path}`}</td>
+              <td>
+                <a href={`/system/webdev/gateway/${row.path}`} target="_blank" rel="noopener noreferrer">{`/system/webdev/gateway/${row.path}`}</a>
+              </td>
               <td>{canWrite ? <button type="button" onClick={() => void remove(row)}>Delete {row.name}</button> : null}</td>
             </tr>
           ))}

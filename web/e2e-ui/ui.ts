@@ -141,7 +141,8 @@ export async function saveTagEditor(page: Page) {
 /** Studio for a project, signed in through the admin login cookie already on the context. */
 export async function openStudio(page: Page, project = PROJECT) {
   await page.goto(`/studio/?project=${project}`);
-  await expect(page.getByRole("tree").first()).toBeVisible();
+  // A project with views shows the project tree; a new, empty one shows only the New view form.
+  await expect(page.getByRole("tree").first().or(page.getByRole("form", { name: "New view" }))).toBeVisible();
 }
 
 export async function studioSave(page: Page) {

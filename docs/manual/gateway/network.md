@@ -7,12 +7,15 @@ These pages are in the Connections group, except Enterprise Admin, which is its 
 **Network** edits the web server and TLS.
 
 - HTTP bind address and port. The default listen port in a profile file is 8090. Installers often use 8088. A test gateway uses whatever port it was started with.
-- HTTPS: turn it on, set the HTTPS port (default 8043), and optionally force a redirect from HTTP.
+- HTTPS: tick **Serve HTTPS**, set the HTTPS port (default 8043), and choose **Save web server settings**. HTTPS
+  starts at once with the gateway's own certificate; the page says "HTTPS is on now". Turning it off stops the
+  HTTPS listener the same way. A change to the HTTP port, the bind address, the public address or the redirect
+  waits for the next gateway start, and the page says so.
 - Upload a PEM certificate and key, or a PKCS#12 file, with `PUT /api/v1/https/certificate`.
 - Create a certificate signing request with `POST /api/v1/https/csr`, then install the signed chain with `POST /api/v1/https/csr/install`.
 - TLS protocol and cipher policy: `PUT /api/v1/https/tls`.
 
-On Windows, a restore or wipe that replaces `https/` can fail while the TLS listener still has `server.crt` open. Restart the gateway and try again. This is a known limit of 0.1.0-beta.
+A backup restore or wipe that replaces `https/` stops the TLS listener's use of the files, puts the new files in place, and starts it again, on Windows too.
 
 The same page has the gateway-network listener (default port 8060). Outgoing peers, incoming approval, service policies and remote tag providers are `POST` calls under `/api/v1/gateway-network/`. The page lists them when the gateway has peers.
 

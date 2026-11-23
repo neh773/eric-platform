@@ -15,12 +15,16 @@ Everything a new user sets up can now be done in the admin page. No file imports
 - **Logic "running" did not run an engine on a default install.** The gateway now starts and supervises `eric-plc` itself: deploy compiles the program, starts the engine, links it to the tags, and the program resumes after a gateway restart.
 - **The Linux package had no Structured Text compiler or scan engine.** It now ships `eric-plc`, the pinned compiler with its standard library, and the process library in `lib/app/plc`. Deploy links the process-library blocks (`ERIC_PID` ...) into the program, and says when the computer has no C linker (`gcc`).
 - **Restored tags had no value until a restart.** Restoring a backup from the admin page now announces the replaced configuration, so tags come back with values.
+- **Turning on HTTPS needed a manual gateway restart.** Serve HTTPS on the Network page now starts (or stops) the HTTPS listener at once. HTTP port, address and redirect changes still apply on the next start, and the page says so.
 - **HTTPS stopped working after a backup restore** (the TLS listener stayed stopped). The listener and its certificate watcher restart after the files are put back.
 - **Plain HTTP on this machine showed an alarming session-cookie banner.** Plain HTTP from a browser on the gateway machine shows no warning; the Network page keeps a short note. Remote plain-HTTP access still warns.
 - **Windows: the firewall rule for the web port stayed after stop and uninstall.** The gateway removes it on shutdown.
 - **Health reported 0.1.0-SNAPSHOT on a release build.** The version now comes from the release tag and is written to the jar manifest.
 - The gateway no longer prints `xdg-open` errors on a Linux machine without a desktop.
 - New components in a coordinate view are placed on a free spot instead of 16 px over the previous one.
+- Connections: the device list says when it is loading and when a device type could not be listed, instead of showing "No device connections yet". **New device** stays available while a device form is open.
+- HTTP Endpoints: each endpoint's address is a link that opens it.
+- A new, blank Control Canvas project no longer says "Unsaved style classes". **New program** with the name of an existing program opens it.
 - The BACnet remote device form suggests the gateway's BACnet local devices and says when the named one does not exist.
 - `GET /api/v1/db/connections/{name}` and `/db/queries/{name}` answer 404 instead of 500 for a missing item.
 - Editing a tag-history entry on the Historian page no longer resets its sample rate, deadband and max time.

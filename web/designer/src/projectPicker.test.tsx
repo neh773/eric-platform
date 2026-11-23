@@ -52,9 +52,9 @@ describe("project picker", () => {
     fireEvent.change(within(dialog).getByLabelText("Description"), { target: { value: "North hall" } });
     fireEvent.change(within(dialog).getByLabelText("Parent project"), { target: { value: "shared" } });
     fireEvent.click(within(dialog).getByRole("button", { name: "Create project" }));
-    const leave = await screen.findByRole("alertdialog", { name: "Unsaved changes" });
-    fireEvent.click(within(leave).getByRole("button", { name: "Open anyway" }));
+    // The open project is empty and has nothing unsaved, so the new one opens without asking.
     await waitFor(() => expect(opened).toEqual(["packaging"]));
+    expect(screen.queryByRole("alertdialog", { name: "Unsaved changes" })).toBeNull();
     const post = calls.find((call) => call.method === "POST" && call.url === "/api/v1/projects" && call.body?.includes("packaging"));
     expect(JSON.parse(post?.body ?? "{}")).toMatchObject({ name: "packaging", title: "Packaging line", description: "North hall", parent: "shared" });
   });

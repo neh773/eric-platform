@@ -44,6 +44,7 @@ test.describe("Control Canvas", () => {
   test("a new project opens empty, not with unsaved sample screens", async ({ page }) => {
     await openStudio(page);
     await expect(page.getByText(/unsaved views/)).toHaveCount(0);
+    await expect(page.getByRole("status").filter({ hasText: /unsaved/i })).toHaveCount(0);
   });
 
   test("build a screen: live tag binding, a popup with detail, saved", async ({ page }) => {

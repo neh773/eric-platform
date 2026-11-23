@@ -1134,6 +1134,7 @@ class Gateway(
             }
             startManagedPlc()
             https.prepare()
+            https.server = { runCatching { app.jettyServer().server() }.getOrNull() }
             app.start(settings.host, settings.port)
             https.watchIncoming()
             control.publish(clientUrl())

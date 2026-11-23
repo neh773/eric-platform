@@ -246,7 +246,10 @@ export function TagsPage({ section, client, session, search }: AdminPageProps) {
                 Preview
               </button>
               <button type="button" disabled={pending || !ready || !previewIsCurrent} onClick={() => void submit(false)}>
-                Create {plan && previewIsCurrent ? plan.created : names.length} instances
+                {(() => {
+                  const count = plan && previewIsCurrent ? plan.created : names.length;
+                  return `Create ${count} ${count === 1 ? "instance" : "instances"}`;
+                })()}
               </button>
             </div>
           ) : null}

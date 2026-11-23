@@ -64,9 +64,10 @@ test.describe("UDTs", () => {
     await wizard.getByLabel("Count").fill("1");
     await wizard.getByLabel("Device for LS_01").fill(DEVICE.name);
     await wizard.getByRole("button", { name: "Preview" }).click();
-    await expect(wizard.getByText(/Will create 1, skip 0|Will create 0, skip 1/)).toBeVisible();
+    // The preview is shown below the wizard form.
+    await expect(main(page).getByRole("status").filter({ hasText: /Will create 1, skip 0|Will create 0, skip 1/ })).toBeVisible();
     const create = wizard.getByRole("button", { name: /^Create 1 instance/ });
-    if (await wizard.getByText("Will create 1, skip 0").count()) {
+    if (await main(page).getByText("Will create 1, skip 0").count()) {
       await expect(create).toBeEnabled();
       await create.click();
       await expect(page.getByText(/Created 1 instance/).first()).toBeVisible();
