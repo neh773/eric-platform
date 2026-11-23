@@ -24,6 +24,8 @@ _ENCODED = (
     "YXZldmE=",
     "a2Vwd2FyZQ==",
     "dmlzaW9u",
+    "b21yb24=",
+    "bWl0c3ViaXNoaQ==",
 )
 
 

@@ -9,8 +9,8 @@ Nothing here is promised. How an item gets paid for is described in [funding-mod
 | Item | Why it matters | Effort | Status |
 | --- | --- | --- | --- |
 | Direct I/O on the PLC engine: EtherCAT, and Modbus from the engine rather than the gateway | A soft-PLC that only sees gateway tags cannot close a fast loop on a local rack. | Large | Not started |
-| FINS driver | Omron controllers are common on existing plants. | Medium | Not started |
-| MC protocol driver | Mitsubishi controllers, same reason. | Medium | Not started |
+| FINS protocol driver | Many controllers on existing plants speak only the FINS protocol. | Medium | Not started |
+| MC protocol driver | Many controllers on existing plants speak only the MC protocol. | Medium | Not started |
 | Gateway-to-gateway proxy and store-and-forward across several hops | A remote station should keep history when the path to the central gateway drops, then forward it. | Large | Not started |
 
 ## Historian and databases
