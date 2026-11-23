@@ -85,6 +85,7 @@ test("PLC online mode: force an output to the Modbus device and release it", asy
 
   // The device tag on the admin page shows the forced value read back from the device.
   const studio = page.url();
+  await page.goto("/admin/home");
   await openTag(page, CMD_TAG);
   await expect(async () => expect(await tagRow(page, "PlcPumpCmd").innerText()).toContain("1234")).toPass({ timeout: 30_000 });
 
