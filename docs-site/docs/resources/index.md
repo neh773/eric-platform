@@ -6,7 +6,7 @@ sidebar_label: Resource split (PLC / ERIC)
 # Resource split (PLC / ERIC)
 
 :::caution PLC on Windows
-This PLC is running on a Windows PC. Windows can't give the PLC truly dedicated CPU cores, memory, or interrupt-free timing, so scan timing isn't guaranteed and it does not behave like a real PLC. Use it for development, testing, training, and non-critical slow process control only — never for safety or fast motion. For real-time control, run the ERIC PLC on a Linux computer with a real-time kernel. On Windows the split is affinity, a locked working set, and the gateway `-Xmx`. Windows cannot fully isolate a core, and a reboot is not what applies it.
+This PLC is running on a Windows PC. Windows can't give the PLC truly dedicated CPU cores, memory, or interrupt-free timing, so scan timing isn't guaranteed and it does not behave like a real PLC. Use it for development, testing, training, and non-critical slow process control only — never for safety or fast motion. For real-time control, run the ERIC PLC on a Linux computer with a real-time kernel. Scan times under 100 mS are difficult to execute. For higher performance, use on Linux. On Windows the split is affinity, a locked working set, and the gateway `-Xmx`. Windows cannot fully isolate a core, and a reboot is not what applies it.
 :::
 
 The scan engine needs cores and memory that the rest of ERIC does not use. This page is the no-code way to choose that split. It is not a safety controller, and the change does not take effect until the machine reboots.

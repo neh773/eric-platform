@@ -8,6 +8,7 @@ describe("PLC Windows banner", () => {
     expect(showPlcWindowsBanner("linux")).toBe(false);
     const view = render(<PlcWindowsBanner os="windows" />);
     expect(screen.getByTestId("plc-windows-banner").textContent).toContain("Windows PC");
+    expect(screen.getByTestId("plc-windows-banner").textContent).toContain("Scan times under 100 mS are difficult to execute. For higher performance, use on Linux.");
     expect(screen.getByTestId("plc-windows-banner").querySelector("button")).toBeNull();
     view.rerender(<PlcWindowsBanner os="linux" />);
     expect(screen.queryByTestId("plc-windows-banner")).toBeNull();

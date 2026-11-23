@@ -11,6 +11,8 @@ class HostPlatformTest {
         assertEquals("linux", HostPlatform.osName("Linux"))
         assertTrue(HostPlatform.body("Windows Server 2022")["windowsPlc"] as Boolean)
         assertFalse(HostPlatform.body("Linux")["windowsPlc"] as Boolean)
-        assertTrue((HostPlatform.body("Windows 10")["banner"] as String).contains("real-time kernel"))
+        val banner = HostPlatform.body("Windows 10")["banner"] as String
+        assertTrue(banner.contains("real-time kernel"))
+        assertTrue(banner.contains("Scan times under 100 mS are difficult to execute. For higher performance, use on Linux."))
     }
 }
