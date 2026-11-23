@@ -109,7 +109,7 @@ On each platform, after the new-user pass:
 
 | Step | Check |
 | --- | --- |
-| Restart button | **Gateway > Restart** in admin. The gateway comes back; the PLC program is running; devices reconnect. |
+| Restart by stop and start | The admin Overview has no Restart button; it says to stop ERIC and start it again. Do that (Windows: restart the service; Linux: stop and rerun the launcher). The gateway comes back; devices reconnect. |
 | Service stop and start | Stop and start the service (`systemctl` on Linux, Services on Windows). Same checks. |
 | Crash | Kill the gateway process (`kill -9` on Linux, End task on Windows). The service restarts it; nothing is lost. |
 | Reinstall keeping data | Reinstall the same version over the top. Configuration, projects and PLC programs are kept. |
@@ -150,7 +150,7 @@ Platform: Linux / Windows    Build: <version or commit>    Tester: <name or agen
 | 12 | Scripts | 2.12 | | |
 | 13 | Backup to file | 2.13 | | |
 | 14 | Restore on a fresh install | 2.14 | | |
-| L1 | Restart button | 3 | | |
+| L1 | Restart by stop and start | 3 | | |
 | L2 | Service stop and start | 3 | | |
 | L3 | Crash | 3 | | |
 | L4 | Reinstall keeping data | 3 | | |

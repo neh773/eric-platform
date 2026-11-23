@@ -109,35 +109,6 @@ export function OverviewPage({ section, client, session }: AdminPageProps) {
   const [modeError, setModeError] = useState<string | null>(null);
   const [modePending, setModePending] = useState(false);
 
-  const [restart, setRestart] = useState<"idle" | "confirm" | "waiting" | "back" | string>("idle");
-
-  async function restartGateway() {
-    if (!client) return;
-    setRestart("waiting");
-    try {
-      const result = await client.restartGateway();
-      if (result.how === "stop-only") {
-        setRestart("The gateway stopped. Start it again from the Start menu or a terminal.");
-        return;
-      }
-      // Wait for it to go down, then to come back.
-      await new Promise((resolve) => setTimeout(resolve, 2_000));
-      const deadline = Date.now() + 120_000;
-      while (Date.now() < deadline) {
-        try {
-          const res = await fetch("/api/v1/health", { cache: "no-store" });
-          if (res.ok) { setRestart("back"); health.reload(); return; }
-        } catch {
-          // still down
-        }
-        await new Promise((resolve) => setTimeout(resolve, 1_000));
-      }
-      setRestart("The gateway has not come back after 2 minutes. Check the service or start it again.");
-    } catch (err) {
-      setRestart(errorMessage(err, "Could not restart the gateway"));
-    }
-  }
-
   async function switchMode(mode: string | null) {
     if (!client || modePending) return;
     setModePending(true);
@@ -216,22 +187,10 @@ export function OverviewPage({ section, client, session }: AdminPageProps) {
                 : "Loading"}
           </dd>
         </dl>
-        {canWrite ? (
-          <div className="actions">
-            {restart === "confirm" ? (
-              <>
-                <span>Restart the gateway now? Connected screens and the PLC pause for a few seconds.</span>
-                <button type="button" onClick={() => void restartGateway()}>Yes, restart</button>
-                <button type="button" className="quiet" onClick={() => setRestart("idle")}>Cancel</button>
-              </>
-            ) : (
-              <button type="button" disabled={restart === "waiting"} onClick={() => setRestart("confirm")}>Restart gateway</button>
-            )}
-          </div>
-        ) : null}
-        {restart === "waiting" ? <p role="status">Restarting the gateway. This page reconnects when it is back.</p> : null}
-        {restart === "back" ? <p role="status">The gateway restarted.</p> : null}
-        {!["idle", "confirm", "waiting", "back"].includes(restart) ? <p role="alert">{restart}</p> : null}
+        <p data-testid="overview-restart-help">
+          To restart, stop ERIC and start it again. On Windows, open Services and restart the ERIC Gateway service. On
+          Linux, stop the gateway (Ctrl+C in its terminal) and run the launcher again.
+        </p>
       </section>
       <section aria-labelledby="overview-about">
         <h2 id="overview-about">About</h2>

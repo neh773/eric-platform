@@ -133,6 +133,7 @@ Found in the 0.1.1 new-user audit. None of them stops a fresh install from worki
 | History queries leave out empty minutes | Minutes before recording started show as blank rows with 0 samples. They should be left out or marked as no data. | Small | Not started |
 | Stray "Diagnostics" word on UDT member rows | Cosmetic: the UDT instance member list shows an extra label. | Small | Not started |
 | Reliable timing in two tests | The gateway EAM test under heavy load and one Control Canvas checkbox browser test sometimes fail on timing. | Small | Not started |
+| In-app gateway restart | The admin page had a Restart button, but a gateway started from the Linux archive launcher stopped and never came back, because nothing restarts it. It was removed; to restart, stop ERIC and start it again. A safe in-app restart needs a supervisor on every install type. | Medium | Not started |
 | Browser test for the HMI reacting to a forced value | Test coverage: a forced PLC output should show on an HMI screen. | Small | Not started |
 
 ## Tests that need a bigger machine

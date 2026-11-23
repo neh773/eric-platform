@@ -215,7 +215,7 @@ export function Login({
         <ThemeSwitcher />
         <h1>Sign in</h1>
         <p className="lede">Gateway administration. The session cookie stays on the gateway; this page does not store the password.</p>
-        {restored ? <p role="status">Restored {restored}. Sign in with an account from the backup, then use Overview, Restart gateway to start the restored devices, historian and MQTT connections.</p> : null}
+        {restored ? <p role="status">Restored {restored}. Sign in with an account from the backup, then stop ERIC and start it again to start the restored devices, historian and MQTT connections.</p> : null}
         <label>
           Username
           <input name="username" autoComplete="username" value={username} onChange={(event) => setUsername(event.target.value)} required />

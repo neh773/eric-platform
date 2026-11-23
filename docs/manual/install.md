@@ -19,6 +19,8 @@
 5. Later, open **ERIC Admin** from the Start menu, or go to `http://localhost:8090/admin` (also `http://127.0.0.1:8090/admin`). The address is plain HTTP, so there is no certificate warning. Turn on HTTPS in Network before other computers sign in.
 6. Control Canvas has its own installer and Start-menu shortcut. The manual is served at `http://127.0.0.1:8090/docs`. Example projects are not installed. See [Brownsville](examples/brownsville.md).
 
+To restart the gateway, open **Services**, select **ERIC Gateway** and choose **Restart**. The admin page has no Restart button in this beta.
+
 Every install keeps its log at `C:\ProgramData\ERIC\logs\install.log`, also when it succeeds. If the gateway does not open, see [Troubleshooting on Windows](troubleshooting-windows.md).
 
 ### Silent install
@@ -44,7 +46,7 @@ A release has a gateway archive and a Control Canvas archive. They are app image
 
 PLC deploy needs nothing extra: the archive includes the Structured Text compiler, the scan engine and the LLVM linker (`lib/app/plc/llvm/ld.lld`). You do not need gcc or other developer tools.
 
-Data is kept in `~/.local/share/eric/data` (or `$XDG_DATA_HOME/eric/data`). Control Canvas is `"./image/Control Canvas/bin/Control Canvas"`, and it is also served by the gateway at `http://127.0.0.1:8090/designer`. Stop the gateway with Ctrl+C. Devices, tags, UDT definitions, connections and history settings are kept when it restarts.
+Data is kept in `~/.local/share/eric/data` (or `$XDG_DATA_HOME/eric/data`). Control Canvas is `"./image/Control Canvas/bin/Control Canvas"`, and it is also served by the gateway at `http://127.0.0.1:8090/designer`. Stop the gateway with Ctrl+C. To restart it, stop it and run the launcher again; the admin page has no Restart button in this beta. Devices, tags, UDT definitions, connections and history settings are kept when it restarts.
 
 You can also build from a checkout with JDK 21: `./gradlew :gateway:server:installDist` after `pnpm build` in `web/`. A checkout build looks for `web/admin/dist`, `web/designer/dist` and `docs/manual` through `ERIC_ADMIN_DIST`, `ERIC_WEB_DIST` and `ERIC_DOCS_DIR` when they are not next to the jar.
 

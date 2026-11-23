@@ -21,6 +21,9 @@ test("overview shows gateway health and live figures", async ({ page }) => {
   await expect(page.getByTestId("overview-profile")).toHaveText(health.profile);
   await expect(page.getByTestId("overview-modules")).toHaveText(String(health.modules));
   await expect(page.getByTestId("overview-uptime")).toContainText(`started ${new Date(health.startedAt).toISOString()}`);
+  // No in-app restart in this beta: a gateway started from the Linux archive would not come back.
+  await expect(page.getByRole("button", { name: /restart/i })).toHaveCount(0);
+  await expect(page.getByTestId("overview-restart-help")).toContainText("To restart, stop ERIC and start it again");
   await expect(page.getByTestId("overview-cpu")).toHaveText(/%|n\/a/);
   await expect(page.getByTestId("overview-heap")).toContainText(" of ");
   await expect(page.getByTestId("overview-disk")).toContainText(" of ");

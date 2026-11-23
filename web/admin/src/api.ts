@@ -765,13 +765,6 @@ export class ApiClient {
     };
   }
 
-  /** Restarts the gateway process (Overview > Restart gateway). */
-  async restartGateway(): Promise<{ restarting: boolean; how: string }> {
-    const res = await this.request("POST", "/api/v1/gateway/restart", {});
-    if (!res.ok) throw new Error(`restart refused (${res.status})`);
-    return (await res.json()) as { restarting: boolean; how: string };
-  }
-
   async health(): Promise<HealthReport> {
     const res = await this.send("GET", "/api/v1/health", undefined, "none");
     if (!res.ok) throw new ApiError(await problemDetail(res), res.status);
