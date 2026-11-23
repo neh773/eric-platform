@@ -3,10 +3,8 @@
    three outstations that feed it. Call the block twice in the program to
    cover all eight stations.
 
-   This file shows the natural form: a station structure passed IN_OUT.
-   ERIC's Structured Text dialect does not document STRUCT or VAR_IN_OUT,
-   and gateway UDTs are not ST structures. Use CentralInhibit.eric.st in
-   the Logic editor. See ../st-limitations.md.
+   A station structure passed IN_OUT. In Logic, bind each station
+   variable to a gateway UDT instance (docs/manual/plc/udts.md).
 *)
 
 TYPE

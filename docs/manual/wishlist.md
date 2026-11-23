@@ -35,7 +35,7 @@ Nothing here is promised. How an item gets paid for is described in [Funding and
 | Full IEC 61131-3 function and function-block set | Programs ported from another controller expect the standard blocks. | Large | Partial: ST, a PID, and a small process library |
 | Timers, counters, rising and falling edge | Everyday ladder habits in ST form. | Medium | Partial |
 | String and time functions | Recipes and schedules need them. | Medium | Not started |
-| Arrays and structures as first-class ST types | A lift station is a structure, not forty loose tags. | Medium | Partial, through gateway UDTs rather than ST structs |
+| Arrays and structures as first-class ST types | A lift station is a structure, not forty loose tags. | Medium | Structures are in (gateway UDTs as ST types, `STRUCT`, `VAR_IN_OUT`); arrays are not |
 | Object-oriented extensions (methods, interfaces) | Large libraries stay maintainable. | Large | Not started |
 | Retain and persistent variables | A setpoint should survive a restart. | Medium | Not started |
 | Online monitoring and forcing | Commissioning without a second tool. | Large | Not started |
@@ -65,13 +65,15 @@ See the same table in the repository wishlist. This copy matches it.
 | `PROGRAM`, `FUNCTION_BLOCK` | Supported |
 | `FUNCTION` as its own callable unit, methods, interfaces | Not supported |
 | `VAR`, `VAR_INPUT`, `VAR_OUTPUT` | Supported |
-| `VAR_IN_OUT`, `VAR_TEMP`, `VAR_GLOBAL`, `VAR_EXTERNAL`, `VAR_ACCESS` | Not a documented path |
+| `VAR_IN_OUT` | Supported, including structure parameters |
+| `VAR_TEMP`, `VAR_GLOBAL`, `VAR_EXTERNAL`, `VAR_ACCESS` | Not a documented path |
 | `BOOL`, `INT`, `DINT`, `REAL`, `LREAL` | Supported |
 | `SINT`, `USINT`, `UINT`, `UDINT`, `LINT`, `ULINT`, `BYTE`, `WORD`, `DWORD`, `LWORD` | Not in the editor completion |
 | `TIME` literals such as `T#200ms` on standard timers | Supported for the timer blocks |
 | `DATE`, `TIME_OF_DAY`, `DATE_AND_TIME`, `STRING`, `WSTRING` | Not started |
 | Arrays as a general program feature | Not a documented editor feature. Two process blocks use a fixed internal array. |
-| `STRUCT`, enumerations | Not supported. Gateway user-defined types are not ST structures. |
+| `STRUCT` | Supported. Gateway UDTs are available as ST types and bind to UDT instances. |
+| Enumerations | Not supported |
 | `TON`, `TOF`, `TP` | Supported, standard library |
 | `CTU`, `CTD`, `CTUD` | Supported, standard library |
 | `R_TRIG`, `F_TRIG`, `SR`, `RS` | Supported, standard library |

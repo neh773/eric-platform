@@ -11,8 +11,18 @@ This is not a safety controller. On Windows it is not a real-time controller. Re
 - The bundled IEC standard library: timers, counters, and edge triggers.
 - The ERIC process library, including `ERIC_PID`.
 - A tag map that connects program variables to gateway tags.
+- Structures: gateway UDTs as ST types, `STRUCT`, and `VAR_IN_OUT` / `VAR_INPUT` structure parameters, bound to UDT
+  instances from a list. See [Structures and gateway UDTs](udts.md).
+- The gateway starts and supervises the scan engine itself. Deploy compiles the program, starts `eric-plc`, and
+  the program resumes after a gateway restart.
 - Watched values, force, and unforce while the engine is running.
 - A resource page that proposes how many cores and how much memory the engine may use.
+
+## What a Linux computer needs
+
+The Linux package includes the Structured Text compiler and the scan engine. Deploy also needs a C compiler to link
+the program: install `gcc` (`sudo apt install gcc`, or `sudo dnf install gcc`). Without one, deploy says so. Check
+works without it. Windows needs the Visual Studio Build Tools; see [Windows soft-PLC](windows.md).
 
 ## What is not in this build
 
@@ -26,5 +36,6 @@ Ladder, function block diagram, and sequential function chart. Online program ch
 4. [Standard library](stdlib.md)
 5. [Process library](process-library.md)
 6. [Tags](tags.md)
-7. [Diagnostics](diagnostics.md)
-8. [Troubleshooting](troubleshooting.md)
+7. [Structures and gateway UDTs](udts.md)
+8. [Diagnostics](diagnostics.md)
+9. [Troubleshooting](troubleshooting.md)
