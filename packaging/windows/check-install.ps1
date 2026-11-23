@@ -64,9 +64,17 @@ try {
 
 Line ""
 Line "PLC deploy"
-$vswhere = Join-Path ${env:ProgramFiles(x86)} "Microsoft Visual Studio\Installer\vswhere.exe"
-if (Test-Path $vswhere) { Ok "Visual Studio Build Tools found (needed to deploy PLC programs on Windows)" }
-else { Line "  NOTE  Visual Studio Build Tools with 'Desktop development with C++' are not installed. Everything except PLC deploy works without them." }
+# Deploy links programs with the bundled LLVM linker; no Visual Studio or Build Tools are needed.
+$lld = Join-Path $install "app\plc\llvm\lld-link.exe"
+if (-not (Test-Path $lld)) { Bad "missing app\plc\llvm\lld-link.exe (the PLC linker): reinstall ERIC Gateway" }
+else {
+  $p = Start-Process -FilePath $lld -ArgumentList "--version" -NoNewWindow -Wait -PassThru -RedirectStandardOutput "$env:TEMP\eric-check-out.txt" -RedirectStandardError "$env:TEMP\eric-check-err.txt"
+  if ($p.ExitCode -eq 0) { Ok "PLC linker starts ($((Get-Content "$env:TEMP\eric-check-out.txt" -ErrorAction SilentlyContinue | Select-Object -First 1)))" }
+  else { Bad "app\plc\llvm\lld-link.exe exited with $($p.ExitCode): reinstall ERIC Gateway" }
+}
+foreach ($f in @("app\plc\rusty\iec61131std.dll", "app\plc\rusty\stdlib\include")) {
+  if (Test-Path (Join-Path $install $f)) { Ok $f } else { Bad "missing $($f): reinstall ERIC Gateway" }
+}
 
 Line ""
 Line "Install log"

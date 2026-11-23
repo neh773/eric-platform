@@ -12,7 +12,7 @@ release-process). Run from an elevated PowerShell in the repository root:
 4. Web lint, typecheck, unit tests, e2e          admin page and Control Canvas forms, plus restart, kill,
                                                  backup restore, with the bundled compiler and scan engine
 
-Needs JDK 21, Rust (cargo), Visual Studio Build Tools (the linker), Node 22 with corepack, Python 3, WiX 3 on PATH,
+Needs JDK 21, Rust (cargo) with its MSVC toolchain (to build eric-plc.exe; PLC deploy itself needs no Visual Studio), Node 22 with corepack, Python 3, WiX 3 on PATH,
 and network access for the pinned downloads. Elevation is needed for the installer test.
 #>
 $ErrorActionPreference = "Stop"

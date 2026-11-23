@@ -1,6 +1,6 @@
 RuSTy v1.0.8 source offer
 
-plc.exe, iec61131std.dll, and iec61131std.lib in this install are the RuSTy v1.0.8 compiler and its standard library. They are separate programs. ERIC does not link them.
+plc.exe and iec61131std.dll in this install are the RuSTy v1.0.8 compiler and its standard library. They are separate programs. ERIC does not link them.
 
 They are licensed under the GNU Lesser General Public License, version 3, together with the GNU General Public License, version 3. Copies of both licenses are in this folder.
 

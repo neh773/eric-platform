@@ -148,67 +148,63 @@ function Enable-Msvc {
     }
 }
 
+# Deploy a Structured Text program through the installed gateway, the way the Logic page does, with Visual
+# Studio hidden: the bundled LLVM linker must be enough. The program reads through a REF_TO that only its
+# constructors set, so a scan with a missed constructor table faults instead of reporting 42.
 function Invoke-St {
-    Enable-Msvc
-    $plc = "C:\Program Files\$($layout.serviceName)\app\plc"
-    $compiler = Join-Path $plc "rusty\plc.exe"
-    if (-not (Test-Path $compiler)) { throw "RuSTy plc.exe was not installed" }
-    $work = Join-Path $env:TEMP "eric-st-smoke"
-    if (Test-Path $work) { Remove-Item $work -Recurse -Force }
-    New-Item -ItemType Directory -Path $work | Out-Null
-    $source = Join-Path $plc "examples\sealin\sealin.st"
-    $include = Join-Path $plc "rusty\stdlib\include"
-    $obj = Join-Path $work "sealin.obj"
-    $hw = Join-Path $work "hwmap.json"
-    $compile = Start-Quoted $compiler @($source, "-i", (Join-Path $include "*.st"), "-c", "--hwmap-file=$hw", "-o", $obj)
-    $compile.WaitForExit() | Out-Null
-    if ($compile.ExitCode -ne 0 -or -not (Test-Path $obj)) {
-        Get-Content (Join-Path $work "compile.out"), (Join-Path $work "compile.err") -ErrorAction SilentlyContinue
-        throw "RuSTy did not produce a Windows object ($($compile.ExitCode))"
+    $vswhere = Join-Path ${env:ProgramFiles(x86)} "Microsoft Visual Studio\Installer\vswhere.exe"
+    $hidden = "$vswhere.eric-hidden"
+    if (Test-Path $vswhere) { Rename-Item -Path $vswhere -NewName ([IO.Path]::GetFileName($hidden)) }
+    try {
+        $plc = "C:\Program Files\$($layout.serviceName)\app\plc"
+        foreach ($f in @("llvm\lld-link.exe", "rusty\plc.exe", "rusty\iec61131std.dll", "rusty\stdlib\include")) {
+            if (-not (Test-Path (Join-Path $plc $f))) { throw "PLC bundle file missing: $f" }
+        }
+        $base = "http://127.0.0.1:8090/api/v1"
+        $bytes = New-Object byte[] 18
+        [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes)
+        $secret = "Smoke-" + [Convert]::ToBase64String($bytes)
+        $setup = Invoke-WebRequest -Uri "$base/setup/admin" -Method Post -ContentType "application/json" -SessionVariable web -UseBasicParsing `
+            -Body (@{ username = "smoke"; password = $secret } | ConvertTo-Json)
+        $csrf = ($setup.Content | ConvertFrom-Json).csrfToken
+        if (-not $csrf) { throw "first-run admin did not return a session" }
+        $headers = @{ "X-CSRF-Token" = $csrf }
+        function Call($method, $path, $body) {
+            $req = @{ Uri = "$base$path"; Method = $method; WebSession = $web; Headers = $headers; UseBasicParsing = $true; ContentType = "application/json" }
+            if ($null -ne $body) { $req.Body = ($body | ConvertTo-Json -Depth 6) }
+            $r = Invoke-WebRequest @req
+            if ($r.Content) { return $r.Content | ConvertFrom-Json }
+        }
+        $source = @"
+PROGRAM SmokeLink
+VAR_OUTPUT answer AT %QD0 : DINT; END_VAR
+VAR x : DINT := 42; p : REF_TO DINT := REF(x); delay : TON; END_VAR
+delay(IN := TRUE, PT := T#50ms);
+answer := p^;
+END_PROGRAM
+"@
+        Call Post "/logic/programs" @{ name = "SmokeLink" } | Out-Null
+        Call Put "/logic/programs/SmokeLink" @{ source = $source } | Out-Null
+        Call Put "/logic/mapping" @{ inputs = @(); outputs = @(@{ address = "%QD0"; tag = "[default]Smoke/Answer"; type = "DINT"; name = "answer" }) } | Out-Null
+        $deploy = Call Post "/logic/deploy" @{ program = "SmokeLink" }
+        if (-not $deploy.ok) { throw "deploy failed without Visual Studio: $($deploy | ConvertTo-Json -Depth 6)" }
+        $deadline = (Get-Date).AddSeconds(60)
+        $answer = $null
+        do {
+            Start-Sleep -Seconds 1
+            $watch = Call Get "/logic/watch" $null
+            $row = @($watch.variables) | Where-Object { $_.name -eq "answer" } | Select-Object -First 1
+            if ($watch.state -eq "running" -and $null -ne $row) { $answer = $row.value }
+        } while ((Get-Date) -lt $deadline -and "$answer" -ne "42")
+        if ("$answer" -ne "42") { throw "deployed program did not report answer=42 (state $($watch.state), answer $answer)" }
+        Call Post "/logic/stop" $null | Out-Null
+        Write-Host "deployed a Structured Text program with the bundled LLVM linker and no Visual Studio: running, answer=42"
+        if ($env:GITHUB_STEP_SUMMARY) {
+            Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "## PLC deploy without Visual Studio`n`nvswhere hidden; Logic deploy linked with plc\llvm\lld-link.exe; program running, answer=42."
+        }
+    } finally {
+        if (Test-Path $hidden) { Rename-Item -Path $hidden -NewName ([IO.Path]::GetFileName($vswhere)) }
     }
-    $link = Get-Command link.exe -ErrorAction SilentlyContinue
-    $dumpbin = Get-Command dumpbin.exe -ErrorAction SilentlyContinue
-    if ($null -eq $link -or $null -eq $dumpbin) { throw "link.exe and dumpbin.exe must be on PATH to link the RuSTy object" }
-    $dll = Join-Path $work "sealin.dll"
-    $exports = New-Object System.Collections.Generic.List[string]
-    foreach ($line in (& dumpbin.exe /SYMBOLS $obj)) {
-        if ($line -match 'UNDEF') { continue }
-        if ($line -match 'External\s+\|\s+(\S+)\s*$') { $exports.Add($Matches[1]) }
-    }
-    $linkArgs = @("/nologo", "/DLL")
-    foreach ($name in $exports) { $linkArgs += "/EXPORT:$name" }
-    $linkArgs += @("/OUT:$dll", $obj, (Join-Path $plc "rusty\iec61131std.lib"), "kernel32.lib", "advapi32.lib", "userenv.lib", "ws2_32.lib", "ntdll.lib", "bcrypt.lib", "msvcrt.lib", "vcruntime.lib", "ucrt.lib")
-    $linked = Start-Quoted $link.Source $linkArgs
-    $linked.WaitForExit() | Out-Null
-    if ($linked.ExitCode -ne 0 -or -not (Test-Path $dll)) {
-        Get-Content (Join-Path $work "link.out"), (Join-Path $work "link.err") -ErrorAction SilentlyContinue
-        throw "the Microsoft linker did not produce sealin.dll"
-    }
-    Copy-Item (Join-Path $plc "rusty\iec61131std.dll") (Join-Path $work "iec61131std.dll") -Force
-    Copy-Item (Join-Path $plc "examples\sealin\mapping.json") (Join-Path $work "mapping.json") -Force
-    @"
-period_ms = 20
-fifo_priority = 50
-mlock = false
-max_consecutive_overruns = 3
-bridge_timeout_ms = 1000
-shm_path = "$($work -replace '\\','/')/image.bin"
-program = "sealin.dll"
-entry = "SealIn"
-instance = "SealIn_instance"
-hwmap = "hwmap.json"
-mapping = "mapping.json"
-status_path = "status.json"
-label = "CI Windows runner, not reference"
-control_socket = ""
-"@ | Set-Content -Path (Join-Path $work "plc.toml")
-    $run = Start-Quoted (Join-Path $plc "eric-plc.exe") @("run", "--config", (Join-Path $work "plc.toml"), "--duration-ms", "1000") $work
-    $run.WaitForExit() | Out-Null
-    if ($run.ExitCode -ne 0) {
-        Get-Content (Join-Path $work "st.err") -ErrorAction SilentlyContinue
-        throw "eric-plc did not run the Windows ST program ($($run.ExitCode))"
-    }
-    Write-Host "RuSTy produced sealin.dll and eric-plc ran it"
 }
 
 Write-Host "gateway installer: $installer"

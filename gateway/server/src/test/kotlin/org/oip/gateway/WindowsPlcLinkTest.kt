@@ -40,11 +40,12 @@ class WindowsPlcLinkTest {
             source,
             """
             PROGRAM Pump
-            VAR_INPUT level AT %ID0 : REAL; END_VAR
-            VAR_OUTPUT run AT %QX0.0 : BOOL; END_VAR
-            VAR delay : TON; scaled : LREAL; buffer : ARRAY[0..4095] OF BYTE; END_VAR
-            delay(IN := level > 50.0, PT := T#2s);
+            VAR_INPUT start AT %IX0.0 : BOOL; END_VAR
+            VAR_OUTPUT answer AT %QD0 : DINT; run AT %QX4.0 : BOOL; END_VAR
+            VAR x : DINT := 42; p : REF_TO DINT := REF(x); delay : TON; scaled : LREAL; buffer : ARRAY[0..4095] OF BYTE; END_VAR
+            delay(IN := start, PT := T#20ms);
             run := delay.Q;
+            answer := p^;
             scaled := SQRT(LREAL#2.0) * PI_LREAL + INT_TO_LREAL(3);
             buffer[1] := 7;
             END_PROGRAM

@@ -8,6 +8,8 @@ The names ERIC and Control Canvas are trademarks of Nick Hepburn. This license d
 
 Third-party notices are installed beside the program as THIRD_PARTY.md.
 
-The Structured Text compiler RuSTy v1.0.8 and its iec61131std library are GNU Lesser General Public License version 3. They are shipped as separate files (plc.exe, iec61131std.dll, and iec61131std.lib). They are not linked into ERIC. The LGPL text and a written offer of the corresponding source are installed under app\plc\licenses. The source is the v1.0.8 tag of the RuSTy project.
+The Structured Text compiler RuSTy v1.0.8 and its iec61131std library are GNU Lesser General Public License version 3. They are shipped as separate files (plc.exe and iec61131std.dll). They are not linked into ERIC. The LGPL text and a written offer of the corresponding source are installed under app\plc\licenses. The source is the v1.0.8 tag of the RuSTy project.
+
+The PLC linker app\plc\llvm\lld-link.exe is from the LLVM Project, licensed under the Apache License v2.0 with LLVM Exceptions. It is a separate program. Its license text is installed under app\plc\licenses.
 
 NSSM, used to register the gateway service, is public domain.

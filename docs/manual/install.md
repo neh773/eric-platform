@@ -8,7 +8,7 @@
 
 - 64-bit Windows 10 or 11, and an account that can approve the administrator prompt. The gateway installs as a Windows service, so the installer asks for administrator rights.
 - Nothing else for the gateway, the admin pages, Control Canvas and the manual. The installer carries its own Java runtime and the Microsoft Visual C++ runtime files the PLC tools need. You do not need Java, Visual C++ redistributables, WebView2 or developer tools. Control Canvas and the admin pages open in your normal browser.
-- PLC deploy only: Visual Studio Build Tools with "Desktop development with C++" (free). Windows PLC programs are linked with the Microsoft linker, which ERIC is not allowed to ship. Everything else works without it, and the Logic page says so if it is missing.
+- Nothing extra for PLC deploy either. The installer includes the Structured Text compiler, the scan engine and the LLVM linker (`plc\llvm\lld-link.exe`) that builds the program file. You do not need Visual Studio or Build Tools.
 
 ### Install
 

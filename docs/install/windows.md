@@ -19,7 +19,7 @@ That writes:
 - `packaging/build/dist/ERIC Gateway-0.1.0.exe`
 - `packaging/build/dist/Control Canvas-0.1.0.exe`
 
-The gateway package contains the admin bundle, the designer bundle, `eric-plc.exe`, the Structured Text block sources, and RuSTy `plc.exe` plus `iec61131std.dll` / `iec61131std.lib`. RuSTy is LGPLv3, not linked into ERIC. The license screen opens with the beta warning (bench hardware only, not production, life-safety, or equipment protection, AS IS, no warranty) and then the AGPL-3.0 notice. The installer does not continue until that screen is accepted. A source offer is installed under `app\plc\licenses`.
+The gateway package contains the admin bundle, the designer bundle, `eric-plc.exe`, the Structured Text block sources, and RuSTy `plc.exe` plus `iec61131std.dll`, and the LLVM linker `plc\llvm\lld-link.exe` (Apache-2.0 WITH LLVM-exception) that PLC deploy uses, so no Visual Studio or Build Tools are needed. RuSTy is LGPLv3, not linked into ERIC. The license screen opens with the beta warning (bench hardware only, not production, life-safety, or equipment protection, AS IS, no warranty) and then the AGPL-3.0 notice. The installer does not continue until that screen is accepted. A source offer is installed under `app\plc\licenses`.
 
 The service environment sets `OIP_ADMIN_DIST` and `OIP_WEB_DIST` to the installed bundles, so `/admin`, `/hmi`, `/studio`, and `/designer` are served. The Control Canvas shortcut opens `http://127.0.0.1:8090/designer`.
 

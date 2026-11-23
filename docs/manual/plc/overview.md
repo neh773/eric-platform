@@ -22,7 +22,14 @@ This is not a safety controller. On Windows it is not a real-time controller. Re
 
 The Linux package includes the Structured Text compiler and the scan engine. Deploy also needs a C compiler to link
 the program: install `gcc` (`sudo apt install gcc`, or `sudo dnf install gcc`). Without one, deploy says so. Check
-works without it. Windows needs the Visual Studio Build Tools; see [Windows soft-PLC](windows.md).
+works without it.
+
+## What a Windows computer needs
+
+Nothing extra. The Windows installer includes the Structured Text compiler, the scan engine and the linker that
+turns a program into the file the engine loads (LLVM's `lld-link`, in `plc\llvm`). Deploy works on a plain Windows
+10 or 11 PC with no Visual Studio, Build Tools or other developer tools. See [Windows soft-PLC](windows.md) for what
+the Windows scan is and is not good for.
 
 ## What is not in this build
 

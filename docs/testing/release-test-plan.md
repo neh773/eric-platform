@@ -97,8 +97,8 @@ standard Windows Defender/SmartScreen setup. Take a snapshot first so the pass c
    `http://<vm address>:8090/admin`: the sign-in page loads (the firewall rule covers the Public profile).
 7. Run `powershell -ExecutionPolicy Bypass -File "C:\Program Files\ERIC Gateway\app\check-install.ps1"` as
    administrator. It must report no FIX lines. Attach `C:\ProgramData\ERIC\check-install.txt`.
-8. Do steps 2.2 to 2.7 above in that VM. For 2.8, check that **Compile and deploy** without Build Tools gives the plain
-   "needs Visual Studio Build Tools" message, then install Build Tools and deploy.
+8. Do steps 2.2 to 2.7 above in that VM. For 2.8, **Compile and deploy** must work with no Visual Studio or Build
+   Tools installed: the program runs, watched values update, and a mapped output writes its tag.
 9. Do a silent install on a second clean snapshot from an administrator Command Prompt:
    `"<installer>.exe" /qn /norestart /L*v "C:\ERIC-install.log"`. Exit code 0 or 3010; the service runs; the log is there.
 10. Uninstall from Add/Remove Programs. No service, firewall rule or Program Files folder is left.
