@@ -469,7 +469,17 @@ class Api(private val gw: Gateway) {
     }
 
     /** A sealed archive needs `passphrase` in [body]; a wrong one fails before anything changes. */
+    /**
+     * Restore, then announce every config change to the running subsystems (tags, devices, alarms, scripts), so
+     * restored tags have values without a gateway restart. Same as the EAM and first-boot restores.
+     */
     private fun restoreArchive(archive: ByteArray, body: Map<String, Any?>?) {
+        val before = gw.store.list().associate { it.id to it.resource }
+        restoreArchiveFiles(archive, body)
+        gw.store.announceReplaced(before)
+    }
+
+    private fun restoreArchiveFiles(archive: ByteArray, body: Map<String, Any?>?) {
         if (!BackupCipher.isEncrypted(archive)) {
             gw.backups.restore(archive)
             return
