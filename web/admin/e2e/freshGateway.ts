@@ -16,18 +16,23 @@ const bin = path.join(repoRoot, "gateway/server/build/install/server/bin", proce
 
 export interface FreshGateway {
   base: string;
-  stop: () => void;
+  dataDir: string;
+  /** Stops the gateway and deletes its data folder, or keeps the folder for a restart with `keepData`. */
+  stop: (keepData?: boolean) => Promise<void>;
 }
 
-export async function startFreshGateway(port: number, extraEnv: NodeJS.ProcessEnv = {}): Promise<FreshGateway> {
-  const dataDir = mkdtempSync(path.join(tmpdir(), "eric-fresh-e2e-"));
+/** `reuseDataDir` starts the gateway again on a folder a previous one left (a restart). */
+export async function startFreshGateway(port: number, extraEnv: NodeJS.ProcessEnv = {}, reuseDataDir?: string): Promise<FreshGateway> {
+  const dataDir = reuseDataDir ?? mkdtempSync(path.join(tmpdir(), "eric-fresh-e2e-"));
   // gatewayNetwork port 0: never clash with 8060 held by another local gateway.
-  writeFileSync(path.join(dataDir, "gateway.yaml"), "gatewayNetwork:\n  port: 0\n");
+  if (!reuseDataDir) writeFileSync(path.join(dataDir, "gateway.yaml"), "gatewayNetwork:\n  port: 0\n");
   const env: NodeJS.ProcessEnv = { ...process.env };
   for (const key of ["OIP_ADMIN_PASSWORD", "ERIC_ADMIN_PASSWORD", "OIP_ADMIN_USERNAME", "ERIC_ADMIN_USERNAME"]) delete env[key];
   const child: ChildProcess = spawn(bin, ["--data-dir", dataDir, "--port", String(port)], {
     stdio: "inherit",
     shell: process.platform === "win32",
+    // Own process group, so stop() reaches the JVM the start script launches, not only the script.
+    detached: process.platform !== "win32",
     env: {
       ...env,
       OIP_ADMIN_DIST: path.join(repoRoot, "web/admin/dist"),
@@ -46,16 +51,21 @@ export async function startFreshGateway(port: number, extraEnv: NodeJS.ProcessEn
       // not up yet
     }
     if (Date.now() > deadline) {
-      child.kill("SIGTERM");
+      if (process.platform !== "win32" && child.pid) { try { process.kill(-child.pid, "SIGTERM"); } catch { /* gone */ } } else child.kill("SIGTERM");
       throw new Error("fresh gateway did not start");
     }
     await new Promise((resolve) => setTimeout(resolve, 500));
   }
   return {
     base,
-    stop: () => {
-      child.kill("SIGTERM");
-      rmSync(dataDir, { recursive: true, force: true });
+    dataDir,
+    stop: async (keepData = false) => {
+      const exited = child.exitCode !== null ? Promise.resolve() : new Promise<void>((resolve) => child.once("exit", () => resolve()));
+      if (process.platform !== "win32" && child.pid) {
+        try { process.kill(-child.pid, "SIGTERM"); } catch { child.kill("SIGTERM"); }
+      } else child.kill("SIGTERM");
+      await Promise.race([exited, new Promise((resolve) => setTimeout(resolve, 15_000))]);
+      if (!keepData) rmSync(dataDir, { recursive: true, force: true });
     },
   };
 }

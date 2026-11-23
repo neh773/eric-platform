@@ -72,6 +72,6 @@ test("a fresh gateway restores a backup file made on another gateway", async ({ 
     expect(((await read.json()) as { values: { value: unknown }[] }).values[0]!.value).toBe(7);
   } finally {
     await context.close();
-    fresh.stop();
+    await fresh.stop();
   }
 });

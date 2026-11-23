@@ -288,16 +288,11 @@ fn scan_loop(
                     if any_stamp {
                         stats.staleness.record(worst);
                     }
+                    // Forced inputs: after the input read, before the program runs.
                     if !controls.paused() && !controls.faulted() && !controls.swapping() {
-                        for (index, point) in program.inputs.iter().enumerate() {
-                            if let Some(force) = controls.force_for(&point.tag).or_else(|| controls.force_for(&point.address)) {
-                                if !force.output {
-                                    program.write_input(index, force.bits);
-                                    if let Some(slot) = inputs.get_mut(index) {
-                                        slot.value = force.bits;
-                                    }
-                                }
-                            }
+                        let keys = control::force_keys(&program.inputs);
+                        for index in control::apply_input_forces(&mut inputs, &keys, controls) {
+                            program.write_input(index, inputs[index].value);
                         }
                     }
                 }

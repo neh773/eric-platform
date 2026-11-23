@@ -48,3 +48,32 @@ describe("UDT bindings (0.1.1)", () => {
     expect(groups.map((g) => [g.udt, g.rows.length])).toEqual([["", 1], ["Cls1", 2]]);
   });
 });
+
+describe("online mode and the tag map type", () => {
+  it("shows scalars and structure members by variable", async () => {
+    const { onlineMarks } = await import("./logicModel");
+    expect(onlineMarks([
+      { name: "Level", value: 56.9, type: "REAL" },
+      { name: "Pump", value: true, forced: true },
+      { name: "Run", value: 0, type: "BOOL" },
+      { name: "Os1A.Level", value: 96 },
+      { name: "Os1A.InhibitCmd", value: true },
+    ])).toEqual({
+      level: { text: "56.90", kind: "number", forced: false },
+      pump: { text: "TRUE", kind: "true", forced: true },
+      run: { text: "FALSE", kind: "false", forced: false },
+      "os1a.level": { text: "96", kind: "number", forced: false },
+      "os1a.inhibitcmd": { text: "TRUE", kind: "true", forced: false },
+      os1a: { text: "Level 96, InhibitCmd TRUE", kind: "struct", forced: false },
+    });
+  });
+
+  it("derives the type from the address size", async () => {
+    const { typeForAddress } = await import("./logicModel");
+    expect(typeForAddress("%IX0.0")).toBe("BOOL");
+    expect(typeForAddress("%ID3")).toBe("REAL");
+    expect(typeForAddress("%QL20")).toBe("LREAL");
+    expect(typeForAddress("%IW1")).toBe("INT");
+    expect(typeForAddress("x")).toBeNull();
+  });
+});

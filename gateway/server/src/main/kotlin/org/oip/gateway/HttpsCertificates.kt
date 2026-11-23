@@ -74,7 +74,7 @@ object TlsCertificates {
     private val lock = Any()
 
     fun generate(names: Collection<String>): TlsMaterial =
-        generate(names, "OIP Gateway", listOf(KeyPurposeId.id_kp_serverAuth))
+        generate(names, "ERIC Gateway", listOf(KeyPurposeId.id_kp_serverAuth))
 
     /**
      * Self-signed material for a listener that is both a TLS server and a TLS client.

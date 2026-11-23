@@ -181,7 +181,7 @@ function AlarmFields({ editing, onChange }: { editing: Editing; onChange: (editi
   return (
     <div className="stage-grid">
       {editing.version == null ? (
-        <label>Name<input aria-label="Alarm name" value={editing.name} onChange={(event) => onChange({ ...editing, name: event.target.value })} autoComplete="off" /></label>
+        <label>{ALARM_KINDS[draft.kind].label} name<input aria-label={`${ALARM_KINDS[draft.kind].label} name`} value={editing.name} onChange={(event) => onChange({ ...editing, name: event.target.value })} autoComplete="off" /></label>
       ) : null}
       {draft.kind === "roster" ? (
         <label>Users<input aria-label="Roster users" value={draft.users} onChange={(event) => set({ users: event.target.value })} placeholder="ada, bo" /></label>

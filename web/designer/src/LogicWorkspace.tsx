@@ -5,7 +5,9 @@ import {
   bindInstance,
   groupWatched,
   mappingDocument,
+  onlineMarks,
   rowsFromMapping,
+  typeForAddress,
   setMemberDirection,
   udtBindings,
   type LogicUdtView,
@@ -30,6 +32,18 @@ interface Watched {
   output: boolean;
   udt?: string | null;
   tag?: string;
+  type?: string | null;
+}
+
+const PINNED_KEY = "eric.logic.watchTable";
+
+function loadPinned(): string[] {
+  try {
+    const parsed: unknown = JSON.parse(window.localStorage.getItem(PINNED_KEY) ?? "[]");
+    return Array.isArray(parsed) ? parsed.filter((item): item is string => typeof item === "string") : [];
+  } catch {
+    return [];
+  }
 }
 
 export function LogicWorkspace({ client }: { client: GatewayClient }) {
@@ -45,6 +59,11 @@ export function LogicWorkspace({ client }: { client: GatewayClient }) {
   const [status, setStatus] = useState("stopped");
   const [stats, setStats] = useState("");
   const [watched, setWatched] = useState<Watched[]>([]);
+  const [online, setOnline] = useState(false);
+  const [menu, setMenu] = useState<{ name: string; x: number; y: number } | null>(null);
+  const [menuValue, setMenuValue] = useState("");
+  const [pinned, setPinned] = useState<string[]>(loadPinned);
+  const [pinPick, setPinPick] = useState("");
   const [forcesActive, setForcesActive] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [symbol, setSymbol] = useState(ST_COMPLETION[0] ?? "PROGRAM");
@@ -79,11 +98,14 @@ export function LogicWorkspace({ client }: { client: GatewayClient }) {
       replaceBindings(udtBindings(file));
       setJsonText(JSON.stringify(mappingDocument(next, udtBindings(file)), null, 2));
     }).catch(() => undefined);
+    void refreshStatus().catch(() => undefined);
   }, []);
 
   useEffect(() => {
-    if (status !== "running") return undefined;
+    if (status !== "running" && !online) return undefined;
+    let tick = 0;
     const timer = window.setInterval(() => {
+      if (++tick % 4 === 0) void client.logicStatus().then(showStats).catch(() => undefined);
       void client.logicWatch().then((body) => {
         setWatched(body.variables);
         setForcesActive(body.forcesActive);
@@ -91,7 +113,26 @@ export function LogicWorkspace({ client }: { client: GatewayClient }) {
       }).catch(() => undefined);
     }, 250);
     return () => window.clearInterval(timer);
-  }, [client, status]);
+  }, [client, status, online]);
+
+  useEffect(() => {
+    window.localStorage.setItem(PINNED_KEY, JSON.stringify(pinned));
+  }, [pinned]);
+
+  /** Force, release and write go through here: the result refreshes the watch, a refusal (role, engine) shows. */
+  function act(work: Promise<unknown>, done?: string) {
+    setMenu(null);
+    void work.then(async () => {
+      if (done) setNotice(done);
+      await refreshStatus();
+    }).catch((err: unknown) => setError(message(err)));
+  }
+
+  function pointOf(name: string): Watched | undefined {
+    return watched.find((item) => item.name.toLowerCase() === name.toLowerCase());
+  }
+
+  const forcedRows = watched.filter((item) => item.forced);
 
   async function openProgram(next: string) {
     const mine = ++ticket.current;
@@ -191,10 +232,14 @@ export function LogicWorkspace({ client }: { client: GatewayClient }) {
     await refreshUdts();
   }
 
+  function showStats(body: { periodMs: number; jitterP99Ns: number; execP99Ns: number; overruns: number }) {
+    setStats(`period ${body.periodMs} ms, jitter p99 ${body.jitterP99Ns} ns, exec ${body.execP99Ns} ns, overruns ${body.overruns}`);
+  }
+
   async function refreshStatus() {
     const body = await client.logicStatus();
     setStatus(body.state);
-    setStats(`period ${body.periodMs} ms, jitter p99 ${body.jitterP99Ns} ns, exec ${body.execP99Ns} ns, overruns ${body.overruns}`);
+    showStats(body);
     const watch = await client.logicWatch();
     setWatched(watch.variables);
     setForcesActive(watch.forcesActive);
@@ -251,9 +296,70 @@ export function LogicWorkspace({ client }: { client: GatewayClient }) {
           <button type="button" onClick={insertSymbol}>Insert symbol</button>
           <button type="button" onClick={() => void check().catch((err: unknown) => setError(message(err)))}>Check program</button>
           <button type="button" onClick={() => void deploy().catch((err: unknown) => setError(message(err)))}>Compile and deploy</button>
+          <button type="button" aria-pressed={online} className={online ? "oip-logic-online-on" : undefined} onClick={() => { setOnline(!online); setMenu(null); }}>
+            {online ? "Go offline" : "Go online"}
+          </button>
         </div>
+        {online ? (
+          <p className="oip-logic-hint" role="note">
+            Online: live values beside each variable{status === "running" ? "" : ` (the program is ${status}, so outputs show their safe values)`}. Right-click a variable to force or write it.
+          </p>
+        ) : null}
+        {forcedRows.length > 0 ? (
+          <div className="oip-logic-forced-banner" role="alert">
+            <strong>{forcedRows.length === 1 ? "1 value forced" : `${forcedRows.length} values forced`}</strong>
+            <span>{forcedRows.map((item) => item.name).join(", ")}</span>
+            <button type="button" onClick={() => act(client.logicReleaseAll(), "Released all forces.")}>Release all</button>
+          </div>
+        ) : null}
+        {menu ? (
+          <div
+            className="oip-logic-menu"
+            role="menu"
+            aria-label={`Online actions for ${menu.name}`}
+            style={{ position: "fixed", left: menu.x, top: menu.y, zIndex: 50 }}
+            onKeyDown={(event) => { if (event.key === "Escape") setMenu(null); }}
+          >
+            {(() => {
+              const row = pointOf(menu.name);
+              const bool = typeof row?.value === "boolean" || (row?.type ?? "BOOL").toUpperCase() === "BOOL";
+              const output = row?.output ?? true;
+              return (
+                <>
+                  <p className="oip-logic-menu-title">{menu.name}{row ? ` = ${shown(row.value)}` : ""}</p>
+                  {bool ? (
+                    <>
+                      <button type="button" role="menuitem" onClick={() => act(client.logicForce(menu.name, true, output), `Forced ${menu.name} TRUE.`)}>Force TRUE</button>
+                      <button type="button" role="menuitem" onClick={() => act(client.logicForce(menu.name, false, output), `Forced ${menu.name} FALSE.`)}>Force FALSE</button>
+                    </>
+                  ) : null}
+                  <label>
+                    Value
+                    <input aria-label={`Value for ${menu.name}`} value={menuValue} autoFocus onChange={(event) => setMenuValue(event.target.value)} />
+                  </label>
+                  <button type="button" role="menuitem" disabled={menuValue.trim() === ""} onClick={() => act(client.logicForce(menu.name, forceInput(menuValue), output), `Forced ${menu.name}.`)}>Force value</button>
+                  <button type="button" role="menuitem" disabled={menuValue.trim() === "" && !bool} onClick={() => act(client.logicWrite(menu.name, menuValue.trim() === "" ? !(row?.value === true) : forceInput(menuValue)), `Wrote ${menu.name} once.`)}>
+                    {bool && menuValue.trim() === "" ? "Write once (toggle)" : "Write once"}
+                  </button>
+                  <button type="button" role="menuitem" disabled={!row?.forced} onClick={() => act(client.logicUnforce(menu.name), `Released ${menu.name}.`)}>Release force</button>
+                  <button type="button" role="menuitem" disabled={pinned.includes(menu.name)} onClick={() => { setPinned([...pinned, menu.name]); setMenu(null); }}>Add to watch table</button>
+                  <button type="button" role="menuitem" onClick={() => setMenu(null)}>Close</button>
+                </>
+              );
+            })()}
+          </div>
+        ) : null}
         <Suspense fallback={<p>Loading the editor.</p>}>
-          <StEditor source={source} diagnostics={diagnostics} onChange={replaceSource} />
+          <StEditor
+            source={source}
+            diagnostics={diagnostics}
+            onChange={replaceSource}
+            online={online ? onlineMarks(watched) : null}
+            onVariableMenu={(variable, x, y) => {
+              setMenuValue("");
+              setMenu({ name: pointOf(variable)?.name ?? variable, x, y });
+            }}
+          />
         </Suspense>
         <ul aria-label="Problems">
           {diagnostics.map((item, index) => (
@@ -273,8 +379,15 @@ export function LogicWorkspace({ client }: { client: GatewayClient }) {
             {rows.map((row, index) => (
               <li key={`${row.name}-${index}`} className="oip-logic-map">
                 <input aria-label={`Variable ${index}`} value={row.name} onChange={(event) => setRows(edit(rows, index, { name: event.target.value }))} />
-                <input aria-label={`Address ${index}`} value={row.address} onChange={(event) => setRows(edit(rows, index, { address: event.target.value }))} />
+                <input aria-label={`Address ${index}`} value={row.address} onChange={(event) => {
+                  const address = event.target.value;
+                  const type = typeForAddress(address);
+                  setRows(edit(rows, index, type ? { address, type } : { address }));
+                }} />
                 <input aria-label={`Tag ${index}`} value={row.tag} onChange={(event) => setRows(edit(rows, index, { tag: event.target.value }))} />
+                <select aria-label={`Type ${index}`} value={row.type || "BOOL"} onChange={(event) => setRows(edit(rows, index, { type: event.target.value }))}>
+                  {["BOOL", "INT", "DINT", "REAL", "LREAL"].map((type) => <option key={type} value={type}>{type}</option>)}
+                </select>
                 <select aria-label={`Direction ${index}`} value={row.direction} onChange={(event) => setRows(edit(rows, index, { direction: event.target.value as "in" | "out" }))}>
                   <option value="in">in</option>
                   <option value="out">out</option>
@@ -356,15 +469,49 @@ export function LogicWorkspace({ client }: { client: GatewayClient }) {
           <button type="button" onClick={() => void client.logicStart().then(refreshStatus).catch((err: unknown) => setError(message(err)))}>Start</button>
           <button type="button" onClick={() => void client.logicStop().then(refreshStatus).catch((err: unknown) => setError(message(err)))}>Stop</button>
         </div>
-        {forcesActive ? <p className="oip-logic-forces" role="status">Forces are active</p> : null}
+        {forcesActive && forcedRows.length === 0 ? <p className="oip-logic-forces" role="status">Forces are active</p> : null}
+        <section aria-label="Watch table">
+          <h2>Watch table</h2>
+          <div className="oip-logic-actions">
+            <select aria-label="Variable to watch" value={pinPick} onChange={(event) => setPinPick(event.target.value)}>
+              <option value="">Choose a variable</option>
+              {watched.filter((item) => !pinned.includes(item.name)).map((item) => <option key={item.name} value={item.name}>{item.name}</option>)}
+            </select>
+            <button type="button" disabled={!pinPick} onClick={() => { setPinned([...pinned, pinPick]); setPinPick(""); }}>Add to watch table</button>
+          </div>
+          {pinned.length === 0 ? <p className="oip-logic-hint">Add variables here, or right-click one in the code while online.</p> : (
+            <table className="oip-logic-watch">
+              <thead><tr><th>Variable</th><th>Value</th><th>New value</th><th>Actions</th></tr></thead>
+              <tbody>
+                {pinned.map((name) => {
+                  const row = pointOf(name);
+                  return (
+                    <tr key={name} data-forced={row?.forced ? "yes" : "no"}>
+                      <td>{name}</td>
+                      <td aria-label={`Value of ${name}`}>{row ? shown(row.value) : "not mapped"}{row?.forced ? <b className="oip-logic-f" aria-label="forced"> F</b> : null}</td>
+                      <td><input aria-label={`New value for ${name}`} value={forceText[name] ?? ""} onChange={(event) => setForceText({ ...forceText, [name]: event.target.value })} /></td>
+                      <td>
+                        <button type="button" disabled={!row} onClick={() => act(client.logicWrite(name, forceInput(forceText[name])), `Wrote ${name} once.`)}>Write once</button>
+                        <button type="button" disabled={!row} onClick={() => act(client.logicForce(name, forceInput(forceText[name]), row?.output ?? true), `Forced ${name}.`)}>Force</button>
+                        <button type="button" disabled={!row?.forced} onClick={() => act(client.logicUnforce(name), `Released ${name}.`)}>Release</button>
+                        <button type="button" onClick={() => setPinned(pinned.filter((item) => item !== name))}>Remove</button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </section>
+        <h2>Program instances and I/O</h2>
         <ul aria-label="Watched variables">
           {groupWatched(watched).map((group) => {
             const items = group.rows.map((item) => (
               <li key={item.name} data-forced={item.forced ? "yes" : "no"}>
                 <span>{item.name}: {shown(item.value)}{item.forced ? " forced" : ""}</span>
                 <input aria-label={`Force value ${item.name}`} value={forceText[item.name] ?? ""} onChange={(event) => setForceText({ ...forceText, [item.name]: event.target.value })} />
-                <button type="button" onClick={() => void client.logicForce(item.name, forceInput(forceText[item.name]), item.output).then(refreshStatus)}>Force</button>
-                <button type="button" onClick={() => void client.logicUnforce(item.name).then(refreshStatus)}>Unforce</button>
+                <button type="button" onClick={() => act(client.logicForce(item.name, forceInput(forceText[item.name]), item.output))}>Force</button>
+                <button type="button" onClick={() => act(client.logicUnforce(item.name))}>Unforce</button>
               </li>
             ));
             if (!group.udt) return items;
@@ -397,7 +544,7 @@ function shown(value: unknown): string {
 }
 
 function forceInput(text: string | undefined): unknown {
-  const trimmed = (text ?? "").trim();
+  const trimmed = (text ?? "").trim().toLowerCase();
   if (trimmed === "" || trimmed === "true") return true;
   if (trimmed === "false") return false;
   const number = Number(trimmed);

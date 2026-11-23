@@ -83,6 +83,49 @@ export function groupWatched<T extends { udt?: string | null }>(rows: T[]): Arra
   return [...groups.entries()].map(([udt, items]) => ({ udt, rows: items }));
 }
 
+/** The ST type an address size letter implies: X bit, W word, D double word (REAL), L long word (LREAL). */
+export function typeForAddress(address: string): string | null {
+  const m = /^%[IQM]([XBWDL])/i.exec(address.trim());
+  if (!m) return null;
+  return ({ X: "BOOL", B: "INT", W: "INT", D: "REAL", L: "LREAL" } as Record<string, string>)[m[1]!.toUpperCase()] ?? null;
+}
+
+function shown(value: unknown): string {
+  return typeof value === "boolean" ? (value ? "TRUE" : "FALSE")
+    : typeof value === "number" ? (Number.isInteger(value) ? String(value) : value.toFixed(2))
+    : String(value);
+}
+
+export interface OnlineMark {
+  text: string;
+  kind: "true" | "false" | "number" | "struct" | "other";
+  forced: boolean;
+}
+
+/**
+ * Online mode: what the editor shows beside each variable, by lower-case name (`level`, `os1a.inhibitcmd`).
+ * A structure variable's root (`os1a`) gets its members, `Level 96, InhibitCmd TRUE`, for its declaration.
+ */
+export function onlineMarks(rows: Array<{ name: string; value: unknown; forced?: boolean; type?: string | null }>): Record<string, OnlineMark> {
+  const out: Record<string, OnlineMark> = {};
+  const members = new Map<string, string[]>();
+  for (const row of rows) {
+    const bool = typeof row.value === "boolean" || (row.type ?? "").toUpperCase() === "BOOL";
+    const on = row.value === true || row.value === 1 || row.value === "true";
+    const mark: OnlineMark = bool
+      ? { text: on ? "TRUE" : "FALSE", kind: on ? "true" : "false", forced: !!row.forced }
+      : { text: shown(row.value), kind: typeof row.value === "number" ? "number" : "other", forced: !!row.forced };
+    out[row.name.toLowerCase()] = mark;
+    const dot = row.name.indexOf(".");
+    if (dot > 0) {
+      const root = row.name.slice(0, dot).toLowerCase();
+      members.set(root, [...(members.get(root) ?? []), `${row.name.slice(dot + 1)} ${mark.text}`]);
+    }
+  }
+  for (const [root, items] of members) if (!out[root]) out[root] = { text: items.join(", "), kind: "struct", forced: false };
+  return out;
+}
+
 export const ST_COMPLETION = [
   "PROGRAM", "END_PROGRAM", "FUNCTION_BLOCK", "END_FUNCTION_BLOCK",
   "VAR", "END_VAR", "VAR_INPUT", "VAR_OUTPUT",

@@ -2,8 +2,8 @@ import { useEffect, useRef } from "react";
 import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
 import { HighlightStyle, StreamLanguage, syntaxHighlighting } from "@codemirror/language";
 import { forceLinting, linter, lintGutter, type Diagnostic as LintDiagnostic } from "@codemirror/lint";
-import { EditorState } from "@codemirror/state";
-import { EditorView, keymap, lineNumbers } from "@codemirror/view";
+import { EditorState, RangeSetBuilder, StateEffect, StateField } from "@codemirror/state";
+import { Decoration, EditorView, WidgetType, keymap, lineNumbers, type DecorationSet } from "@codemirror/view";
 import { tags } from "@lezer/highlight";
 
 const KEYWORDS = new Set([
@@ -76,8 +76,100 @@ const theme = EditorView.theme({
   ".cm-scroller": { fontFamily: "var(--oip-font-mono)", lineHeight: "1.45" },
   ".cm-gutters": { backgroundColor: "var(--oip-surface-1)", color: "var(--oip-ink-3)", borderRight: "1px solid var(--oip-line)" },
   ".cm-activeLine": { backgroundColor: "var(--oip-accent-subtle)" },
+  ".oip-st-online": { marginLeft: "4px", padding: "0 4px", borderRadius: "3px", fontSize: "0.85em", border: "1px solid var(--oip-line)", backgroundColor: "var(--oip-surface-1)", color: "var(--oip-ink)" },
+  ".oip-st-online-true": { backgroundColor: "#1f8f3a", borderColor: "#1f8f3a", color: "#fff" },
+  ".oip-st-online-false": { backgroundColor: "#8a8f98", borderColor: "#8a8f98", color: "#fff" },
+  ".oip-st-online-struct": { fontStyle: "italic", color: "var(--oip-ink-2)" },
+  ".oip-st-forced": { marginLeft: "3px", padding: "0 3px", borderRadius: "2px", backgroundColor: "#e8710a", color: "#fff", fontWeight: "700" },
   ".cm-lintRange-error": { backgroundImage: "none", textDecoration: "underline wavy var(--oip-alarm-1)" },
 });
+
+export interface OnlineMark {
+  text: string;
+  kind: "true" | "false" | "number" | "struct" | "other";
+  forced: boolean;
+}
+
+/** Online mode: a live value after a variable. BOOL TRUE green, FALSE grey, forced with an orange F. */
+class OnlineValue extends WidgetType {
+  constructor(readonly mark: OnlineMark, readonly name: string) { super(); }
+  eq(other: OnlineValue) { return other.name === this.name && other.mark.text === this.mark.text && other.mark.forced === this.mark.forced; }
+  /** Let a right-click on the value reach the editor's context menu handler. */
+  ignoreEvent(event: Event) { return event.type !== "contextmenu"; }
+  toDOM() {
+    const span = document.createElement("span");
+    span.className = `oip-st-online oip-st-online-${this.mark.kind}`;
+    span.setAttribute("data-online", this.name);
+    span.title = this.mark.forced ? `${this.name} is forced` : this.name;
+    span.textContent = this.mark.text;
+    if (this.mark.forced) {
+      const badge = document.createElement("b");
+      badge.className = "oip-st-forced";
+      badge.textContent = "F";
+      badge.setAttribute("aria-label", "forced");
+      span.append(badge);
+    }
+    return span;
+  }
+}
+
+const setOnline = StateEffect.define<Record<string, OnlineMark> | null>();
+const WORD = /[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*/g;
+const DECLARATION = /^\s*[A-Za-z_][A-Za-z0-9_]*(?:\s*,\s*[A-Za-z_][A-Za-z0-9_]*)*\s*(?:AT\s+%[A-Z0-9.]+\s*)?:(?!=)/i;
+
+/** Marks every watched variable in the source, outside comments and strings. A structure's members summary goes on its declaration only. */
+function onlineDecorations(state: EditorState, values: Record<string, OnlineMark> | null): DecorationSet {
+  const builder = new RangeSetBuilder<Decoration>();
+  if (!values) return builder.finish();
+  let inComment = false;
+  for (let n = 1; n <= state.doc.lines; n++) {
+    const line = state.doc.line(n);
+    // Blank out comments and strings so names inside them are not marked; positions stay the same.
+    let text = "";
+    for (let i = 0; i < line.text.length; i++) {
+      const two = line.text.slice(i, i + 2);
+      if (inComment) {
+        if (two === "*)") { inComment = false; text += "  "; i++; } else text += " ";
+      } else if (two === "(*") { inComment = true; text += "  "; i++; }
+      else if (two === "//") { text += " ".repeat(line.text.length - i); break; }
+      else if (line.text[i] === "'") {
+        const end = line.text.indexOf("'", i + 1);
+        const stop = end < 0 ? line.text.length : end + 1;
+        text += " ".repeat(stop - i);
+        i = stop - 1;
+      } else text += line.text[i];
+    }
+    const declaration = DECLARATION.test(text);
+    for (const match of text.matchAll(WORD)) {
+      const mark = values[match[0].toLowerCase()];
+      if (!mark || (mark.kind === "struct" && !declaration)) continue;
+      const end = line.from + match.index! + match[0].length;
+      builder.add(end, end, Decoration.widget({ widget: new OnlineValue(mark, match[0]), side: 1 }));
+    }
+  }
+  return builder.finish();
+}
+
+const onlineField = StateField.define<{ values: Record<string, OnlineMark> | null; decorations: DecorationSet }>({
+  create: (state) => ({ values: null, decorations: onlineDecorations(state, null) }),
+  update(current, tr) {
+    let values = current.values;
+    for (const effect of tr.effects) if (effect.is(setOnline)) values = effect.value;
+    if (values === current.values && !tr.docChanged) return current;
+    return { values, decorations: onlineDecorations(tr.state, values) };
+  },
+  provide: (field) => EditorView.decorations.from(field, (value) => value.decorations),
+});
+
+/** The (dotted) name at a document position, for the online context menu. */
+function nameAt(state: EditorState, pos: number): string | null {
+  const line = state.doc.lineAt(pos);
+  for (const match of line.text.matchAll(WORD)) {
+    const from = line.from + match.index!;
+    if (pos >= from && pos <= from + match[0].length) return match[0];
+  }
+  return null;
+}
 
 export interface StDiagnostic {
   line: number;
@@ -86,7 +178,19 @@ export interface StDiagnostic {
 }
 
 /** Structured Text editor. Loaded only when Logic is opened. */
-export default function StEditor({ source, diagnostics, onChange }: { source: string; diagnostics: StDiagnostic[]; onChange: (next: string) => void }) {
+export default function StEditor({ source, diagnostics, onChange, online = null, onVariableMenu }: {
+  source: string;
+  diagnostics: StDiagnostic[];
+  onChange: (next: string) => void;
+  /** Live values by lower-case variable name while online, or null when offline. */
+  online?: Record<string, OnlineMark> | null;
+  /** Right-click on a watched variable while online. */
+  onVariableMenu?: (name: string, x: number, y: number) => void;
+}) {
+  const menuRef = useRef(onVariableMenu);
+  const onlineRef = useRef(online);
+  menuRef.current = onVariableMenu;
+  onlineRef.current = online;
   const host = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
   const onChangeRef = useRef(onChange);
@@ -106,6 +210,23 @@ export default function StEditor({ source, diagnostics, onChange }: { source: st
         syntaxHighlighting(highlight),
         theme,
         lintGutter(),
+        onlineField,
+        EditorView.domEventHandlers({
+          contextmenu(event, view) {
+            const values = onlineRef.current;
+            if (!values || !menuRef.current) return false;
+            const target = event.target as HTMLElement | null;
+            let name = target?.closest?.("[data-online]")?.getAttribute("data-online") ?? null;
+            if (!name) {
+              const pos = view.posAtCoords({ x: event.clientX, y: event.clientY });
+              name = pos == null ? null : nameAt(view.state, pos);
+            }
+            if (!name || !values[name.toLowerCase()] || values[name.toLowerCase()]!.kind === "struct") return false;
+            event.preventDefault();
+            menuRef.current(name, event.clientX, event.clientY);
+            return true;
+          },
+        }),
         linter(() => marks(viewRef.current, diagnosticsRef.current)),
         EditorView.contentAttributes.of({ "aria-label": "Structured Text", spellcheck: "false" }),
         EditorView.updateListener.of((update) => {
@@ -133,6 +254,10 @@ export default function StEditor({ source, diagnostics, onChange }: { source: st
     }
     forceLinting(view);
   }, [source, diagnostics]);
+
+  useEffect(() => {
+    viewRef.current?.dispatch({ effects: setOnline.of(online) });
+  }, [online]);
 
   return <div ref={host} className="oip-st-editor" />;
 }

@@ -222,7 +222,7 @@ export function BackupsPage({ section, client, session }: AdminPageProps) {
           </p>
           <label>
             Backup file
-            <input type="file" accept=".oipbk,.zip" onChange={(event) => setFile(event.target.files?.[0] ?? null)} required />
+            <input type="file" aria-label="Backup file" accept=".oipbk,.zip" onChange={(event) => setFile(event.target.files?.[0] ?? null)} required />
           </label>
           <label>
             Passphrase for the backup file

@@ -240,6 +240,20 @@ function AlarmFields({
           onChange={(event) => onChange(set(alarm, "timeOffDelaySeconds", numberOrUndefined(event.target.value)))}
         />
       </label>
+      {(["activePipeline", "clearPipeline", "ackPipeline"] as const).map((key) => {
+        const label = { activePipeline: "Active pipeline", clearPipeline: "Clear pipeline", ackPipeline: "Ack pipeline" }[key];
+        return (
+          <label key={key}>
+            {label}
+            <input
+              aria-label={label}
+              value={typeof alarm[key] === "string" ? String(alarm[key]) : ""}
+              placeholder="notification pipeline name (optional)"
+              onChange={(event) => onChange(set(alarm, key, event.target.value.trim()))}
+            />
+          </label>
+        );
+      })}
       <label>
         Acknowledge
         <select aria-label="Acknowledge" value={String(alarm.ackMode ?? "Manual")} onChange={(event) => onChange(set(alarm, "ackMode", event.target.value))}>

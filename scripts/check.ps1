@@ -67,3 +67,4 @@ Step "new-user UI suite" {
 
 $results | ForEach-Object { Write-Host $_ }
 Write-Host "check PASSED. Logs: $logDir"
+Write-Host "Next: the hands-on new-user pass in docs/testing/release-test-plan.md (fresh Linux and Windows installs) before a release."

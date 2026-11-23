@@ -54,3 +54,4 @@ step "new-user UI suite" env ERIC_UI_GATEWAY="$repo/packaging/build/image/ERIC G
 
 printf '\n%s\n' "${results[@]}"
 echo "check PASSED. Logs: $log"
+echo "Next: the hands-on new-user pass in docs/testing/release-test-plan.md (fresh Linux and Windows installs) before a release."

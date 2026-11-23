@@ -83,6 +83,7 @@ class Api(private val gw: Gateway) {
         SfcApi(gw).register(app)
         SecretsApi(gw).register(app)
         LogicApi(gw).register(app)
+        RestartApi(gw).register(app)
         PlcResourcesApi(gw).register(app)
         app.get("/api/v1/platform") { ctx -> json(ctx, HostPlatform.body()) }
         EventStreamApi(gw).register(app)

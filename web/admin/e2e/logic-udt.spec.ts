@@ -85,7 +85,7 @@ test("binds eight UDT instances to two function block calls and shows them onlin
     await expect(page.getByRole("list", { name: "Members of Cls1 online" })).toContainText("Cls1.Level: 96");
   } finally {
     await context.close();
-    fresh.stop();
+    await fresh.stop();
   }
 });
 

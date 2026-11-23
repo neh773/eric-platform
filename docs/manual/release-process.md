@@ -57,12 +57,13 @@ A tag is pushed only after both pass on Linux and on Windows. The release notes 
 A stable tag requires all of these:
 
 1. The full local check passes (`scripts/check.sh` and `scripts\check.ps1`), including the fresh-install and new-user UI tests.
-2. The hardware test rig passes the scenario tests.
-3. An upgrade from the previous stable release works with projects intact.
-4. Backup and restore work end to end.
-5. A 72-hour soak test with no memory growth and no lost history.
-6. No open issues labelled `critical`.
-7. The manual matches the software.
+2. The hands-on new-user pass in the [release test plan](https://github.com/neh773/eric-platform/blob/main/docs/testing/release-test-plan.md) passes on fresh Linux and Windows installs, with the result matrix attached to the release.
+3. The hardware test rig passes the scenario tests.
+4. An upgrade from the previous stable release works with projects intact.
+5. Backup and restore work end to end.
+6. A 72-hour soak test with no memory growth and no lost history.
+7. No open issues labelled `critical`.
+8. The manual matches the software.
 
 ## Continuous improvement
 

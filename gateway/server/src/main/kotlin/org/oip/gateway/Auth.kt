@@ -784,6 +784,8 @@ class GatewayAuth(private val gw: Gateway) {
             }
             // Host OS for the PLC banner. A read of this gateway, not of the browser.
             if (path == "/api/v1/platform" && (verb == "GET" || verb == "HEAD")) return Access.Permission(Permissions.GATEWAY_READ)
+            // Restart the gateway process from Overview.
+            if (path == "/api/v1/gateway/restart") return Access.Permission(Permissions.GATEWAY_WRITE)
             // PLC / ERIC resource split. Reads are gateway.read. Apply and revert are gateway.write; the root helper does the write.
             if (path == "/api/v1/plc/resources" || path.startsWith("/api/v1/plc/resources/")) {
                 return if (verb == "GET" || verb == "HEAD") Access.Permission(Permissions.GATEWAY_READ)

@@ -1132,6 +1132,10 @@ class Gateway(
                     logs.log(LogLevel.WARN, "org.oip.plc", message, emptyMap())
                 }.also { it.start() }
             }
+            logic.writeTag = { tag, value ->
+                val result = tags.write(tag, value)
+                if (!result.ok) throw IllegalArgumentException("writing $tag was refused: ${result.quality}")
+            }
             startManagedPlc()
             https.prepare()
             https.server = { runCatching { app.jettyServer().server() }.getOrNull() }
@@ -1372,6 +1376,7 @@ class Gateway(
         logic.managed = supervisor
         Thread({
             supervisor.resume()?.let { logs.log(LogLevel.WARN, "org.oip.plc", "the deployed PLC program did not start again", mapOf("error" to it)) }
+            supervisor.deployed()?.let { runCatching { logic.resumed(it) } }
         }, "eric-plc-resume").apply { isDaemon = true }.start()
     }
 

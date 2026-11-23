@@ -43,6 +43,49 @@ class LogicServiceTest {
         assertFalse(logic.watch()["forcesActive"] as Boolean)
     }
 
+    @Test fun `online mode - forces are released on stop, on redeploy and by release all`() {
+        val logic = LogicService(tmp, PlcCompiler(null, emptyList()))
+        logic.create("Pump")
+        logic.saveMapping(mapOf(
+            "inputs" to listOf(mapOf("name" to "Level", "address" to "%ID0", "tag" to "lvl")),
+            "outputs" to listOf(mapOf("name" to "Motor", "address" to "%QX1.0", "tag" to "pid/motor", "safe" to false)),
+        ))
+        logic.deploy("Pump")
+        val rows = (logic.watch()["variables"] as List<*>).filterIsInstance<Map<*, *>>()
+        assertEquals("REAL", rows.first { it["name"] == "Level" }["type"], "the type follows the address size when none is given")
+        logic.force("Motor", true, output = true)
+        logic.force("Level", 42.5, output = false)
+        assertEquals(listOf("Level", "Motor"), logic.forcedNames())
+        logic.stop()
+        assertEquals(emptyList<String>(), logic.forcedNames())
+        logic.start()
+        logic.force("Motor", true, output = true)
+        logic.deploy("Pump")
+        assertEquals(emptyList<String>(), logic.forcedNames())
+        logic.force("Motor", true, output = true)
+        assertEquals(listOf("Motor"), logic.releaseAll())
+        assertFalse(logic.watch()["forcesActive"] as Boolean)
+    }
+
+    @Test fun `online mode - write once writes the mapped tag`() {
+        val logic = LogicService(tmp, PlcCompiler(null, emptyList()))
+        logic.saveMapping(mapOf("inputs" to listOf(mapOf("name" to "Run", "address" to "%IX0.0", "tag" to "mem/run"))))
+        val written = mutableListOf<Pair<String, Any?>>()
+        logic.writeTag = { tag, value -> written += tag to value }
+        logic.writeOnce("Run", true)
+        assertEquals(listOf("mem/run" to true), written)
+        assertTrue(runCatching { logic.writeOnce("Nope", 1) }.isFailure)
+    }
+
+    @Test fun `a resumed program can be stopped and started without a redeploy`() {
+        val logic = LogicService(tmp, PlcCompiler(null, emptyList()))
+        logic.create("Station")
+        logic.resumed(ManagedPlc.Deployed(tmp.resolve("build/libStation.so").toString(), "Station", "Station_instance", null, true))
+        assertEquals("Station", logic.program)
+        logic.stop()
+        logic.start()
+    }
+
     @Test fun `a failed compile does not mark the program running`() {
         val logic = LogicService(tmp, PlcCompiler(null, listOf(PlcDiagnostic(2, 1, "bad token", "E048"))))
         logic.create("Pump")

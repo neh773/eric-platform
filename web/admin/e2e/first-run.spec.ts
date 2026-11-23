@@ -19,7 +19,7 @@ test.beforeAll(async () => {
   gateway = await startFreshGateway(port);
 });
 
-test.afterAll(() => gateway?.stop());
+test.afterAll(async () => { await gateway?.stop(); });
 
 test("a proxied request cannot create the first administrator", async ({ request }) => {
   const res = await request.post(`${base}/api/v1/setup/admin`, {

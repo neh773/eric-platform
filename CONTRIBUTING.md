@@ -14,6 +14,9 @@ Maintainers run the test suites on their own machine before a change is merged. 
 
 ## Before you push
 
+Follow the [release test plan](docs/testing/release-test-plan.md): the automated gates below, plus the hands-on
+new-user pass on fresh Linux and Windows installs for releases and for changes to user-facing features.
+
 Run the full local check and push only when it passes:
 
 ```

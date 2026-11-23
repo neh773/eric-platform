@@ -50,7 +50,7 @@ test.describe("alarms", () => {
   test("notification pipeline and roster forms create, edit and delete", async ({ page }) => {
     await section(page, "Alarming");
     await page.getByRole("button", { name: "New roster" }).click();
-    await main(page).getByLabel("Alarm name").fill("oncall");
+    await main(page).getByLabel("Roster name").fill("oncall");
     await main(page).getByLabel("Roster users").fill("admin");
     await main(page).getByRole("button", { name: /^Save/ }).first().click();
     await expect(main(page).getByText("oncall").first()).toBeVisible();

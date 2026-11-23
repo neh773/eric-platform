@@ -105,6 +105,25 @@ class BackupRestoreTest {
         db.close(); store.close()
     }
 
+    @Test fun plcProgramsAndTagMapAreBackedUpAndRestored() {
+        val (_, _, svc) = layout()
+        val logic = tmp.resolve("logic")
+        logic.resolve("programs").createDirectories().resolve("Main.st").writeText("PROGRAM Main\nEND_PROGRAM\n")
+        logic.resolve("mapping.json").writeText("{\"inputs\":[]}")
+        logic.resolve("build").createDirectories().resolve("Main.o").writeText("binary")
+        val archive = svc.create()
+        val zip = ZipIo.read(archive)
+        assertTrue("logic/programs/Main.st" in zip.keys && "logic/mapping.json" in zip.keys, zip.keys.toString())
+        assertTrue(zip.keys.none { it.startsWith("logic/build") })
+        logic.resolve("programs/Main.st").writeText("changed")
+        logic.resolve("programs/Extra.st").writeText("extra")
+        logic.resolve("mapping.json").writeText("{}")
+        svc.restore(archive)
+        assertEquals("PROGRAM Main\nEND_PROGRAM\n", logic.resolve("programs/Main.st").readText())
+        assertTrue(!logic.resolve("programs/Extra.st").exists())
+        assertEquals("{\"inputs\":[]}", logic.resolve("mapping.json").readText())
+    }
+
     @Test fun rejectedArchiveDoesNotChangeData() {
         val (store, db, svc) = layout()
         store.put(Scope.GATEWAY, Resource("Thing", Metadata("a", "m"), mapOf("x" to 3)))

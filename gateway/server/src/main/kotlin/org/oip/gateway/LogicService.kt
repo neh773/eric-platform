@@ -185,6 +185,8 @@ class LogicService(
         // The generated UDT member rows join the hand-mapped ones, so the engine and the bridge move them too.
         writeMapping(handRows("inputs") + plan.inputs, handRows("outputs") + plan.outputs, bindings())
         val entry = UdtLogic.programOf(StSource.parse(read(name)), name)?.name ?: name
+        // A new program starts without the old program's forces.
+        releaseAll()
         val previous = state
         state = "swapping"
         applySafe()
@@ -251,6 +253,7 @@ class LogicService(
     }
 
     fun stop() {
+        releaseAll()
         val error = engine.stop()
         if (error != null) throw IllegalArgumentException(error)
         managed?.rememberRunning(false)
@@ -270,6 +273,32 @@ class LogicService(
         if (sent != null) throw IllegalArgumentException(sent)
         forces[name] = LogicForce(name, value, output)
         if (!engine.connected() && state == "running") values[name] = LogicValue(value, forced = true, output = output)
+    }
+
+    /** Writes a mapped point's tag once (no force), for online mode's Write once. */
+    var writeTag: (String, Any?) -> Unit = { _, _ -> throw IllegalArgumentException("tag writes are not available") }
+
+    fun writeOnce(name: String, value: Any?) {
+        val point = allPoints().firstOrNull { it.name == name || it.tag == name }
+            ?: throw IllegalArgumentException("$name is not in the tag map")
+        writeTag(point.tag, value)
+    }
+
+    /** After a gateway restart: the program the engine resumed, so Start and Stop work without a redeploy. */
+    fun resumed(deployed: ManagedPlc.Deployed) {
+        val stem = libraryStem(java.io.File(deployed.library).name)
+        val names = list()
+        program = names.firstOrNull { it.equals(stem, ignoreCase = true) } ?: names.firstOrNull { it.equals(deployed.entry, ignoreCase = true) } ?: stem
+        pullEngine()
+    }
+
+    fun forcedNames(): List<String> = forces.keys.sorted()
+
+    /** Releases every force. Returns the names that were forced. */
+    fun releaseAll(): List<String> {
+        val names = forces.keys.toList()
+        for (name in names) runCatching { unforce(name) }.onFailure { forces.remove(name) }
+        return names
     }
 
     fun unforce(name: String) {
@@ -362,6 +391,7 @@ class LogicService(
         "safe" to point.safe,
         "udt" to point.udt,
         "member" to point.member,
+        "type" to point.type,
     )
 
     private fun applySafe() {
@@ -407,13 +437,22 @@ data class LogicValue(val value: Any?, val forced: Boolean, val output: Boolean)
 
 fun PlcDiagnostic.toMap(): Map<String, Any?> = mapOf("line" to line, "column" to column, "message" to message, "code" to code)
 
+/** The ST type an address size letter implies: X bit, B/W word, D double word (REAL), L long word (LREAL). */
+internal fun typeForAddress(address: String): String =
+    when (Regex("^%[IQM]([XBWDL])", RegexOption.IGNORE_CASE).find(address.trim())?.groupValues?.get(1)?.uppercase()) {
+        "B", "W" -> "INT"
+        "D" -> "REAL"
+        "L" -> "LREAL"
+        else -> "BOOL"
+    }
+
 private fun mappingRows(raw: Any?, direction: String): List<Map<String, Any?>> {
     val rows = raw as? List<*> ?: return emptyList()
     return rows.map { row ->
         val map = row as? Map<*, *> ?: throw IllegalArgumentException("mapping entries must be objects")
         val address = map["address"] as? String ?: throw IllegalArgumentException("address is required")
         val tag = map["tag"] as? String ?: throw IllegalArgumentException("tag is required")
-        val type = map["type"] as? String ?: "BOOL"
+        val type = (map["type"] as? String)?.ifBlank { null } ?: typeForAddress(address)
         val name = (map["name"] as? String)?.ifBlank { null } ?: tag.substringAfterLast('/')
         val row = linkedMapOf<String, Any?>("name" to name, "address" to address, "tag" to tag, "type" to type, "direction" to direction, "safe" to map["safe"])
         (map["udt"] as? String)?.let { row["udt"] = it }

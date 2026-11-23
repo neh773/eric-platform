@@ -546,12 +546,22 @@ export class GatewayClient {
     return (await this.json(await this.raw("GET", "/api/v1/logic/status"))) as { state: string; periodMs: number; jitterP99Ns: number; execP99Ns: number; overruns: number };
   }
 
-  async logicWatch(): Promise<{ state: string; forcesActive: boolean; variables: Array<{ name: string; value: unknown; forced: boolean; output: boolean; udt?: string | null; tag?: string }> }> {
-    return (await this.json(await this.raw("GET", "/api/v1/logic/watch", undefined, { background: true }))) as { state: string; forcesActive: boolean; variables: Array<{ name: string; value: unknown; forced: boolean; output: boolean; udt?: string | null; tag?: string }> };
+  async logicWatch(): Promise<{ state: string; forcesActive: boolean; variables: Array<{ name: string; value: unknown; forced: boolean; output: boolean; udt?: string | null; tag?: string; type?: string | null }> }> {
+    return (await this.json(await this.raw("GET", "/api/v1/logic/watch", undefined, { background: true }))) as { state: string; forcesActive: boolean; variables: Array<{ name: string; value: unknown; forced: boolean; output: boolean; udt?: string | null; tag?: string; type?: string | null }> };
   }
 
   async logicForce(name: string, value: unknown, output: boolean): Promise<void> {
     await this.json(await this.raw("POST", "/api/v1/logic/forces", { name, value, output }));
+  }
+
+  /** Releases every force (the online banner's Release all). */
+  async logicReleaseAll(): Promise<void> {
+    await this.json(await this.raw("DELETE", "/api/v1/logic/forces"));
+  }
+
+  /** Writes a mapped variable's tag once, without forcing it. */
+  async logicWrite(name: string, value: unknown): Promise<void> {
+    await this.json(await this.raw("POST", "/api/v1/logic/write", { name, value }));
   }
 
   async logicUnforce(name: string): Promise<void> {
