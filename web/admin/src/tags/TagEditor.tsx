@@ -24,9 +24,10 @@ import {
 } from "./tagModel";
 import { formatTime } from "./TagTree";
 import { useLiveValues } from "./useLiveValues";
+import { alarmList, alarmProblems, TagAlarmsEditor } from "./TagAlarmsEditor";
 
 /** Keys edited in the Move / rename box rather than in a category form. */
-const LOCATION_KEYS = new Set(["provider", "path"]);
+const LOCATION_KEYS = new Set(["provider", "path", "name"]);
 
 /**
  * Tag editor (TAG-012): every property of the `Tag` JSON Schema, grouped by category. Saving replaces the
@@ -104,7 +105,8 @@ export function TagEditor({
   const structural = validateAgainstSchema(schema, spec);
   const errors = mergeFieldErrors(structural, { ...drafts, ...jsonErrors }, serverErrors);
   const typing = Object.keys(drafts).length > 0 || Object.keys(jsonErrors).length > 0;
-  const blocked = structural.length > 0 || typing;
+  const alarmIssues = Object.keys(alarmProblems(alarmList(spec.alarms))).length;
+  const blocked = structural.length > 0 || typing || alarmIssues > 0;
 
   function discard() {
     if (!doc) return;
@@ -182,7 +184,7 @@ export function TagEditor({
     setNotice(null);
   };
 
-  const currentKeys = (groups[category] ?? []).filter((key) => !LOCATION_KEYS.has(key));
+  const currentKeys = (groups[category] ?? []).filter((key) => !LOCATION_KEYS.has(key) && relevantFor(String(spec.type ?? ""), key, spec));
   const formKeys = currentKeys.filter((key) => formCanEdit(schema.properties?.[key]) && !isAccessKey(key));
   const jsonKeys = currentKeys.filter((key) => !formCanEdit(schema.properties?.[key]) && !isAccessKey(key) && key !== "alarms");
   const formSchema: JsonSchema = { type: "object", properties: Object.fromEntries(formKeys.map((key) => [key, schema.properties![key]!])) };
@@ -258,8 +260,39 @@ export function TagEditor({
                   onChange={(next) => change(next && typeof next === "object" ? (next as Record<string, unknown>) : spec)}
                 />
               ) : null}
-              {category === "alarms" && currentKeys.includes("alarms") ? <AlarmSummary alarms={spec.alarms} /> : null}
-              {[...(category === "alarms" && currentKeys.includes("alarms") ? ["alarms"] : []), ...jsonKeys].map((key) => (
+              {category === "alarms" && currentKeys.includes("alarms") ? (
+                <TagAlarmsEditor
+                  key={`alarms:${doc.metadata.version}:${reloadToken}:${discardToken}`}
+                  alarms={spec.alarms}
+                  onChange={(next) => change(withKey(spec, "alarms", next))}
+                />
+              ) : null}
+              {category === "history" ? (
+                <p>
+                  <a href={`/admin/historian?record=${encodeURIComponent(fullPath)}`}>Record this tag's history on the Historian page</a>
+                </p>
+              ) : null}
+              {category === "alarms" && currentKeys.includes("alarms") ? (
+                <details>
+                  <summary>Edit alarms as JSON</summary>
+                  <JsonField
+                    key={`alarms-json:${doc.metadata.version}:${reloadToken}:${discardToken}`}
+                    name="alarms"
+                    value={spec.alarms}
+                    error={errors.alarms}
+                    onChange={(result) => {
+                      setJsonErrors((prev) => {
+                        const next = { ...prev };
+                        if (result.error) next.alarms = result.error;
+                        else delete next.alarms;
+                        return next;
+                      });
+                      if (!result.error) change(withKey(spec, "alarms", result.remove ? undefined : result.value));
+                    }}
+                  />
+                </details>
+              ) : null}
+              {jsonKeys.map((key) => (
                 <JsonField
                   key={`${key}:${doc.metadata.version}:${reloadToken}:${discardToken}`}
                   name={key}
@@ -465,46 +498,27 @@ function AccessEditor({ name, raw, onChange }: { name: string; raw: unknown; onC
   );
 }
 
-function AlarmSummary({ alarms }: { alarms: unknown }) {
-  const list = Array.isArray(alarms) ? alarms : [];
-  if (list.length === 0) return <p className="muted">No alarms are configured on this tag.</p>;
-  return (
-    <table className="data-table" aria-label="Alarms">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Mode</th>
-          <th>Priority</th>
-          <th>Setpoint</th>
-          <th>Enabled</th>
-        </tr>
-      </thead>
-      <tbody>
-        {list.map((item, index) => {
-          const a = item && typeof item === "object" ? (item as Record<string, unknown>) : {};
-          return (
-            <tr key={index}>
-              <td>{String(a.name ?? "")}</td>
-              <td>{String(a.mode ?? "")}</td>
-              <td>{String(a.priority ?? "")}</td>
-              <td>{bound(a.setpointA)}</td>
-              <td>{a.enabled === undefined ? "true" : bound(a.enabled)}</td>
-            </tr>
-          );
-        })}
-      </tbody>
-    </table>
-  );
-}
+/**
+ * Value-category properties that only mean something for some tag types (UI audit): an OPC/device tag shows its device
+ * and address, an expression tag its expression, and so on. A property that already has a value is always shown.
+ */
+const TYPE_KEYS: Record<string, readonly string[]> = {
+  value: ["memory"],
+  expression: ["expression"],
+  sourcePath: ["derived", "reference"],
+  readExpression: ["derived"],
+  writeExpression: ["derived"],
+  typeId: ["udt"],
+  parameters: ["udt"],
+  opcServer: ["opc"],
+  opcItemPath: ["opc"],
+  scanPeriodMillis: ["opc"],
+  commsTimeoutMillis: ["opc"],
+  commsLoss: ["opc"],
+};
 
-function bound(value: unknown): string {
-  if (value === undefined) return "";
-  if (value && typeof value === "object") {
-    const b = value as Record<string, unknown>;
-    if (typeof b.tag === "string") return `tag ${b.tag}`;
-    if (typeof b.expression === "string") return `expr ${b.expression}`;
-    if (typeof b.parameter === "string") return `param ${b.parameter}`;
-    return JSON.stringify(value);
-  }
-  return String(value);
+export function relevantFor(type: string, key: string, spec: Record<string, unknown>): boolean {
+  const types = TYPE_KEYS[key];
+  if (!types || !type) return true;
+  return types.includes(type) || spec[key] !== undefined;
 }

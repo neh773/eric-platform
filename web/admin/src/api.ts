@@ -1078,6 +1078,20 @@ export class ApiClient {
     if (!res.ok) throw await problemError(res);
   }
 
+  /**
+   * Restore an archive the user picked from disk (a backup downloaded from this or another gateway), for example onto a
+   * fresh install. Sent as base64 JSON so the passphrase travels in the same request body.
+   */
+  async restoreBackupFile(archive: ArrayBuffer, passphrase?: string): Promise<void> {
+    const bytes = new Uint8Array(archive);
+    let binary = "";
+    for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+    const body: Record<string, string> = { archive: btoa(binary) };
+    if (passphrase) body.passphrase = passphrase;
+    const res = await this.send("POST", "/api/v1/backups/restore", body, "session");
+    if (!res.ok) throw await problemError(res);
+  }
+
   async secrets(): Promise<Array<{ name: string; description: string; reference: string }>> {
     const res = await this.send("GET", "/api/v1/secrets", undefined, "session");
     if (!res.ok) throw await problemError(res);

@@ -24,6 +24,9 @@ export function BackupsPage({ section, client, session }: AdminPageProps) {
   const tooShort = [...passphrase].length < MIN_BACKUP_PASSPHRASE;
   const mismatch = passphraseAgain !== passphrase;
   const [reloadToken, setReloadToken] = useState(0);
+  const [file, setFile] = useState<File | null>(null);
+  const [filePassphrase, setFilePassphrase] = useState("");
+  const [confirmFile, setConfirmFile] = useState(false);
 
   useEffect(() => {
     if (!client) return;
@@ -85,6 +88,25 @@ export function BackupsPage({ section, client, session }: AdminPageProps) {
       setReloadToken((token) => token + 1);
     } catch (err) {
       setError(errorMessage(err, "Could not restore the backup"));
+    } finally {
+      setPending(false);
+    }
+  }
+
+  async function restoreFile() {
+    if (!client || pending || !file) return;
+    setPending(true);
+    setError(null);
+    setNotice(null);
+    try {
+      await client.restoreBackupFile(await file.arrayBuffer(), filePassphrase || undefined);
+      setNotice(`Restored ${file.name}. Devices, tags, projects and users from the backup are live now.`);
+      setFile(null);
+      setFilePassphrase("");
+      setConfirmFile(false);
+      setReloadToken((token) => token + 1);
+    } catch (err) {
+      setError(errorMessage(err, "Could not restore the backup file"));
     } finally {
       setPending(false);
     }
@@ -176,6 +198,49 @@ export function BackupsPage({ section, client, session }: AdminPageProps) {
             ))}
           </tbody>
         </table>
+      ) : null}
+      {canAdmin ? (
+        <form
+          className="inline-form"
+          aria-label="Restore from a backup file"
+          onSubmit={(event) => {
+            event.preventDefault();
+            setConfirmFile(true);
+          }}
+        >
+          <h2>Restore from a backup file</h2>
+          <p className="muted">
+            Use a .oipbk file downloaded from this or another gateway, for example to move a project to a new machine or to
+            recover after a reinstall.
+          </p>
+          <label>
+            Backup file
+            <input type="file" accept=".oipbk,.zip" onChange={(event) => setFile(event.target.files?.[0] ?? null)} required />
+          </label>
+          <label>
+            Passphrase for the backup file
+            <input
+              type="password"
+              autoComplete="off"
+              value={filePassphrase}
+              onChange={(event) => setFilePassphrase(event.target.value)}
+            />
+          </label>
+          <button type="submit" disabled={pending || !file}>
+            Restore from file
+          </button>
+          {confirmFile && file ? (
+            <div role="dialog" aria-label="Confirm restore from file" className="confirm-panel">
+              <p>This replaces the running gateway configuration with {file.name}. Confirm to continue.</p>
+              <button type="button" disabled={pending} onClick={() => void restoreFile()}>
+                Restore now
+              </button>
+              <button type="button" disabled={pending} onClick={() => setConfirmFile(false)}>
+                Cancel
+              </button>
+            </div>
+          ) : null}
+        </form>
       ) : null}
       {confirming ? (
         <div role="dialog" aria-labelledby="restore-title" className="confirm-panel">
