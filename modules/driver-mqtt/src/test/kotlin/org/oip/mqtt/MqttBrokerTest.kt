@@ -24,6 +24,7 @@ class MqttBrokerTest {
     private lateinit var mosquitto: GenericContainer<*>
 
     @BeforeAll fun startBroker() {
+        org.junit.jupiter.api.Assumptions.assumeTrue(org.testcontainers.DockerClientFactory.instance().isDockerAvailable(), "Docker is not available; this test needs a container")
         mosquitto = startMosquitto()
     }
 

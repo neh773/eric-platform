@@ -32,6 +32,7 @@ class MailpitNotificationTest {
     @TempDir lateinit var tmp: Path
 
     @Test fun mailpitDeliversTheAckLink() {
+        org.junit.jupiter.api.Assumptions.assumeTrue(org.testcontainers.DockerClientFactory.instance().isDockerAvailable(), "Docker is not available; this test needs a container")
         val image = DockerImageName.parse(IMAGE)
         val mailpit = GenericContainer(image)
             .withExposedPorts(1025, 8025)

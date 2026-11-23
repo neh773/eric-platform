@@ -41,6 +41,7 @@ class MqttGatewayTest {
     lateinit var tmp: Path
 
     @Test fun mqttTagsGoBadOnEachFaultAndRecoverWithoutRestart() {
+        org.junit.jupiter.api.Assumptions.assumeTrue(org.testcontainers.DockerClientFactory.instance().isDockerAvailable(), "Docker is not available; this test needs a container")
         val password = "s3cret-mqtt-gw-7k"
         val records = CopyOnWriteArrayList<String>()
         val handler = capture(records)
@@ -224,6 +225,7 @@ class MqttGatewayTest {
     }
 
     private fun mosquitto(hostPort: Int, authConf: Path?): GenericContainer<*> {
+        org.junit.jupiter.api.Assumptions.assumeTrue(org.testcontainers.DockerClientFactory.instance().isDockerAvailable(), "Docker is not available; this test needs a container")
         val image = DockerImageName.parse("$IMAGE@$DIGEST")
         val container = GenericContainer(image)
             .withExposedPorts(1883)

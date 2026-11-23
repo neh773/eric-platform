@@ -29,6 +29,11 @@ The check stops at the first failing step and prints the log folder. In order, i
 | Fresh-install test | Unpacks the built package into an empty folder, creates the first administrator, opens every page, deploys a PLC program | Linux: `FRESH_PORT=8196 FRESH_GAN_PORT=0 packaging/linux/fresh-install-test.sh` |
 | Every-feature UI suite | The new-user path on the built package, forms only | `cd web && ERIC_UI_GATEWAY="<package>/bin/ERIC Gateway" corepack pnpm test:ui` |
 
+Docker: the MQTT broker, Sparkplug and mail delivery tests (`MqttBrokerTest`, `SparkplugEdgeBrokerTest`,
+`MqttGatewayTest`, the MQTT case of `CommsLossQualityTest`, `MailpitNotificationTest`) start containers. On a machine
+without Docker they are reported as skipped, not failed. Before a release, run the Gradle gate once on a machine with
+Docker (the GitHub runners have it) so they actually run.
+
 Port notes: the check uses its own ports. If another gateway is running on the same machine, set
 `ERIC_UI_PORT`, `ERIC_UI_OPCUA_PORT`, `ERIC_UI_HTTPS_PORT` and `FRESH_PORT` to free ports instead of stopping it.
 
