@@ -8,6 +8,25 @@ import type { PageConfigEntry, PageConfigSpec } from "./persistence";
  * `/<view path>`. Customizing writes that resource on the next save.
  * doc source: FEATURES DES-011
  */
+/** The page list with `/` opening [view]: the home view a session shows first. */
+export function withHomeView(pages: readonly PageConfigEntry[], view: string): PageConfigEntry[] {
+  const rest = pages.filter((page) => page.url !== "/");
+  return [{ url: "/", title: "Home", primaryView: view, name: "home" }, ...rest];
+}
+
+function HomeViewPicker({ pages, views, onPick }: { pages: readonly PageConfigEntry[]; views: readonly ViewDocument[]; onPick: (view: string) => void }) {
+  const current = pages.find((page) => page.url === "/")?.primaryView ?? "";
+  return (
+    <label className="oip-home-view">
+      Home view (what <code>/</code> opens)
+      <select aria-label="Home view" value={current} onChange={(event) => { if (event.target.value) onPick(event.target.value); }}>
+        <option value="">{current ? "" : `Not set (opens ${views[0]?.metadata.path ?? "the first view"})`}</option>
+        {views.map((view) => <option key={view.metadata.path} value={view.metadata.path}>{view.metadata.path}</option>)}
+      </select>
+    </label>
+  );
+}
+
 export function PageConfigPanel({
   spec,
   views,
@@ -19,9 +38,11 @@ export function PageConfigPanel({
 }) {
   if (!spec) {
     const derived = derivedPages(views);
+    const derivedEntries: PageConfigEntry[] = derived.map((page) => ({ url: page.spec.url, title: page.spec.title, primaryView: page.spec.primaryView, name: page.metadata.name }));
     return (
       <section className="oip-pages" aria-label="Page configuration">
         <h3>Pages</h3>
+        <HomeViewPicker pages={derivedEntries} views={views} onPick={(view) => onChange({ pages: withHomeView(derivedEntries, view) })} />
         <p>No page configuration is stored. A session opens one page per view.</p>
         <ul>
           {derived.map((page) => (
@@ -82,6 +103,7 @@ function PageEditor({
   return (
     <section className="oip-pages" aria-label="Page configuration">
       <h3>Pages</h3>
+      <HomeViewPicker pages={spec.pages} views={views} onPick={(view) => onChange({ ...spec, pages: withHomeView(spec.pages, view) })} />
       <ul>
         {spec.pages.map((page, index) => (
           <li key={`${page.url}-${index}`}>

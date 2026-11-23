@@ -246,6 +246,8 @@ export interface GatewayNetworkStatus {
   enabled: boolean;
   listening: boolean;
   port: number | null;
+  /** Why the listener is not running, for example its port is taken. */
+  listenError?: string | null;
   gatewayName: string;
   protocolVersion: number | null;
   fingerprint: string;
@@ -1945,6 +1947,7 @@ function parseGatewayNetwork(value: unknown): GatewayNetworkStatus {
     enabled: body.enabled === true,
     listening: body.listening === true,
     port: typeof body.port === "number" ? body.port : null,
+    listenError: typeof body.listenError === "string" ? body.listenError : null,
     gatewayName: typeof body.gatewayName === "string" ? body.gatewayName : "",
     protocolVersion: typeof body.protocolVersion === "number" ? body.protocolVersion : null,
     fingerprint: typeof certificate.sha256Fingerprint === "string" ? certificate.sha256Fingerprint : "",

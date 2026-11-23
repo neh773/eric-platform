@@ -72,6 +72,8 @@ export const ADMIN_SECTIONS: readonly AdminSection[] = [
   { id: "udt-types", label: "UDT Definitions", group: "services", keywords: ["udt", "type", "template", "members", "data type", "structure"] },
   { id: "historian", label: "Historian", group: "services", keywords: ["tag history", "providers", "storage"] },
   { id: "alarming", label: "Alarming", group: "services", keywords: ["alarm", "notification", "roster", "pipeline", "schedule"] },
+  // Gateway event scripts: timer, tag change, scheduled, startup and shutdown (0.1.1).
+  { id: "gateway-scripts", label: "Gateway Scripts", group: "services", keywords: ["script", "timer", "python", "tag change", "cron", "startup", "shutdown"] },
   { id: "event-streams", label: "Event Streams", group: "services", keywords: ["event", "stream", "kafka", "handler", "source", "pipeline"] },
   // SMTP email profiles shared by alarm notification, reports and scripts (GAT-030).
   { id: "email-profiles", label: "Email Profiles", group: "services", keywords: ["smtp", "mail", "email settings", "oauth", "oauth2", "notification"] },
@@ -101,6 +103,29 @@ export const ADMIN_SECTIONS: readonly AdminSection[] = [
 ];
 
 /** [ADMIN_SECTIONS] by group, in [ADMIN_GROUPS] order. Every section is in exactly one group. */
+/**
+ * The permission a section needs before it shows in the navigation. Sections not listed need gateway.read.
+ * Home and Overview always show. The gateway still checks every request; this only hides pages that would refuse.
+ */
+const SECTION_PERMISSIONS: Record<string, string | null> = {
+  home: null,
+  overview: null,
+  tags: "tags.read",
+  audit: "audit.read",
+  users: "users.admin",
+  "api-keys": "apikeys.admin",
+  secrets: "secrets.admin",
+  backups: "backups.admin",
+  modules: "modules.admin",
+};
+
+export function sectionVisible(id: string, permissions: readonly string[]): boolean {
+  const needed = id in SECTION_PERMISSIONS ? SECTION_PERMISSIONS[id] : "gateway.read";
+  if (needed == null || permissions.includes(needed)) return true;
+  // gateway.write implies gateway.read on the server.
+  return needed === "gateway.read" && permissions.includes("gateway.write");
+}
+
 export function sectionsByGroup(sections: readonly AdminSection[] = ADMIN_SECTIONS): { group: AdminGroup; sections: AdminSection[] }[] {
   return ADMIN_GROUPS.map((group) => ({ group, sections: sections.filter((section) => section.group === group.id) })).filter(
     (entry) => entry.sections.length > 0,

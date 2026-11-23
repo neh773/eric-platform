@@ -919,6 +919,17 @@ class Gateway(
         followActiveNode()
         hmiScripts = HmiScriptRunner(store, HmiScripts(scripts), { scripts.limits }, projects = projectService)
         sessions = SessionHost(tags, clock, hmiAccess(), scripts = hmiScripts, trustedProxies = { settings.trustedProxies })
+        sessions.onRefusedWrite = { user, host, path ->
+            if (security.auditProfile.get().enabled) {
+                security.audit.append(
+                    org.oip.security.AuditDraft(
+                        timestampMillis = clock.millis(), actor = user, action = "tag.write",
+                        status = org.oip.security.AuditStatus.FAILURE, actorHost = host, target = path,
+                        detail = "HMI write refused: the user's role has no tags.write", context = "hmi",
+                    ),
+                )
+            }
+        }
         hmiProjects = HmiProjectApi(store, projectService) { ref -> security.secrets.getText(SecretReferences.parse(ref)) }
         app = Javalin.create { cfg ->
             cfg.showJavalinBanner = false

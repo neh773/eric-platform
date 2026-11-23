@@ -105,7 +105,15 @@ class Api(private val gw: Gateway) {
                 "modules" to gw.host.installed().size,
                 // 0.1.1: a plain-HTTP gateway viewed from its own machine is the normal first run, not a problem;
                 // the Network page carries a calm note instead. Other browsers still see the warning.
-                "warnings" to listOfNotNull(gw.insecureCookieWarning?.takeUnless { gw.settings.plainHttpOnly() && fromThisMachine(ctx) }),
+                "warnings" to listOfNotNull(
+                    when {
+                        gw.insecureCookieWarning == null -> null
+                        // A new install on plain HTTP: nothing to warn about on this machine, one plain sentence elsewhere.
+                        gw.settings.plainHttpOnly() -> if (fromThisMachine(ctx)) null
+                            else "This connection is not encrypted. Turn on HTTPS in Network before other computers sign in."
+                        else -> gw.insecureCookieWarning
+                    },
+                ),
                 "startedAt" to gw.startedAt?.toString(),
             ))
         }

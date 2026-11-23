@@ -222,6 +222,12 @@ export function HmiRoot({
   const [sessionPatch, setSessionPatch] = useState<SessionPatch>({});
   const [popups, setPopups] = useState<PopupModel[]>([]);
   const [scriptVersion, setScriptVersion] = useState(0);
+  const [writeRefusal, setWriteRefusal] = useState<string | null>(null);
+  useEffect(() => {
+    if (!writeRefusal) return undefined;
+    const timer = window.setTimeout(() => setWriteRefusal(null), 8_000);
+    return () => window.clearTimeout(timer);
+  }, [writeRefusal]);
   const [viewport, setViewport] = useState({ width: 1280, height: 800 });
   const clientRef = useRef<TagClient | null>(null);
   const owners = useRef(new Map<string, string[]>());
@@ -383,7 +389,12 @@ export function HmiRoot({
     () => ({
       writeTag(path, value) {
         if (designMode) return;
-        void clientRef.current?.write(path, value);
+        // A refused write (role, read-only tag, device) is shown, not dropped.
+        clientRef.current?.write(path, value).catch((err: unknown) => {
+          const reason = err instanceof Error ? err.message : String(err);
+          if (reason === "closed") return;
+          setWriteRefusal(`Not written to ${path}: ${reason}`);
+        });
       },
       retainPaths,
       releasePaths,
@@ -449,6 +460,12 @@ export function HmiRoot({
   return (
     <Scope.Provider value={scope}>
       <TagValues.Provider value={values}>
+      {writeRefusal ? (
+        <div className="oip-write-refused" role="alert" style={{ position: "fixed", right: 16, bottom: 16, zIndex: 1000, padding: "8px 12px", borderRadius: 6, background: "var(--oip-alarm-1, #b3261e)", color: "#fff", maxWidth: 420 }}>
+          {writeRefusal}
+          <button type="button" aria-label="Dismiss" style={{ marginLeft: 8 }} onClick={() => setWriteRefusal(null)}>×</button>
+        </div>
+      ) : null}
       <div
         ref={frameRef}
         className="oip-session"

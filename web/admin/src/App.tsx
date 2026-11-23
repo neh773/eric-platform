@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { ApiClient, ApiError, type HealthReport, type LoginProvider, type SessionState } from "./api";
 import { AdminPage, installAdminPages } from "./pages";
 import { matchResources, matchSections } from "./search";
-import { ADMIN_SECTIONS, resourceHref, routeFromPath, sectionPath, sectionsByGroup, type ConfigHit } from "./sections";
+import { ADMIN_SECTIONS, resourceHref, routeFromPath, sectionPath, sectionsByGroup, sectionVisible, type ConfigHit } from "./sections";
 import { BetaNotice } from "./betaNotice";
 import { RESTORED_KEY } from "./restoredNotice";
 
@@ -215,7 +215,7 @@ export function Login({
         <ThemeSwitcher />
         <h1>Sign in</h1>
         <p className="lede">Gateway administration. The session cookie stays on the gateway; this page does not store the password.</p>
-        {restored ? <p role="status">Restored {restored}. Sign in with an account from the backup.</p> : null}
+        {restored ? <p role="status">Restored {restored}. Sign in with an account from the backup, then use Overview, Restart gateway to start the restored devices, historian and MQTT connections.</p> : null}
         <label>
           Username
           <input name="username" autoComplete="username" value={username} onChange={(event) => setUsername(event.target.value)} required />
@@ -381,7 +381,7 @@ function Shell({
       <aside>
         <p className="mark">ERIC <span>Gateway</span></p>
         <nav aria-label="Gateway sections">
-          {sectionsByGroup().map(({ group, sections }) => (
+          {sectionsByGroup(ADMIN_SECTIONS.filter((item) => sectionVisible(item.id, session.permissions))).map(({ group, sections }) => (
             <div role="group" aria-labelledby={`nav-group-${group.id}`} className="nav-group" key={group.id} data-group={group.id}>
               <p className="nav-group-label" id={`nav-group-${group.id}`}>
                 {group.label}

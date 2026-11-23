@@ -4,10 +4,11 @@ A script is a small program the gateway runs on a timer, or that a view runs whe
 
 ## What you can do from the admin UI
 
-1. Open the project.
-2. Add a timer script. Give it a name and a delay in milliseconds.
-3. The script body is JavaScript. It can read and write tags through the functions the runtime passes in.
-4. Save. The timer starts when the project is running.
+1. Open **Gateway Scripts** in the admin pages and select **New script**.
+2. Choose when it runs: **Timer** (give a delay in milliseconds, fixed delay or fixed rate), **Tag change** (list the
+   tag paths), **Scheduled** (a cron schedule), **Startup** or **Shutdown**.
+3. The script body is Python. It can read and write tags through the functions the runtime passes in.
+4. Save. A timer starts at once and runs until you disable or delete it.
 5. If the script throws, the gateway log names the script and the line. The timer keeps scheduling the next run.
 
 A view can also run a script when a button is pressed or a value changes. That editor is in Control Canvas, on the component's events. See Events and scripts in the Control Canvas section.

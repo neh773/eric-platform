@@ -1082,7 +1082,7 @@ class OpcUaConnection(
         val material = when {
             config.certificate != null && config.keyPair != null -> config.keyPair to config.certificate
             needsCert -> {
-                val generated = OpcUaCertificates.generate(config.applicationUri, config.applicationName)
+                val generated = OpcUaCertificates.loadOrCreate(config.pkiDir, config.applicationUri, config.applicationName)
                 generated.keyPair to generated.certificate
             }
             else -> null

@@ -17,7 +17,7 @@ These pages are in the Connections group, except Enterprise Admin, which is its 
 
 A backup restore or wipe that replaces `https/` stops the TLS listener's use of the files, puts the new files in place, and starts it again, on Windows too.
 
-The same page has the gateway-network listener (default port 8060). Outgoing peers, incoming approval, service policies and remote tag providers are `POST` calls under `/api/v1/gateway-network/`. The page lists them when the gateway has peers.
+The same page has the gateway-network listener (default port 8060). Outgoing peers, incoming approval, service policies and remote tag providers are `POST` calls under `/api/v1/gateway-network/`. The page lists them when the gateway has peers. If another program already uses the port, the gateway still starts and the page shows an alert. Pick a free port in `gateway.yaml` (`gatewayNetwork.port`) and restart.
 
 ## Redundancy
 

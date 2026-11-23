@@ -796,9 +796,10 @@ function GatewayNetworkSection({
         {status
           ? status.listening
             ? `Listening on port ${status.port ?? ""}. Incoming connections stay pending until approved.`
-            : "Gateway network is off."
+            : status.listenError ? "Gateway network is not listening." : "Gateway network is off."
           : "Loading peer network status."}
       </p>
+      {status?.listenError ? <p role="alert">{status.listenError}</p> : null}
       {error ? <p role="alert">{error}</p> : null}
       {incoming.length === 0 ? <p>No incoming connections.</p> : null}
       {incoming.map((peer) => {

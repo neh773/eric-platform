@@ -4,6 +4,9 @@ import { MIN_BACKUP_PASSPHRASE, type BackupItem } from "./api";
 import type { AdminPageProps } from "./pages";
 import { RESTORED_KEY } from "./restoredNotice";
 
+/** What a restore applies at once and what waits for a restart (devices, historian and MQTT connections). */
+const AFTER_RESTORE = "Tags, projects, users and PLC programs are back now. Restart the gateway to start the restored devices, historian and MQTT connections.";
+
 /**
  * List, create, download, and restore gateway backups.
  * The archive contains secrets.key, so create, download, and restore need backups.admin (administrator only).
@@ -85,7 +88,7 @@ export function BackupsPage({ section, client, session }: AdminPageProps) {
     try {
       await client.restoreBackup(item.name, item.encrypted ? restorePassphrase : undefined);
       closeRestore();
-      setNotice(`Restored ${item.name}.`);
+      setNotice(`Restored ${item.name}. ${AFTER_RESTORE}`);
       setReloadToken((token) => token + 1);
     } catch (err) {
       setError(errorMessage(err, "Could not restore the backup"));
@@ -107,7 +110,7 @@ export function BackupsPage({ section, client, session }: AdminPageProps) {
       } catch {
         // storage off: the notice below is enough
       }
-      setNotice(`Restored ${file.name}. Devices, tags, projects and users from the backup are live now.`);
+      setNotice(`Restored ${file.name}. ${AFTER_RESTORE}`);
       setFile(null);
       setFilePassphrase("");
       setConfirmFile(false);
@@ -129,6 +132,9 @@ export function BackupsPage({ section, client, session }: AdminPageProps) {
       </p>
       {error ? <p role="alert">{error}</p> : null}
       {notice ? <p role="status">{notice}</p> : null}
+      {notice?.includes(AFTER_RESTORE) && client ? (
+        <button type="button" onClick={() => void client.restartGateway().then(() => setNotice("Restarting the gateway. Sign in again when it is back.")).catch((err: unknown) => setError(errorMessage(err, "Could not restart the gateway")))}>Restart gateway now</button>
+      ) : null}
       {canAdmin ? (
         <form
           className="inline-form"

@@ -26,6 +26,7 @@ import { OverviewPage } from "./overviewPage";
 import { ProjectsPage } from "./projectsPage";
 import { HomePage } from "./homePage";
 import { GatewaySettingsPage } from "./gatewaySettingsPage";
+import { GatewayScriptsPage } from "./gatewayScriptsPage";
 import { PlcResourcesPage } from "./plcResourcesPage";
 import { SecuritySettingsPage } from "./securitySettingsPage";
 import { ZonesPage } from "./zonesPage";
@@ -124,6 +125,7 @@ export function installAdminPages(): void {
   // Services group (GAT-036): historian and alarming resources.
   registerAdminPage("historian", HistoryPage);
   registerAdminPage("alarming", AlarmEditorPage);
+  registerAdminPage("gateway-scripts", GatewayScriptsPage);
   // MES-002..MES-009, SCR-011: event streams and Kafka connections.
   registerAdminPage("event-streams", EventStreamsPage);
   registerAdminPage("charts", ChartsPage);
