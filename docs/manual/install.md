@@ -4,12 +4,30 @@
 
 ## Windows
 
-1. Run the ERIC Gateway installer.
-2. The license screen starts with the beta warning, then the AGPL-3.0 text, then the third-party notices. Choose accept to continue. If you do not accept, the installer stops.
-3. The ERIC Gateway service starts. Control Canvas has a Start-menu shortcut. The manual is served at `http://127.0.0.1:8090/docs`.
-4. Example projects are not installed. Import one later if you want it. See [Brownsville](examples/brownsville.md).
+### What a Windows computer needs
 
-The longer Windows notes, including a silent install and the upgrade ids, are in `docs/install/windows.md` in the repository.
+- 64-bit Windows 10 or 11, and an account that can approve the administrator prompt. The gateway installs as a Windows service, so the installer asks for administrator rights.
+- Nothing else for the gateway, the admin pages, Control Canvas and the manual. The installer carries its own Java runtime and the Microsoft Visual C++ runtime files the PLC tools need. You do not need Java, Visual C++ redistributables, WebView2 or developer tools. Control Canvas and the admin pages open in your normal browser.
+- PLC deploy only: Visual Studio Build Tools with "Desktop development with C++" (free). Windows PLC programs are linked with the Microsoft linker, which ERIC is not allowed to ship. Everything else works without it, and the Logic page says so if it is missing.
+
+### Install
+
+1. Download `ERIC-Gateway-<version>-windows-x64.exe` from the release page.
+2. The installers are not code-signed yet (beta). Windows SmartScreen may say "Windows protected your PC". Choose **More info**, check the file name, then **Run anyway**.
+3. Approve the administrator prompt. The license screen starts with the beta warning, then the AGPL-3.0 text, then the third-party notices. Choose accept to continue.
+4. The last page shows the address, `http://localhost:8090/admin`, and has **Open the admin page now** ticked. Choose **Finish**. A small window waits for the ERIC Gateway service (the first start can take a minute), then your browser opens the "Create administrator account" screen. Create the first account **on this computer**: for safety, the first account cannot be created from another computer.
+5. Later, open **ERIC Admin** from the Start menu, or go to `http://localhost:8090/admin` (also `http://127.0.0.1:8090/admin`). The address is plain HTTP, so there is no certificate warning. Turn on HTTPS in Network before other computers sign in.
+6. Control Canvas has its own installer and Start-menu shortcut. The manual is served at `http://127.0.0.1:8090/docs`. Example projects are not installed. See [Brownsville](examples/brownsville.md).
+
+Every install keeps its log at `C:\ProgramData\ERIC\logs\install.log`, also when it succeeds. If the gateway does not open, see [Troubleshooting on Windows](troubleshooting-windows.md).
+
+### Silent install
+
+From an administrator Command Prompt (a silent install cannot show the administrator prompt):
+
+`"ERIC-Gateway-<version>-windows-x64.exe" /qn /norestart /L*v "C:\ERIC-install.log"`
+
+Quote the installer path when it contains spaces. Exit code 0 or 3010 means it installed. A copy of the log is also kept at `C:\ProgramData\ERIC\logs\install.log`. A silent install does not open the browser. The longer notes, including the upgrade ids, are in `docs/install/windows.md` in the repository.
 
 ## Uninstall on Windows
 

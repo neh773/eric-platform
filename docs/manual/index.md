@@ -22,6 +22,7 @@ All three share one sign-in (the gateway's user accounts and roles).
 - [Feature coverage](feature-coverage.md)
 - [Safety and disclaimer](safety.md)
 - [Install and uninstall](install.md)
+- [Troubleshooting on Windows](troubleshooting-windows.md)
 - [Getting started](getting-started.md)
 - [Getting started for testers](getting-started-testers.md)
 - Gateway admin: [connections and devices](gateway/connections.md), [tags](gateway/tags.md), [historian](gateway/historian.md), [alarming](gateway/alarming.md), [databases](gateway/databases.md), [users and roles](gateway/users.md), [more security](gateway/security-more.md), [network, redundancy and enterprise admin](gateway/network.md), [reports and other services](gateway/services.md), [projects](gateway/projects.md), [scripting](gateway/scripting.md), [REST API](gateway/rest.md), [backups](gateway/backups.md), [diagnostics, logs, metrics dashboards and deployment modes](gateway/diagnostics.md)

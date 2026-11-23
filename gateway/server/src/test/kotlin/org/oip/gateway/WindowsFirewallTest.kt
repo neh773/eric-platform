@@ -38,6 +38,7 @@ class WindowsFirewallTest {
             calls,
         )
         assertTrue(WindowsFirewall.addArgs(8090, "ERIC Gateway").contains("localport=8090"))
+        assertTrue(WindowsFirewall.addArgs(8090, "ERIC Gateway").contains("profile=any"))
     }
 
     @Test fun aLateAllowAfterShutdownDoesNotRecreateTheRule() {

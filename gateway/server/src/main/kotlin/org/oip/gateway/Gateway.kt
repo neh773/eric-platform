@@ -1060,6 +1060,13 @@ class Gateway(
         security.users.create(CreateUser("admin", pw.toCharArray(), setOf(DefaultRoles.ADMINISTRATOR)), actor = "system")
     }
 
+    /** Optional parts of startup that failed; shown as health warnings and in logs/startup.log. */
+    val startupProblems: MutableList<String> = java.util.Collections.synchronizedList(mutableListOf())
+
+    private fun startupWarning(text: String) {
+        logs.log(LogLevel.WARN, "org.oip.gateway", text, mapOf("startupLog" to (StartupLog.path()?.toString() ?: "")))
+    }
+
     fun start(): Gateway {
         if (!control.tryAcquire()) {
             throw IllegalStateException("gateway is already running for ${dataDir.toAbsolutePath()}")
@@ -1068,6 +1075,7 @@ class Gateway(
         startedAt = clock.instant()
         WindowsFirewall.allowGatewayPortLater(settings.port)
         try {
+            StartupLog.stage("security and modules")
             // SEC-022: outbound TLS clients (drivers, scripts, mail, identity providers) trust this gateway's store.
             outboundTlsHandle = org.oip.config.OutboundTls.install { client -> outboundTrust.sslContext(client) }
             val registry = dataDir.resolve("installed-modules.tsv")
@@ -1075,6 +1083,7 @@ class Gateway(
             host.installAll()
             // Container recipes: restore a backup into a fresh data directory after module packages are installed and before any module starts (GAT-009).
             FirstBootRestore(dataDir, store, backups, processEnv, { security.users.list().map { it.username } }) { message, fields -> logs.log(LogLevel.INFO, "org.oip.backup", message, fields) }.run()
+            StartupLog.stage("devices")
             prepareDrivers()
             host.startAll()
             followActiveEdgeNodes()
@@ -1090,39 +1099,55 @@ class Gateway(
                 settings = { storeAndForwardSettings },
                 maintenance = { historyStore.maintain() },
             ).start()
-            if (settings.opcua.enabled && opcUa == null) {
-                val server = OpcUaTagServer(
-                    settings.opcua,
-                    dataDir.resolve("opcua"),
-                    tags,
-                    // Each session acts as its user: roles from the directory, zone from the client address (TAG-013).
-                    OpcUaUserAuthenticator { user, password, client, secure ->
-                        when (val result = security.users.authenticate(user, password, host = "opcua")) {
-                            is AuthenticationResult.Success -> {
-                                val connection = ConnectionContext(client, hostName = null, gatewayName = null,
-                                    secure = secure, direct = true, scope = RequestScope.GATEWAY)
-                                // tags.write is taken at activation, like the roles: a session of a user without it writes nothing.
-                                val tagWrite = security.authorization.authorize(result.subject, Permissions.TAGS_WRITE, connection).allowed
-                                TagCaller.of(result.subject, security.zones.match(connection), client?.hostAddress ?: "", tagWrite = tagWrite)
+            startOptional("OPC UA server", startupProblems, ::startupWarning) {
+                if (settings.opcua.enabled && opcUa == null) {
+                    val server = OpcUaTagServer(
+                        settings.opcua,
+                        dataDir.resolve("opcua"),
+                        tags,
+                        // Each session acts as its user: roles from the directory, zone from the client address (TAG-013).
+                        OpcUaUserAuthenticator { user, password, client, secure ->
+                            when (val result = security.users.authenticate(user, password, host = "opcua")) {
+                                is AuthenticationResult.Success -> {
+                                    val connection = ConnectionContext(client, hostName = null, gatewayName = null,
+                                        secure = secure, direct = true, scope = RequestScope.GATEWAY)
+                                    // tags.write is taken at activation, like the roles: a session of a user without it writes nothing.
+                                    val tagWrite = security.authorization.authorize(result.subject, Permissions.TAGS_WRITE, connection).allowed
+                                    TagCaller.of(result.subject, security.zones.match(connection), client?.hostAddress ?: "", tagWrite = tagWrite)
+                                }
+                                else -> null
                             }
-                            else -> null
-                        }
-                    },
-                    VERSION,
-                    opcUaTrust,
-                    GatewayDeviceCatalog(this),
-                )
-                server.start()
-                opcUa = server
+                        },
+                        VERSION,
+                        opcUaTrust,
+                        GatewayDeviceCatalog(this),
+                    )
+                    server.start()
+                    opcUa = server
+                }
             }
-            databases.start()
-            queryTags?.start()
-            systemTags = SystemTags(this).also { it.start() }
-            scripts.start()
-            charts.start()
-            followActiveCharts()
-            events.start()
-            reportScheduler = ReportScheduler(reports, clock, { def, result -> reportSink.deliver(def, result) }).start()
+            startOptional("database connections", startupProblems, ::startupWarning) {
+                databases.start()
+            }
+            startOptional("query tags", startupProblems, ::startupWarning) {
+                queryTags?.start()
+            }
+            startOptional("system tags", startupProblems, ::startupWarning) {
+                systemTags = SystemTags(this).also { it.start() }
+            }
+            startOptional("gateway scripts", startupProblems, ::startupWarning) {
+                scripts.start()
+            }
+            startOptional("charts", startupProblems, ::startupWarning) {
+                charts.start()
+                followActiveCharts()
+            }
+            startOptional("event streams", startupProblems, ::startupWarning) {
+                events.start()
+            }
+            startOptional("report scheduler", startupProblems, ::startupWarning) {
+                reportScheduler = ReportScheduler(reports, clock, { def, result -> reportSink.deliver(def, result) }).start()
+            }
             diagnostics.clockDrift.start()
             registerMetrics()
             val task = diagnostics.tasks.register("diagnostics-sampler", 5_000)
@@ -1132,27 +1157,41 @@ class Gateway(
             // Audit retention (SEC-001): remove rows older than the audit profile's retention, at start and hourly.
             val retention = diagnostics.tasks.register("audit-retention", AUDIT_RETENTION_PERIOD_MS)
             scheduler?.scheduleWithFixedDelay({ enforceAuditRetention(retention) }, 0, AUDIT_RETENTION_PERIOD_MS, TimeUnit.MILLISECONDS)
-            network.start()
-            redundancy.start()
-            edgeSync.start()
-            eam.start()
+            startOptional("gateway network", startupProblems, ::startupWarning) {
+                network.start()
+            }
+            startOptional("redundancy", startupProblems, ::startupWarning) {
+                redundancy.start()
+            }
+            startOptional("edge sync", startupProblems, ::startupWarning) {
+                edgeSync.start()
+            }
+            startOptional("enterprise admin", startupProblems, ::startupWarning) {
+                eam.start()
+            }
             alarmScheduler = Executors.newSingleThreadScheduledExecutor { r -> Thread(r, "alarm-eval").apply { isDaemon = true } }
                 .also { it.scheduleWithFixedDelay({ runCatching { alarms.poll(); notifications.poll() } }, 200, 200, TimeUnit.MILLISECONDS) }
-            if (settings.plc.enabled) {
-                plcBridge = PlcBridge.open(tags, settings.plc) { message ->
-                    logs.log(LogLevel.WARN, "org.oip.plc", message, emptyMap())
-                }.also { it.start() }
+            startOptional("PLC bridge", startupProblems, ::startupWarning) {
+                if (settings.plc.enabled) {
+                    plcBridge = PlcBridge.open(tags, settings.plc) { message ->
+                        logs.log(LogLevel.WARN, "org.oip.plc", message, emptyMap())
+                    }.also { it.start() }
+                }
             }
             logic.writeTag = { tag, value ->
                 val result = tags.write(tag, value)
                 if (!result.ok) throw IllegalArgumentException("writing $tag was refused: ${result.quality}")
             }
-            startManagedPlc()
+            startOptional("PLC", startupProblems, ::startupWarning) {
+                startManagedPlc()
+            }
+            StartupLog.stage("web server on port ${settings.port}")
             https.prepare()
             https.server = { runCatching { app.jettyServer().server() }.getOrNull() }
             app.start(settings.host, settings.port)
             https.watchIncoming()
             control.publish(clientUrl())
+            StartupLog.stage("started, listening on ${clientUrl()}" + if (startupProblems.isEmpty()) "" else " with ${startupProblems.size} problem(s)")
             logs.log(LogLevel.INFO, "org.oip.gateway", "gateway started", mapOf(
                 "profile" to settings.profile,
                 "port" to port(),

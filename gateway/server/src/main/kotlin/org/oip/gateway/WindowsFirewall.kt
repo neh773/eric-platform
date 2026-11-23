@@ -80,6 +80,8 @@ object WindowsFirewall {
     internal fun addArgs(port: Int, name: String): List<String> = listOf(
         "advfirewall", "firewall", "add", "rule",
         "name=$name", "dir=in", "action=allow", "protocol=TCP", "localport=$port",
+        // Windows Home usually puts a network in the Public profile; the rule must cover it, not only Private/Domain.
+        "profile=any",
     )
 
     private fun netsh(args: List<String>) {

@@ -228,6 +228,30 @@ Wait-Health
 Assert-Page "http://127.0.0.1:8090/admin"
 Assert-Page "http://127.0.0.1:8090/designer"
 Assert-Page "http://127.0.0.1:8090/hmi"
+# The Start-menu "ERIC Admin" shortcut and the kept install log (also written after a successful install).
+$adminLnk = Get-ChildItem -Path "$env:ProgramData\Microsoft\Windows\Start Menu\Programs" -Recurse -Filter "$($layout.adminLauncherName).lnk" -ErrorAction SilentlyContinue | Select-Object -First 1
+if ($null -eq $adminLnk) { throw "Start-menu shortcut '$($layout.adminLauncherName)' is missing" }
+Write-Host "shortcut $($adminLnk.FullName)"
+if (-not (Test-Path $layout.installLog)) { throw "install log was not kept at $($layout.installLog)" }
+Write-Host "install log kept at $($layout.installLog) ($((Get-Item $layout.installLog).Length) bytes)"
+# The install check a user runs must find nothing to fix on a working install.
+$installDir = Join-Path $env:ProgramFiles $layout.gatewayName
+$checkScript = Join-Path $installDir "app\check-install.ps1"
+if (-not (Test-Path $checkScript)) { throw "check-install.ps1 was not installed" }
+$checkOut = & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $checkScript | Out-String
+Write-Host $checkOut
+if ($checkOut -match "(?m)^\s+FIX\s") { throw "check-install.ps1 reported problems on a fresh install" }
+# A clean machine has no Visual C++ runtime: eric-plc.exe links it statically, and the runtime DLLs ship app-local.
+Enable-Msvc
+$dumpbin = Get-Command dumpbin.exe -ErrorAction SilentlyContinue
+if ($null -ne $dumpbin) {
+    $deps = & $dumpbin.Source /dependents (Join-Path $installDir "app\plc\eric-plc.exe") | Out-String
+    if ($deps -match "(?i)vcruntime140|msvcp140") { throw "eric-plc.exe still needs the Visual C++ runtime:`n$deps" }
+    Write-Host "eric-plc.exe has no Visual C++ runtime dependency"
+}
+foreach ($dll in @("app\plc\rusty\vcruntime140.dll", "app\plc\vcruntime140.dll")) {
+    if (-not (Test-Path (Join-Path $installDir $dll))) { throw "missing $($dll) (app-local Visual C++ runtime)" }
+}
 $rule = ""
 $ruleDeadline = (Get-Date).AddSeconds(30)
 do {
@@ -237,6 +261,7 @@ do {
 } while ((Get-Date) -lt $ruleDeadline)
 if ($rule -match "No rules match") { throw "firewall rule was not added" }
 Write-Host "firewall rule present"
+if ($rule -notmatch "Domain,Private,Public") { throw "firewall rule does not cover every profile (Windows Home uses Public):`n$rule" }
 $params = Get-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Services\$($layout.serviceName)\Parameters"
 $extra = @($params.AppEnvironmentExtra) -join "`n"
 if ($extra -notmatch 'ERIC_ADMIN_DIST=') { throw "service environment is missing ERIC_ADMIN_DIST: $extra" }

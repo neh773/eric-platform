@@ -11,6 +11,11 @@ data class Layout(val productName: String) {
     val vendor: String = productName
     val gatewayName: String = "$productName Gateway"
     val designerName: String = "Control Canvas"
+    /** Second launcher with its own Start-menu shortcut: waits for the service, then opens the admin page. */
+    val adminLauncherName: String = "$productName Admin"
+    val adminUrl: String = "http://localhost:$DEFAULT_HTTP_PORT/admin"
+    /** Where the installer leaves a copy of its log, even after a successful install. */
+    val installLog: String = "C:\\ProgramData\\$productName\\logs\\install.log"
     /** Service key and the Start-menu shortcut that opens the admin UI. */
     val serviceName: String = gatewayName
     val dataDir: String = "C:\\ProgramData\\$productName\\gateway"
@@ -88,8 +93,38 @@ data class Layout(val productName: String) {
                   <RegistryValue Root="HKLM" Key="Software\${xml(productName)}" Type="string" Name="InstallDir" Value="[INSTALLDIR]" />
                 </Component>
               </DirectoryRef>
+              <!-- Every install writes a Windows Installer log (also without /L*v); a copy is kept at the documented path. -->
+              <Property Id="MsiLogging" Value="voicewarmupx!" />
+              <CustomAction Id="EricKeepInstallLog" Directory="INSTALLDIR" Return="asyncNoWait" Execute="immediate"
+                            ExeCommand="&quot;[SystemFolder]cmd.exe&quot; /c if not exist &quot;[CommonAppDataFolder]${xml(productName)}\logs&quot; mkdir &quot;[CommonAppDataFolder]${xml(productName)}\logs&quot; &amp; copy /y &quot;[MsiLogFileLocation]&quot; &quot;[CommonAppDataFolder]${xml(productName)}\logs\install.log&quot;" />
+              <InstallExecuteSequence>
+                <Custom Action="EricKeepInstallLog" After="InstallFinalize">MsiLogFileLocation AND NOT (REMOVE~="ALL")</Custom>
+              </InstallExecuteSequence>
+              <!-- Finish page: the address, the shortcut name, and a ticked box that opens the admin page. -->
+              <Property Id="WIXUI_EXITDIALOGOPTIONALTEXT" Value="${xml(finishText())}" />
+              <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="Open the admin page now (${xml(adminUrl)})" />
+              <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOX" Value="1" />
+              <CustomAction Id="EricOpenAdmin" Directory="INSTALLDIR" Return="asyncNoWait"
+                            ExeCommand="&quot;[INSTALLDIR]${xml(adminLauncherName)}.exe&quot;" />
+              <UI>
+                <Publish Dialog="ExitDialog" Control="Finish" Event="DoAction" Value="EricOpenAdmin">WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 AND NOT Installed</Publish>
+              </UI>
             </Include>
         """.trimIndent() + "\n"
+    }
+
+    fun finishText(): String =
+        "$gatewayName is installed and runs as a Windows service. Open $adminUrl on this computer to create the " +
+            "administrator account (the first account can only be created here). Start menu: $adminLauncherName. " +
+            "Install log: $installLog"
+
+    /** jpackage --add-launcher properties for [adminLauncherName]. */
+    fun adminLauncherProperties(): String = buildString {
+        appendLine("arguments=open-admin")
+        appendLine("launcher-as-service=false")
+        appendLine("win-console=true")
+        appendLine("win-menu=true")
+        appendLine("win-shortcut=true")
     }
 
     fun layoutProperties(version: String): String = buildString {
@@ -104,6 +139,8 @@ data class Layout(val productName: String) {
         appendLine("dataDir=$dataDir")
         appendLine("healthUrl=http://127.0.0.1:8090/api/v1/health")
         appendLine("menuGroup=$menuGroup")
+        appendLine("adminLauncherName=$adminLauncherName")
+        appendLine("installLog=$installLog")
     }
 
     fun gatewayImageArgs(version: String, inputDir: String, mainJar: String, destDir: String): List<String> =
@@ -128,6 +165,7 @@ data class Layout(val productName: String) {
         "--win-menu-group", menuGroup,
         "--win-upgrade-uuid", requireUuid(upgradeUuid),
         "--launcher-as-service",
+        "--add-launcher", "$adminLauncherName=$resourceDir/admin-launcher.properties",
         "--resource-dir", resourceDir,
         "--icon", "$resourceDir/eric.ico",
         "--license-file", "$resourceDir/LICENSE-INSTALL.txt",
@@ -176,6 +214,7 @@ data class Layout(val productName: String) {
 
     companion object {
         const val DEFAULT_PRODUCT_NAME = "ERIC"
+        const val DEFAULT_HTTP_PORT = 8090
         const val GATEWAY_MAIN = "org.oip.gateway.MainKt"
         const val DESIGNER_MAIN = "org.oip.designer.LauncherKt"
         const val JLINK_OPTIONS =

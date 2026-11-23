@@ -148,10 +148,13 @@ tasks.register("stagePlcBundle") {
     description = "eric-plc.exe, the ST library, and the separate RuSTy Windows compiler."
     doLast {
         if (!windows()) throw GradleException("the PLC bundle is built on Windows")
-        val cargo = ProcessBuilder(
+        val cargoBuild = ProcessBuilder(
             "cargo", "build", "--release", "--locked",
             "--manifest-path", rootProject.file("plc/eric-plc/Cargo.toml").absolutePath,
-        ).directory(rootProject.projectDir).inheritIO().start()
+        ).directory(rootProject.projectDir).inheritIO()
+        // A clean Windows machine has no Visual C++ runtime: link it into eric-plc.exe.
+        cargoBuild.environment()["RUSTFLAGS"] = listOfNotNull(System.getenv("RUSTFLAGS"), "-C target-feature=+crt-static").joinToString(" ")
+        val cargo = cargoBuild.start()
         if (cargo.waitFor() != 0) throw GradleException("cargo build of eric-plc failed")
         val built = rootProject.file("plc/eric-plc/target/release/eric-plc.exe")
         if (!built.isFile) throw GradleException("missing $built")
@@ -171,6 +174,16 @@ tasks.register("stagePlcBundle") {
         downloadPinned("$base/stdlib-1.0.8.tar.gz", tar, "f0bf72ed4df3ef5cab0d5887f8e06c5b0fd5f43ca1a10cd6ade249d0decb0c4e")
         val unpack = ProcessBuilder("tar", "-xzf", tar.absolutePath, "-C", rusty.absolutePath).inheritIO().start()
         if (unpack.waitFor() != 0) throw GradleException("could not unpack the RuSTy standard library")
+        // The prebuilt RuSTy compiler and its standard library DLL load the Visual C++ runtime, which a clean
+        // Windows machine does not have. Ship the runtime DLLs next to them (app-local), from the build JDK.
+        val jdkBin = File(System.getProperty("java.home"), "bin")
+        val vcRuntime = listOf("vcruntime140.dll", "vcruntime140_1.dll", "msvcp140.dll")
+        val found = vcRuntime.filter { jdkBin.resolve(it).isFile }
+        if ("vcruntime140.dll" !in found) throw GradleException("vcruntime140.dll not found in $jdkBin; build with a JDK that bundles it")
+        for (dll in found) {
+            jdkBin.resolve(dll).copyTo(rusty.resolve(dll), true)
+            jdkBin.resolve(dll).copyTo(bundle.resolve(dll), true)
+        }
         rootProject.file("packaging/windows/third-party").copyRecursively(bundle.resolve("licenses"), true)
         rootProject.file("packaging/windows/SOURCE-OFFER.txt").copyTo(bundle.resolve("licenses/SOURCE-OFFER.txt"), true)
     }
@@ -239,7 +252,10 @@ fun stagePayload(dest: File, windowsExtras: Boolean) {
     if (opsPage.isFile) opsPage.copyTo(docsOut.resolve("ops.md"), true)
     val guide = rootProject.file("docs-site/docs")
     if (guide.isDirectory) guide.copyRecursively(docsOut.resolve("guide"), true)
-    if (windowsExtras) rootProject.file("packaging/windows/uninstall.ps1").copyTo(dest.resolve("uninstall.ps1"), true)
+    if (windowsExtras) {
+        rootProject.file("packaging/windows/uninstall.ps1").copyTo(dest.resolve("uninstall.ps1"), true)
+        rootProject.file("packaging/windows/check-install.ps1").copyTo(dest.resolve("check-install.ps1"), true)
+    }
     rootProject.file("LICENSE").copyTo(dest.resolve("LICENSE"), true)
     rootProject.file("LICENSE-EXCEPTION.md").copyTo(dest.resolve("LICENSE-EXCEPTION.md"), true)
     rootProject.file("THIRD_PARTY.md").copyTo(dest.resolve("THIRD_PARTY.md"), true)

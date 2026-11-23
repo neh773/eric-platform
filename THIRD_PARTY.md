@@ -5,7 +5,7 @@ fails CI if a resolved dependency is missing from this table, or if any `runtime
 without a classpath exception. EPL-2.0 and EPL-1.0 libraries, including Eclipse Milo, are combined
 under the additional permission in LICENSE-EXCEPTION.md. That permission does not relicense those jars.
 
-The PLC preview does not add a Gradle dependency. `plc/eric-plc` links the crates `libc`, `libloading`, `serde`, `serde_json`, and `toml` (MIT or Apache-2.0). RuSTy v1.0.8 and `iec61131std` are LGPLv3, downloaded at build time, and are not linked into the JVM or into `eric-plc`. The Windows gateway installer ships `plc.exe`, `iec61131std.dll`, and `iec61131std.lib` as separate files, with their license texts and a written source offer. Their source is not in this repository.
+The PLC preview does not add a Gradle dependency. `plc/eric-plc` links the crates `libc`, `libloading`, `serde`, `serde_json`, and `toml` (MIT or Apache-2.0). RuSTy v1.0.8 and `iec61131std` are LGPLv3, downloaded at build time, and are not linked into the JVM or into `eric-plc`. The Windows gateway installer ships `plc.exe`, `iec61131std.dll`, and `iec61131std.lib` as separate files, with their license texts and a written source offer. Their source is not in this repository. Next to them it ships the Microsoft Visual C++ runtime files (`vcruntime140.dll`, `vcruntime140_1.dll`, `msvcp140.dll`) taken from the build JDK, as app-local redistributable files under the Microsoft Visual C++ redistributable terms, so a clean Windows computer needs no separate runtime install. `eric-plc.exe` links the C runtime statically on Windows.
 
 | Artifact | Version | License | Scope | Used by |
 |---|---|---|---|---|

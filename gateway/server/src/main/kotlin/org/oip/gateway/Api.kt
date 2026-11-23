@@ -113,7 +113,7 @@ class Api(private val gw: Gateway) {
                             else "This connection is not encrypted. Turn on HTTPS in Network before other computers sign in."
                         else -> gw.insecureCookieWarning
                     },
-                ),
+                ) + gw.startupProblems.toList(),
                 "startedAt" to gw.startedAt?.toString(),
             ))
         }

@@ -71,6 +71,33 @@ pages (`/admin`) and Control Canvas (`/studio`). Record a result for every row i
     check devices, tags, UDTs, projects, PLC programs and the tag map, users and history settings all came back and
     work.
 
+### 2W. Clean Windows VM install, no developer tools (required for every Windows release)
+
+The developer laptop and the CI runner both have Java, Visual C++ runtimes and build tools, which hide missing
+dependencies. Before a Windows release, also install on a **clean Windows 10 or 11 x64 virtual machine** made from a
+fresh evaluation image: no Java, no Visual C++ redistributables, no Visual Studio, no Node, no Python, no Git, and a
+standard Windows Defender/SmartScreen setup. Take a snapshot first so the pass can be repeated.
+
+1. Download the installer in the VM's browser from the release page (so it carries the downloaded-file mark), and
+   double-click it. Record the SmartScreen prompt and that **More info > Run anyway** gets past it.
+2. Approve the administrator prompt and finish with the defaults. If anything fails, rerun with
+   `/L*v "%USERPROFILE%\Desktop\eric-install.log"` and attach that log.
+3. The installer's last page must show `http://localhost:8090/admin`, the **ERIC Admin** shortcut name and the install
+   log path, with **Open the admin page now** ticked. Finish: the browser must open the "Create administrator account"
+   screen at `http://localhost:8090/admin` within a minute, over plain HTTP with no certificate warning. If it does not,
+   the ERIC Admin window must say what to check. Record what the VM's browser shows.
+4. Check `C:\ProgramData\ERIC\logs\install.log` exists after this successful install.
+5. Close the browser and open **ERIC Admin** from the Start menu: the admin page opens again.
+6. From the VM host or another computer on the same network (Windows Home, network set to Public), open
+   `http://<vm address>:8090/admin`: the sign-in page loads (the firewall rule covers the Public profile).
+7. Run `powershell -ExecutionPolicy Bypass -File "C:\Program Files\ERIC Gateway\app\check-install.ps1"` as
+   administrator. It must report no FIX lines. Attach `C:\ProgramData\ERIC\check-install.txt`.
+8. Do steps 2.2 to 2.7 above in that VM. For 2.8, check that **Compile and deploy** without Build Tools gives the plain
+   "needs Visual Studio Build Tools" message, then install Build Tools and deploy.
+9. Do a silent install on a second clean snapshot from an administrator Command Prompt:
+   `"<installer>.exe" /qn /norestart /L*v "C:\ERIC-install.log"`. Exit code 0 or 3010; the service runs; the log is there.
+10. Uninstall from Add/Remove Programs. No service, firewall rule or Program Files folder is left.
+
 ## 3. Lifecycle
 
 On each platform, after the new-user pass:
@@ -104,6 +131,7 @@ Platform: Linux / Windows    Build: <version or commit>    Tester: <name or agen
 | --- | --- | --- | --- | --- |
 | A1 | Automated gates | scripts/check.sh or check.ps1 | | log folder |
 | 1 | Download and install | 2.1 | | |
+| W | Clean Windows VM (no dev tools): SmartScreen, finish page opens admin, ERIC Admin shortcut, install.log kept, remote access on Public network, check-install, silent install, uninstall | 2W | | install.log, check-install.txt |
 | 2 | First administrator | 2.2 | | |
 | 3 | Devices (each type) | 2.3 | | |
 | 4 | Tags, scaling, alarms | 2.4 | | |

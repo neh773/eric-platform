@@ -90,10 +90,12 @@ private fun linkDll(compiler: File, objects: List<File>, dll: File) {
     }
 }
 
+internal const val NO_VC_TOOLS = "Deploying a PLC program on Windows needs Visual Studio Build Tools with \"Desktop development with C++\" (free). Install them, then deploy again. Everything else in ERIC works without them."
+
 private fun visualCppVars(): File {
     val pf86 = System.getenv("ProgramFiles(x86)") ?: "C:\\Program Files (x86)"
     val vswhere = File(pf86, "Microsoft Visual Studio\\Installer\\vswhere.exe")
-    if (!vswhere.isFile) throw IllegalArgumentException("Visual Studio is required to link a Windows PLC program")
+    if (!vswhere.isFile) throw IllegalArgumentException(NO_VC_TOOLS)
     val install = runCaptured(
         listOf(
             vswhere.absolutePath, "-latest", "-products", "*", "-requires",
@@ -101,7 +103,7 @@ private fun visualCppVars(): File {
         ),
     ).trim()
     val vcvars = File(install, "VC\\Auxiliary\\Build\\vcvars64.bat")
-    if (!vcvars.isFile) throw IllegalArgumentException("vcvars64.bat was not found under $install")
+    if (install.isBlank() || !vcvars.isFile) throw IllegalArgumentException(NO_VC_TOOLS)
     return vcvars
 }
 
