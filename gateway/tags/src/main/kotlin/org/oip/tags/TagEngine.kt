@@ -1607,6 +1607,30 @@ class StandardTagProvider(
         typeView(def)
     }
 
+    /**
+     * The members of the UDT at [typeId] after `parent` inheritance, in definition order, or null when the type is
+     * missing or its inheritance is broken. Used to turn gateway UDTs into Structured Text structures.
+     */
+    fun udtMembers(typeId: String): List<UdtMemberShape>? = engine.withShared {
+        val flat = flatten(typeId, emptySet())
+        if (flat.error != null) return@withShared null
+        flat.members.map { member ->
+            UdtMemberShape(member.memberName(), member.dataType, if (member.type == TagType.UDT) member.typeId else null)
+        }
+    }
+
+    /** The UDT type path of the instance at [path], or null when no UDT instance is there. */
+    fun udtInstanceType(path: TagPath): String? = engine.withShared {
+        nodeAt(path)?.config?.takeIf { it.type == TagType.UDT }?.typeId
+    }
+
+    /** Top-level UDT instances (not members of another instance): full tag path to type path, ordered by path. */
+    fun udtInstances(): List<Pair<String, String>> = engine.withShared {
+        live.filter { it.alive && it.config.type == TagType.UDT && !it.generated && it.config.typeId != null }
+            .map { it.path.toString() to it.config.typeId!! }
+            .sortedBy { it.first.lowercase() }
+    }
+
     /** Every UDT definition in this provider, ordered by path. */
     fun udtTypes(): List<UdtTypeView> = engine.withShared {
         definitions.values.map { typeView(it) }.sortedBy { it.path.lowercase() }

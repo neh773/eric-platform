@@ -80,7 +80,9 @@ import org.oip.redundancy.RedundancySettings
 import org.oip.tags.MemoryTagPersistence
 import org.oip.tags.TagCaller
 import org.oip.tags.TagConfigBinding
+import org.oip.tags.StandardTagProvider
 import org.oip.tags.TagEngine
+import org.oip.tags.TagPath
 import org.oip.tags.query.QueryTagRuntime
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
@@ -384,6 +386,8 @@ class Gateway(
     /** Built `web/designer` bundle served at `/hmi` and `/studio` ([WebUi]); `OIP_WEB_DIST` by default. */
     webDist: Path? = WebUi.locate(),
 ) : AutoCloseable {
+    /** Environment for the managed scan engine (ERIC_* copied onto OIP_*). */
+    private val engineEnv: Map<String, String> = LegacyEnv.normalize(env, warn = false)
     val settings: GatewaySettings
     val sessionPolicy: SessionPolicy
     val insecureCookieWarning: String?
@@ -510,7 +514,22 @@ class Gateway(
     private val tagBinding: TagConfigBinding
     @Volatile private var drivers: TagDriverBridge? = null
     private var plcBridge: PlcBridge? = null
-    val logic: LogicService = LogicService(dataDir.resolve("logic"), engine = PlcControl.fromEnvironment())
+    val logic: LogicService = LogicService(dataDir.resolve("logic"), engine = PlcControl.fromEnvironment(), udts = { udtCatalog() })
+
+    /** Gateway UDTs as Structured Text structures, from the default tag provider (0.1.1). */
+    private fun udtCatalog(): org.oip.plc.UdtCatalog {
+        val provider = tags.provider("default") as? StandardTagProvider ?: return org.oip.plc.UdtCatalog.EMPTY
+        return object : org.oip.plc.UdtCatalog {
+            override fun types() = provider.udtTypes().filter { it.error == null }.map { it.path }
+            override fun members(typeId: String) = provider.udtMembers(typeId)
+            override fun instanceType(path: String): String? {
+                val parsed = runCatching { TagPath.parse(path, "default") }.getOrNull() ?: return null
+                val owner = tags.provider(parsed.provider ?: "default") as? StandardTagProvider ?: return null
+                return owner.udtInstanceType(parsed)
+            }
+            override fun instances() = provider.udtInstances()
+        }
+    }
     val plcResources: PlcResourceService = PlcResourceService(dataDir.resolve("plc-resources"))
     private val builtIns = BuiltInModules(dataDir.resolve("modules"), dataDir.resolve(BuiltInModules.REMOVED_FILE))
 
@@ -1105,6 +1124,7 @@ class Gateway(
                     logs.log(LogLevel.WARN, "org.oip.plc", message, emptyMap())
                 }.also { it.start() }
             }
+            startManagedPlc()
             https.prepare()
             app.start(settings.host, settings.port)
             https.watchIncoming()
@@ -1330,7 +1350,24 @@ class Gateway(
         return redundancy.statusDocument()
     }
 
+    /**
+     * Without an external engine (gateway.yaml `plc`, or ERIC_PLC_SOCKET) the gateway runs the bundled `eric-plc`
+     * itself, so a deploy from Control Canvas really scans (0.1.1). The last deployed program starts again here.
+     */
+    private fun startManagedPlc() {
+        if (settings.plc.enabled || !engineEnv["OIP_PLC_SOCKET"].isNullOrEmpty()) return
+        val binary = ManagedPlc.findEngine(engineEnv) ?: return
+        val supervisor = ManagedPlc(dataDir.resolve("logic/run"), binary, tags) { message ->
+            logs.log(LogLevel.WARN, "org.oip.plc", message, emptyMap())
+        }
+        logic.managed = supervisor
+        Thread({
+            supervisor.resume()?.let { logs.log(LogLevel.WARN, "org.oip.plc", "the deployed PLC program did not start again", mapOf("error" to it)) }
+        }, "eric-plc-resume").apply { isDaemon = true }.start()
+    }
+
     override fun close() {
+        runCatching { logic.managed?.close() }
         if (started) {
             runCatching { plcBridge?.close() }
             plcBridge = null

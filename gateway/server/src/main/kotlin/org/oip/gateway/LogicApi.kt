@@ -32,6 +32,7 @@ class LogicApi(private val gw: Gateway) {
             val diagnostics = attempt { gw.logic.check(ctx.pathParam("name")) }
             json(ctx, mapOf("diagnostics" to diagnostics.map { it.toMap() }))
         }
+        app.get("/api/v1/logic/programs/{name}/udts") { ctx -> json(ctx, attempt { gw.logic.udtView(ctx.pathParam("name")) }) }
         app.get("/api/v1/logic/mapping") { ctx -> json(ctx, gw.logic.mapping()) }
         app.put("/api/v1/logic/mapping") { ctx ->
             attempt { gw.logic.saveMapping(body(ctx)) }

@@ -101,16 +101,37 @@ internal class PlcBridge(
         for ((index, point) in mapping.outputs.withIndex()) {
             val slot = slots[index]
             if (slot.quality == 0) {
-                tags.publishMemory(point.tag, valueOf(point.type, slot.value), Quality.GOOD)
+                publish(point, valueOf(point.type, slot.value), Quality.GOOD)
             } else {
-                tags.publishMemory(point.tag, safeValue(point), Quality.BAD_NOT_CONNECTED)
+                publish(point, safeValue(point), Quality.BAD_NOT_CONNECTED)
             }
         }
     }
 
+    /** Values last written to a device (non-memory) output tag, so a device sees a write only when the value changes. */
+    private val deviceWrites = HashMap<String, Any?>()
+
+    /**
+     * A memory tag takes the scan value directly. Any other tag (a device address, for example an outstation stop
+     * coil) gets a normal tag write, and only when the value changes.
+     */
+    private fun publish(point: PlcPoint, value: Any?, quality: Quality) {
+        val result = tags.publishMemory(point.tag, value, quality)
+        if (result.quality != Quality.BAD_NOT_WRITABLE || quality.level != Level.GOOD) return
+        if (deviceWrites.containsKey(point.tag) && deviceWrites[point.tag] == value) return
+        deviceWrites[point.tag] = value
+        runCatching { tags.write(point.tag, value) }
+            .onFailure { log("write to ${point.tag} failed: ${it.message ?: it.javaClass.simpleName}") }
+    }
+
     private fun publishSafe() {
         for (point in mapping.outputs) {
-            tags.publishMemory(point.tag, safeValue(point), Quality.BAD_NOT_CONNECTED)
+            val result = tags.publishMemory(point.tag, safeValue(point), Quality.BAD_NOT_CONNECTED)
+            // A device output goes to its safe value too, once.
+            if (result.quality == Quality.BAD_NOT_WRITABLE && (!deviceWrites.containsKey(point.tag) || deviceWrites[point.tag] != safeValue(point))) {
+                deviceWrites[point.tag] = safeValue(point)
+                runCatching { tags.write(point.tag, safeValue(point)) }
+            }
         }
     }
 

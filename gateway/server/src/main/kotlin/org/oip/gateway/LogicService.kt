@@ -7,6 +7,11 @@ import kotlin.io.path.createDirectories
 import kotlin.io.path.exists
 import kotlin.io.path.readText
 import kotlin.io.path.writeText
+import org.oip.plc.PreparedProgram
+import org.oip.plc.StSource
+import org.oip.plc.UdtBinding
+import org.oip.plc.UdtCatalog
+import org.oip.plc.UdtLogic
 
 /**
  * Programs, the tag mapping, and the running logic image.
@@ -18,8 +23,14 @@ import kotlin.io.path.writeText
 class LogicService(
     private val root: Path,
     private val compiler: PlcCompiler = PlcCompiler.fromEnvironment(),
-    private val engine: PlcControl = PlcControl.disconnected(),
+    engine: PlcControl = PlcControl.disconnected(),
+    /** Gateway UDTs for Structured Text structures and UDT instance bindings (0.1.1). */
+    private val udts: () -> UdtCatalog = { UdtCatalog.EMPTY },
 ) {
+    private val external = engine
+    /** The engine the gateway starts itself when no external engine socket is configured (0.1.1). */
+    @Volatile internal var managed: ManagedPlc? = null
+    private val engine: PlcControl get() = managed?.control?.takeIf { it.connected() } ?: external
     private val programs = root.resolve("programs")
     private val mappingFile = root.resolve("mapping.json")
     private val values = ConcurrentHashMap<String, LogicValue>()
@@ -83,25 +94,125 @@ class LogicService(
         return parsed as? Map<String, Any?> ?: mapOf("inputs" to emptyList<Any>(), "outputs" to emptyList<Any>())
     }
 
+    /**
+     * Saves the hand-mapped rows and the UDT bindings. Rows generated for UDT members (they carry `udt`) are kept
+     * while their binding still exists; the next check or deploy regenerates them.
+     */
     fun saveMapping(body: Map<String, Any?>) {
-        val inputs = mappingRows(body["inputs"], "in")
-        val outputs = mappingRows(body["outputs"], "out")
-        mappingFile.writeText(Json.write(mapOf("inputs" to inputs, "outputs" to outputs)))
+        val bindings = udtBindings(body["udts"])
+        val bound = bindings.map { it.variable.lowercase() }.toSet()
+        val previous = mapping()
+        fun side(key: String, direction: String): List<Map<String, Any?>> {
+            val hand = mappingRows((body[key] as? List<*>).orEmpty().filter { (it as? Map<*, *>)?.get("udt") == null }, direction)
+            val kept = (previous[key] as? List<*>).orEmpty().filterIsInstance<Map<String, Any?>>()
+                .filter { (it["udt"] as? String)?.lowercase() in bound }
+            return hand + kept
+        }
+        writeMapping(side("inputs", "in"), side("outputs", "out"), bindings)
     }
 
-    fun check(name: String): List<PlcDiagnostic> = compiler.check(file(name))
+    private fun writeMapping(inputs: List<Map<String, Any?>>, outputs: List<Map<String, Any?>>, bindings: List<UdtBinding>) {
+        val doc = linkedMapOf<String, Any?>("inputs" to inputs, "outputs" to outputs)
+        if (bindings.isNotEmpty()) {
+            doc["udts"] = bindings.map { b -> linkedMapOf("variable" to b.variable, "instance" to b.instance, "members" to b.members) }
+        }
+        mappingFile.writeText(Json.write(doc))
+    }
+
+    fun bindings(): List<UdtBinding> = udtBindings(mapping()["udts"])
+
+    private fun handRows(key: String): List<Map<String, Any?>> =
+        (mapping()[key] as? List<*>).orEmpty().filterIsInstance<Map<String, Any?>>().filter { it["udt"] == null }
+
+    /** The user's source with UDT glue, as the compiler sees it, written to `logic/build/<name>.st`. */
+    fun prepare(name: String): Pair<Path, PreparedProgram> {
+        val source = read(name)
+        val used = (handRows("inputs") + handRows("outputs")).mapNotNull { it["address"] as? String }
+        val prepared = UdtLogic.prepare(source, name, bindings(), used, udts())
+        val dir = root.resolve("build").createDirectories()
+        val out = dir.resolve("$name.st")
+        out.writeText(prepared.source)
+        return out to prepared
+    }
+
+    /** Structure variables in [name] that a UDT instance can be bound to, with their current binding plan. */
+    fun udtView(name: String): Map<String, Any?> {
+        val catalog = udts()
+        val source = read(name)
+        val variables = UdtLogic.structVariables(source, name, catalog)
+        val plans = runCatching { prepare(name).second.plans }.getOrDefault(emptyList())
+        val names = UdtLogic.typeNames(catalog)
+        return mapOf(
+            "types" to names.map { (path, st) -> mapOf("udt" to path, "st" to st) },
+            "instances" to catalog.instances().map { (path, type) -> mapOf("path" to path, "udt" to type) },
+            "variables" to variables.map { v ->
+                val plan = plans.firstOrNull { it.variable.equals(v.variable, true) }
+                linkedMapOf(
+                    "variable" to v.variable,
+                    "type" to v.type,
+                    "udt" to v.udtType,
+                    "declaredInProgram" to v.fromSource,
+                    "instance" to plan?.instance,
+                    "problems" to plan?.problems.orEmpty(),
+                    "members" to plan?.members.orEmpty().map { m ->
+                        linkedMapOf(
+                            "path" to m.stPath(v.variable), "member" to m.member, "type" to m.type,
+                            "direction" to m.direction, "auto" to m.auto, "tag" to m.tag, "address" to m.address, "note" to m.note,
+                        )
+                    },
+                )
+            },
+        )
+    }
+
+    fun check(name: String): List<PlcDiagnostic> {
+        val (file, _) = prepare(name)
+        return userLines(name, compiler.check(file))
+    }
+
+    /** A diagnostic past the user's last line is in the appended gateway UDT types. */
+    private fun userLines(name: String, found: List<PlcDiagnostic>): List<PlcDiagnostic> {
+        val lines = read(name).lines().size
+        return found.map { d -> if (d.line > lines) d.copy(line = 1, column = 1, message = "In the gateway UDT types added to this program: ${d.message}") else d }
+    }
 
     fun deploy(name: String): Map<String, Any?> {
-        val diagnostics = check(name)
+        val (prepared, plan) = prepare(name)
+        val diagnostics = userLines(name, compiler.check(prepared))
         if (diagnostics.isNotEmpty()) {
             return mapOf("ok" to false, "state" to state, "diagnostics" to diagnostics.map { it.toMap() })
         }
+        // The generated UDT member rows join the hand-mapped ones, so the engine and the bridge move them too.
+        writeMapping(handRows("inputs") + plan.inputs, handRows("outputs") + plan.outputs, bindings())
+        val entry = UdtLogic.programOf(StSource.parse(read(name)), name)?.name ?: name
         val previous = state
         state = "swapping"
         applySafe()
-        if (engine.connected()) {
+        val supervisor = managed
+        if (supervisor != null) {
             val library = try {
-                compiler.link(file(name))
+                compiler.link(prepared)
+            } catch (ex: IllegalArgumentException) {
+                state = previous
+                message = ex.message ?: "compile failed"
+                return mapOf("ok" to false, "state" to state, "message" to message, "diagnostics" to emptyList<Any>())
+            }
+            if (library == null) {
+                state = previous
+                message = "the Structured Text compiler could not build a program for the scan engine"
+                return mapOf("ok" to false, "state" to state, "message" to message, "diagnostics" to emptyList<Any>())
+            }
+            val hwmap = library.parent.resolve(libraryStem(library.fileName.toString()) + "-hwmap.json")
+            val error = supervisor.start(library, entry, "${entry}_instance", hwmap, mapping())
+            if (error != null) {
+                state = "faulted"
+                applySafe()
+                message = error
+                return mapOf("ok" to false, "state" to state, "message" to message, "diagnostics" to emptyList<Any>())
+            }
+        } else if (engine.connected()) {
+            val library = try {
+                compiler.link(prepared)
             } catch (ex: IllegalArgumentException) {
                 state = previous
                 message = ex.message ?: "compile failed"
@@ -113,7 +224,7 @@ class LogicService(
                 return mapOf("ok" to false, "state" to state, "message" to message, "diagnostics" to emptyList<Any>())
             }
             val hwmap = library.parent.resolve(libraryStem(library.fileName.toString()) + "-hwmap.json")
-            val error = engine.deploy(library.toString(), name, "${name}_instance", if (hwmap.exists()) hwmap.toString() else null)
+            val error = engine.deploy(library.toString(), entry, "${entry}_instance", if (hwmap.exists()) hwmap.toString() else null)
             if (error != null) {
                 state = "faulted"
                 applySafe()
@@ -133,6 +244,7 @@ class LogicService(
         if (program == null) throw IllegalArgumentException("deploy a program before starting")
         val error = engine.start()
         if (error != null) throw IllegalArgumentException(error)
+        managed?.rememberRunning(true)
         pullEngine()
         if (state == "faulted") throw IllegalArgumentException("the engine is faulted; deploy again")
         if (!engine.connected()) state = "running"
@@ -141,6 +253,7 @@ class LogicService(
     fun stop() {
         val error = engine.stop()
         if (error != null) throw IllegalArgumentException(error)
+        managed?.rememberRunning(false)
         pullEngine()
         if (!engine.connected()) state = "stopped"
         applySafe()
@@ -247,6 +360,8 @@ class LogicService(
         "forced" to forced,
         "output" to point.output,
         "safe" to point.safe,
+        "udt" to point.udt,
+        "member" to point.member,
     )
 
     private fun applySafe() {
@@ -274,7 +389,17 @@ class LogicService(
     }
 }
 
-data class LogicPoint(val name: String, val address: String, val tag: String, val type: String, val direction: String, val safe: Any?, val output: Boolean)
+data class LogicPoint(
+    val name: String,
+    val address: String,
+    val tag: String,
+    val type: String,
+    val direction: String,
+    val safe: Any?,
+    val output: Boolean,
+    val udt: String? = null,
+    val member: String? = null,
+)
 
 data class LogicForce(val name: String, val value: Any?, val output: Boolean)
 
@@ -290,9 +415,27 @@ private fun mappingRows(raw: Any?, direction: String): List<Map<String, Any?>> {
         val tag = map["tag"] as? String ?: throw IllegalArgumentException("tag is required")
         val type = map["type"] as? String ?: "BOOL"
         val name = (map["name"] as? String)?.ifBlank { null } ?: tag.substringAfterLast('/')
-        mapOf("name" to name, "address" to address, "tag" to tag, "type" to type, "direction" to direction, "safe" to map["safe"])
+        val row = linkedMapOf<String, Any?>("name" to name, "address" to address, "tag" to tag, "type" to type, "direction" to direction, "safe" to map["safe"])
+        (map["udt"] as? String)?.let { row["udt"] = it }
+        (map["member"] as? String)?.let { row["member"] = it }
+        row
     }
 }
+
+private fun udtBindings(raw: Any?): List<UdtBinding> =
+    (raw as? List<*>).orEmpty().map { item ->
+        val m = item as? Map<*, *> ?: throw IllegalArgumentException("udts entries must be objects")
+        val variable = (m["variable"] as? String)?.trim().orEmpty()
+        val instance = (m["instance"] as? String)?.trim().orEmpty()
+        if (!Regex("[A-Za-z_][A-Za-z0-9_]*").matches(variable)) throw IllegalArgumentException("udts variable must be a Structured Text name")
+        if (instance.isEmpty()) throw IllegalArgumentException("udts instance is required for $variable")
+        val members = (m["members"] as? Map<*, *>).orEmpty().mapNotNull { (k, v) ->
+            val dir = v as? String ?: return@mapNotNull null
+            if (dir !in setOf("in", "out", "none", "auto")) throw IllegalArgumentException("member direction must be in, out, none or auto")
+            if (dir == "auto") null else k.toString() to dir
+        }.toMap()
+        UdtBinding(variable, instance, members)
+    }.distinctBy { it.variable.lowercase() }
 
 private fun present(raw: Any?, type: String): Any? = when (type) {
     "BOOL" -> when (raw) {
@@ -328,6 +471,8 @@ private fun logicPoints(raw: Any?, output: Boolean): List<LogicPoint> =
             direction = it["direction"] as String,
             safe = it["safe"],
             output = output,
+            udt = it["udt"] as? String,
+            member = it["member"] as? String,
         )
     }
 
@@ -400,7 +545,13 @@ class PlcCompiler(
     }
 
     companion object {
-        fun fromEnvironment(): PlcCompiler = PlcCompiler(System.getenv("ERIC_PLC_COMPILER"))
+        /** `ERIC_PLC_COMPILER`, or the RuSTy compiler bundled in the install's `plc/rusty` folder (Linux and Windows). */
+        fun fromEnvironment(): PlcCompiler = PlcCompiler(LegacyEnv.current["OIP_PLC_COMPILER"]?.takeIf { it.isNotBlank() } ?: bundledCompiler())
+
+        fun bundledCompiler(): String? {
+            val name = if (System.getProperty("os.name").orEmpty().contains("win", true)) "plc.exe" else "plc"
+            return Bundled.dir("plc")?.resolve("rusty")?.resolve(name)?.toFile()?.takeIf { it.isFile }?.absolutePath
+        }
     }
 }
 
