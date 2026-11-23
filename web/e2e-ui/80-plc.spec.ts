@@ -17,6 +17,7 @@ test("PLC: new ST program, check, compile and deploy, run", async ({ page }) => 
   await expect(page.getByText(/no problems|check passed|OK/i).first()).toBeVisible({ timeout: 60_000 });
   // Deploy needs at least one variable mapped to a tag: map the counter through the Tag mapping form.
   // The tag map belongs to the deployed program: clear rows left from another program, then map this one.
+  await expect(page.getByRole("region", { name: "Tag mapping and runtime" })).toHaveAttribute("data-mapping-loaded", "yes");
   while (await page.getByRole("button", { name: "Remove mapping 0", exact: true }).count()) {
     await page.getByRole("button", { name: "Remove mapping 0", exact: true }).click();
   }

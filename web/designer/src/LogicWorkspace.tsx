@@ -52,7 +52,11 @@ export function LogicWorkspace({ client }: { client: GatewayClient }) {
   const [draftName, setDraftName] = useState("");
   const [source, setSource] = useState("");
   const sourceRef = useRef("");
-  const [rows, setRows] = useState<MapRow[]>([]);
+  const [rows, setRowsState] = useState<MapRow[]>([]);
+  // A mapping still loading must not replace rows the user already changed.
+  const [mappingLoaded, setMappingLoaded] = useState(false);
+  const rowsEdited = useRef(false);
+  const setRows = (next: MapRow[]) => { rowsEdited.current = true; setRowsState(next); };
   const [jsonMode, setJsonMode] = useState(false);
   const [jsonText, setJsonText] = useState("");
   const [diagnostics, setDiagnostics] = useState<Diagnostic[]>([]);
@@ -93,11 +97,12 @@ export function LogicWorkspace({ client }: { client: GatewayClient }) {
       void openProgram(items[0]);
     }).catch((err: unknown) => setError(message(err)));
     void client.logicMapping().then((file) => {
+      if (rowsEdited.current) return;
       const next = rowsFromMapping(file);
-      setRows(next);
+      setRowsState(next);
       replaceBindings(udtBindings(file));
       setJsonText(JSON.stringify(mappingDocument(next, udtBindings(file)), null, 2));
-    }).catch(() => undefined);
+    }).catch(() => undefined).finally(() => setMappingLoaded(true));
     void refreshStatus().catch(() => undefined);
   }, []);
 
@@ -249,7 +254,7 @@ export function LogicWorkspace({ client }: { client: GatewayClient }) {
     const file = jsonMode ? JSON.parse(jsonText) as ReturnType<typeof mappingDocument> : mappingDocument(rows, bindingsRef.current);
     const saved = await client.logicSaveMapping(file);
     const next = rowsFromMapping(saved);
-    setRows(next);
+    setRowsState(next);
     replaceBindings(udtBindings(saved));
     setJsonText(JSON.stringify(mappingDocument(next, udtBindings(saved)), null, 2));
   }
@@ -369,7 +374,7 @@ export function LogicWorkspace({ client }: { client: GatewayClient }) {
         {error ? <p role="alert">{error}</p> : null}
         {notice ? <p role="status">{notice}</p> : null}
       </section>
-      <section className="oip-logic-side" aria-label="Tag mapping and runtime">
+      <section className="oip-logic-side" aria-label="Tag mapping and runtime" data-mapping-loaded={mappingLoaded ? "yes" : "no"}>
         <h2>Tag mapping</h2>
         <button type="button" onClick={() => setJsonMode((on) => !on)}>{jsonMode ? "Edit as form" : "Edit as JSON"}</button>
         {jsonMode ? (

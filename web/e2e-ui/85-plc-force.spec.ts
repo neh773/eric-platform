@@ -56,6 +56,7 @@ test("PLC online mode: force an output to the Modbus device and release it", asy
   await page.keyboard.press("ControlOrMeta+A");
   await page.keyboard.type("PROGRAM force_check\nVAR\n  cmd AT %QW0 : INT;\nEND_VAR\ncmd := 0;\nEND_PROGRAM\n");
   // The tag map belongs to the deployed program: clear rows left from another program, then map this one.
+  await expect(page.getByRole("region", { name: "Tag mapping and runtime" })).toHaveAttribute("data-mapping-loaded", "yes");
   while (await page.getByRole("button", { name: "Remove mapping 0", exact: true }).count()) {
     await page.getByRole("button", { name: "Remove mapping 0", exact: true }).click();
   }
