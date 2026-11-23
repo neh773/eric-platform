@@ -1425,12 +1425,8 @@ class Gateway(
         }
         logic.managed = supervisor
         Thread({
-            val error = supervisor.resume()
+            supervisor.resume()?.let { logs.log(LogLevel.WARN, "org.oip.plc", "the deployed PLC program did not start again", mapOf("error" to it)) }
             supervisor.deployed()?.let { runCatching { logic.resumed(it) } }
-            if (error != null) {
-                logs.log(LogLevel.WARN, "org.oip.plc", "the deployed PLC program did not start again", mapOf("error" to error))
-                runCatching { logic.resumeFailed(error) }
-            }
         }, "eric-plc-resume").apply { isDaemon = true }.start()
     }
 
