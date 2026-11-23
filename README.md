@@ -4,6 +4,15 @@
 
 ERIC (Engineered Runtime Interface & Control) connects to devices, holds tags, history and alarms, and serves operator screens. Control Canvas is the designer.
 
+## Quick start
+
+1. Install ERIC Gateway: see [docs/manual/install.md](docs/manual/install.md) (Windows installer, Linux package).
+2. On the gateway computer, open **http://localhost:8090/admin**. The Windows installer opens it when it finishes, and the
+   **ERIC Admin** Start-menu shortcut opens it later. Create the first administrator there.
+3. Ports: **8090** is the web site (admin, Control Canvas, HMI), plain HTTP by default with no certificate warning.
+   8060 is the gateway-to-gateway network port and does not serve web pages. 8043 answers only after you turn on
+   HTTPS on the Network page. Windows problems: [docs/manual/troubleshooting-windows.md](docs/manual/troubleshooting-windows.md).
+
 Gateway backup and restore, including the warning that a backup holds `secrets.key` and the secret store (always encrypted under a passphrase you choose), is in [docs/ops.md](docs/ops.md).
 
 Licensed under the GNU Affero General Public License v3.0 or later — see [LICENSE](LICENSE) — with an additional permission to link Eclipse Public License libraries. See [LICENSE-EXCEPTION.md](LICENSE-EXCEPTION.md). The SPDX expression is `AGPL-3.0-or-later WITH LicenseRef-ERIC-EPL-Linking-Exception`. Copyright (C) 2026 Nick Hepburn, the sole maintainer ([MAINTAINERS.md](MAINTAINERS.md)). The names ERIC and Control Canvas are trademarks; see [TRADEMARKS.md](TRADEMARKS.md). Third-party notices are in [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md). Contributions need the agreement in [CLA.md](CLA.md), and that agreement applies the same linking permission to contributed code.
