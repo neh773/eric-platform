@@ -84,7 +84,7 @@ internal class ManagedPlc(
         if (!started.isAlive || candidate.status() == null) {
             stopEngine()
             val tail = runCatching { logFile.readLines().takeLast(5).joinToString(" ") }.getOrDefault("")
-            return "the scan engine did not start${if (tail.isBlank()) "" else ": $tail"}"
+            return engineStartError(tail)
         }
         bridge = try {
             PlcBridge.open(
@@ -175,4 +175,19 @@ internal class ManagedPlc(
             return Bundled.dir("plc")?.resolve(name)?.toFile()?.takeIf { it.isFile }
         }
     }
+}
+
+private val MISSING_ADDRESS = Regex("""hwmap has no (%[IQM][XBWDL][0-9.]+)""")
+
+/**
+ * The deploy error for an engine that did not start. A tag map row whose address the program never declares gets a
+ * sentence that says what to change, instead of the engine's own wording.
+ */
+internal fun engineStartError(tail: String): String {
+    val missing = MISSING_ADDRESS.find(tail)?.groupValues?.get(1)
+    if (missing != null) {
+        return "the Tag mapping uses $missing, but no variable in the program is at that address. " +
+            "Declare one with AT, for example `count AT $missing : DINT;`, or change the address in Tag mapping"
+    }
+    return "the scan engine did not start${if (tail.isBlank()) "" else ": $tail"}"
 }
