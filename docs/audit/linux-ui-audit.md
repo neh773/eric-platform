@@ -151,4 +151,4 @@ that expected a project tree in a project that now opens empty). Rows below are 
 | Restore file input label | Fixed: 'Backup file' |
 | Port 8060 clash (NOTE) | The gateway starts anyway and the Network page shows an alert naming the setting to change |
 
-Still open (minor): Navigation action keeps the old URL; History query shows empty minutes; UDT member rows show the word 'Diagnostics'; no 'backup created' message. Not verified: email delivery from a pipeline, Sparkplug births.
+Still open (minor): a 'Show view' navigation action swaps the view in place, so the address bar keeps the old page (by design today; a 'Go to page' action changes the URL); History query shows empty minutes; UDT member rows show the word 'Diagnostics'. The 'backup created' row: the page now says 'Created <name>.' Not verified: email delivery from a pipeline, Sparkplug births.
