@@ -1,5 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
-import { LEVEL_TAG, login, main, openStudio, PROJECT, section, studioSave, VIEW } from "./ui";
+import { createTag, LEVEL_TAG, login, main, openStudio, PROJECT, section, studioSave, tagExists, VIEW } from "./ui";
+
+const GAUGE_TAG = "GaugeLevel";
 
 async function addComponent(page: Page, search: string, button: string) {
   await page.getByRole("tablist", { name: "Studio panels" }).getByRole("tab", { name: "Add", exact: true }).click();
@@ -83,6 +85,22 @@ test.describe("Control Canvas", () => {
     await expect(page.getByText(/^\d+(\.\d+)?$/).first()).toBeVisible();
     await page.getByRole("button", { name: "Details" }).click();
     await expect(page.getByRole("dialog", { name: /Wet well detail/ })).toBeVisible();
+  });
+
+  test("a linear gauge bound to a nonzero memory tag shows its value at /hmi", async ({ page }) => {
+    if (!(await tagExists(page, GAUGE_TAG))) {
+      await createTag(page, GAUGE_TAG, "memory", "Double", async (form) => {
+        await form.getByLabel("Initial value").fill("42.5");
+      });
+    }
+    await openStudio(page);
+    if (await addView(page, "gauge")) {
+      await addComponent(page, "linear", "Add linear gauge");
+      await bindTag(page, "Value", `[default]${GAUGE_TAG}`);
+    }
+    await studioSave(page);
+    await page.goto(`/hmi/${PROJECT}/gauge`);
+    await expect(page.getByRole("meter").first()).toHaveAttribute("aria-valuetext", /^42\.5/, { timeout: 30_000 });
   });
 
   test("/hmi without a project lists the projects, or opens the only one", async ({ page }) => {
