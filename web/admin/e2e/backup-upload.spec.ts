@@ -44,19 +44,19 @@ test("a fresh gateway restores a backup file made on another gateway", async ({ 
     await first.getByRole("button", { name: "Create administrator" }).click();
     await expect(other.getByRole("navigation", { name: "Gateway sections" })).toBeVisible();
     await openSection(other, "Backups");
-    const upload = other.getByRole("form", { name: "Restore from a file" });
+    const upload = other.getByRole("form", { name: "Restore from a backup file" });
     await expect(upload.getByRole("button", { name: "Restore from file" })).toBeDisabled();
     await upload.getByLabel("Backup file").setInputFiles(file);
 
     // A wrong passphrase is refused and changes nothing.
-    other.once("dialog", (dialog) => void dialog.accept());
-    await upload.getByLabel("Passphrase for the file").fill("not the passphrase");
+    await upload.getByLabel("Passphrase for the backup file").fill("not the passphrase");
     await upload.getByRole("button", { name: "Restore from file" }).click();
+    await other.getByRole("dialog", { name: "Confirm restore from file" }).getByRole("button", { name: "Restore now" }).click();
     await expect(other.getByRole("alert")).toBeVisible();
 
-    other.once("dialog", (dialog) => void dialog.accept());
-    await upload.getByLabel("Passphrase for the file").fill(passphrase);
+    await upload.getByLabel("Passphrase for the backup file").fill(passphrase);
     await upload.getByRole("button", { name: "Restore from file" }).click();
+    await other.getByRole("dialog", { name: "Confirm restore from file" }).getByRole("button", { name: "Restore now" }).click();
     await expect(other.getByRole("status").filter({ hasText: /^Restored / })).toBeVisible({ timeout: 60_000 });
 
     // 3. The restored gateway has the other gateway's users and tags.

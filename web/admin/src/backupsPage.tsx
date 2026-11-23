@@ -25,9 +25,9 @@ export function BackupsPage({ section, client, session }: AdminPageProps) {
   const tooShort = [...passphrase].length < MIN_BACKUP_PASSPHRASE;
   const mismatch = passphraseAgain !== passphrase;
   const [reloadToken, setReloadToken] = useState(0);
-  const [uploadFile, setUploadFile] = useState<File | null>(null);
-  const [uploadPassphrase, setUploadPassphrase] = useState("");
-  const [uploadKey, setUploadKey] = useState(0);
+  const [file, setFile] = useState<File | null>(null);
+  const [filePassphrase, setFilePassphrase] = useState("");
+  const [confirmFile, setConfirmFile] = useState(false);
 
   useEffect(() => {
     if (!client) return;
@@ -94,28 +94,27 @@ export function BackupsPage({ section, client, session }: AdminPageProps) {
     }
   }
 
-  async function restoreUpload() {
-    if (!client || pending || !uploadFile) return;
-    if (!window.confirm(`Restore ${uploadFile.name}? This replaces the running gateway configuration, users and secrets with the ones in the file.`)) return;
+  async function restoreFile() {
+    if (!client || pending || !file) return;
     setPending(true);
     setError(null);
     setNotice(null);
     try {
-      await client.restoreUploadedBackup(await uploadFile.arrayBuffer(), uploadPassphrase || undefined);
+      await client.restoreBackupFile(await file.arrayBuffer(), filePassphrase || undefined);
       // The restored users replace this session, so the app usually moves to sign-in next; it shows this there.
       try {
-        window.sessionStorage.setItem(RESTORED_KEY, uploadFile.name);
+        window.sessionStorage.setItem(RESTORED_KEY, file.name);
       } catch {
         // storage off: the notice below is enough
       }
-      setNotice(`Restored ${uploadFile.name}. Users now come from the backup: sign in again with an account from it if this page stops responding.`);
-      setUploadFile(null);
-      setUploadKey((key) => key + 1);
+      setNotice(`Restored ${file.name}. Devices, tags, projects and users from the backup are live now.`);
+      setFile(null);
+      setFilePassphrase("");
+      setConfirmFile(false);
       setReloadToken((token) => token + 1);
     } catch (err) {
       setError(errorMessage(err, "Could not restore the backup file"));
     } finally {
-      setUploadPassphrase("");
       setPending(false);
     }
   }
@@ -209,31 +208,45 @@ export function BackupsPage({ section, client, session }: AdminPageProps) {
       ) : null}
       {canAdmin ? (
         <form
-          className="stack-form"
-          aria-label="Restore from a file"
+          className="inline-form"
+          aria-label="Restore from a backup file"
           onSubmit={(event) => {
             event.preventDefault();
-            void restoreUpload();
+            setConfirmFile(true);
           }}
         >
-          <h2>Restore from a file</h2>
-          <p className="muted">Restore a backup made on this or another gateway (a .oipbk file). This replaces the configuration, users and secrets here.</p>
+          <h2>Restore from a backup file</h2>
+          <p className="muted">
+            Use a .oipbk file downloaded from this or another gateway, for example to move a project to a new machine or to
+            recover after a reinstall.
+          </p>
           <label>
             Backup file
-            <input
-              key={uploadKey}
-              type="file"
-              accept=".oipbk,.zip,application/octet-stream,application/zip"
-              onChange={(event) => setUploadFile(event.target.files?.[0] ?? null)}
-            />
+            <input type="file" accept=".oipbk,.zip" onChange={(event) => setFile(event.target.files?.[0] ?? null)} required />
           </label>
           <label>
-            Passphrase for the file
-            <input type="password" autoComplete="off" value={uploadPassphrase} onChange={(event) => setUploadPassphrase(event.target.value)} />
+            Passphrase for the backup file
+            <input
+              type="password"
+              autoComplete="off"
+              value={filePassphrase}
+              onChange={(event) => setFilePassphrase(event.target.value)}
+            />
           </label>
-          <button type="submit" disabled={pending || !uploadFile}>
+          <button type="submit" disabled={pending || !file}>
             Restore from file
           </button>
+          {confirmFile && file ? (
+            <div role="dialog" aria-label="Confirm restore from file" className="confirm-panel">
+              <p>This replaces the running gateway configuration with {file.name}. Confirm to continue.</p>
+              <button type="button" disabled={pending} onClick={() => void restoreFile()}>
+                Restore now
+              </button>
+              <button type="button" disabled={pending} onClick={() => setConfirmFile(false)}>
+                Cancel
+              </button>
+            </div>
+          ) : null}
         </form>
       ) : null}
       {confirming ? (

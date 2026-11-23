@@ -1079,11 +1079,14 @@ export class ApiClient {
   }
 
   /**
-   * Restore a backup file chosen on this computer (0.1.1), for example one made on another gateway. The file is
-   * sent as base64 with its passphrase; a wrong passphrase is refused and changes nothing.
+   * Restore an archive the user picked from disk (a backup downloaded from this or another gateway), for example onto a
+   * fresh install. Sent as base64 JSON so the passphrase travels in the same request body.
    */
-  async restoreUploadedBackup(archive: ArrayBuffer, passphrase?: string): Promise<void> {
-    const body: Record<string, string> = { archive: toBase64(archive) };
+  async restoreBackupFile(archive: ArrayBuffer, passphrase?: string): Promise<void> {
+    const bytes = new Uint8Array(archive);
+    let binary = "";
+    for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+    const body: Record<string, string> = { archive: btoa(binary) };
     if (passphrase) body.passphrase = passphrase;
     const res = await this.send("POST", "/api/v1/backups/restore", body, "session");
     if (!res.ok) throw await problemError(res);
@@ -2085,13 +2088,6 @@ function parseOpcUaCertificate(value: unknown): OpcUaClientCertificate {
     notAfter: typeof body.notAfter === "string" ? body.notAfter : "",
     expired: body.expired === true,
   };
-}
-
-function toBase64(buffer: ArrayBuffer): string {
-  const bytes = new Uint8Array(buffer);
-  let binary = "";
-  for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
-  return btoa(binary);
 }
 
 function parseBackup(value: unknown): BackupItem {

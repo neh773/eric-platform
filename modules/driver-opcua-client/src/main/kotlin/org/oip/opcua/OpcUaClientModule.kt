@@ -21,6 +21,12 @@ class OpcUaClientModule : Module {
     private var configSub: AutoCloseable? = null
     @Volatile private var running = false
 
+    /**
+     * Set by the gateway before start. Resolves a `secret://` password reference when a session opens,
+     * so the plaintext is never in the config resource.
+     */
+    @Volatile var secretSource: ((String) -> String)? = null
+
     override fun install(context: ModuleContext) {
         prepare(context)
         context.config.put(MODULE_CONFIG_KIND, CONFIG_NAME, context.config.defaults())
@@ -54,7 +60,10 @@ class OpcUaClientModule : Module {
     fun connect(config: OpcUaConnectionConfig): OpcUaConnection {
         openers.remove(config.name)?.interrupt()
         connections.remove(config.name)?.close()
-        val connection = OpcUaConnection(config)
+        val connection = OpcUaConnection(config) { value ->
+            if (!value.startsWith("secret://")) value
+            else secretSource?.invoke(value) ?: throw IllegalStateException("the secret store is not ready")
+        }
         connections[config.name] = connection
         if (running) launch(connection)
         return connection

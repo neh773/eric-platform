@@ -22,12 +22,12 @@ import {
   type AccessRule,
   type CategoryId,
 } from "./tagModel";
-import { AlarmRows } from "../udt/AlarmRows";
 import { formatTime } from "./TagTree";
 import { useLiveValues } from "./useLiveValues";
+import { alarmList, alarmProblems, TagAlarmsEditor } from "./TagAlarmsEditor";
 
 /** Keys edited in the Move / rename box rather than in a category form. */
-const LOCATION_KEYS = new Set(["provider", "path"]);
+const LOCATION_KEYS = new Set(["provider", "path", "name"]);
 
 /**
  * Tag editor (TAG-012): every property of the `Tag` JSON Schema, grouped by category. Saving replaces the
@@ -105,7 +105,8 @@ export function TagEditor({
   const structural = validateAgainstSchema(schema, spec);
   const errors = mergeFieldErrors(structural, { ...drafts, ...jsonErrors }, serverErrors);
   const typing = Object.keys(drafts).length > 0 || Object.keys(jsonErrors).length > 0;
-  const blocked = structural.length > 0 || typing;
+  const alarmIssues = Object.keys(alarmProblems(alarmList(spec.alarms))).length;
+  const blocked = structural.length > 0 || typing || alarmIssues > 0;
 
   function discard() {
     if (!doc) return;
@@ -183,7 +184,7 @@ export function TagEditor({
     setNotice(null);
   };
 
-  const currentKeys = (groups[category] ?? []).filter((key) => !LOCATION_KEYS.has(key));
+  const currentKeys = (groups[category] ?? []).filter((key) => !LOCATION_KEYS.has(key) && relevantFor(String(spec.type ?? ""), key, spec));
   const formKeys = currentKeys.filter((key) => formCanEdit(schema.properties?.[key]) && !isAccessKey(key));
   const jsonKeys = currentKeys.filter((key) => !formCanEdit(schema.properties?.[key]) && !isAccessKey(key) && key !== "alarms");
   const formSchema: JsonSchema = { type: "object", properties: Object.fromEntries(formKeys.map((key) => [key, schema.properties![key]!])) };
@@ -260,15 +261,36 @@ export function TagEditor({
                 />
               ) : null}
               {category === "alarms" && currentKeys.includes("alarms") ? (
-                <fieldset aria-label="Alarms on this tag" className="alarm-list">
-                  <legend>Alarms</legend>
-                  <AlarmRows
-                    alarms={(Array.isArray(spec.alarms) ? spec.alarms : []).map((a) => (a && typeof a === "object" ? (a as Record<string, unknown>) : {}))}
-                    emptyText="No alarms are configured on this tag."
-                    onChange={(next) => change(withKey(spec, "alarms", next.length > 0 ? next : undefined))}
+                <TagAlarmsEditor
+                  key={`alarms:${doc.metadata.version}:${reloadToken}:${discardToken}`}
+                  alarms={spec.alarms}
+                  onChange={(next) => change(withKey(spec, "alarms", next))}
+                />
+              ) : null}
+              {category === "history" ? (
+                <p>
+                  <a href={`/admin/historian?record=${encodeURIComponent(fullPath)}`}>Record this tag's history on the Historian page</a>
+                </p>
+              ) : null}
+              {category === "alarms" && currentKeys.includes("alarms") ? (
+                <details>
+                  <summary>Edit alarms as JSON</summary>
+                  <JsonField
+                    key={`alarms-json:${doc.metadata.version}:${reloadToken}:${discardToken}`}
+                    name="alarms"
+                    value={spec.alarms}
+                    error={errors.alarms}
+                    onChange={(result) => {
+                      setJsonErrors((prev) => {
+                        const next = { ...prev };
+                        if (result.error) next.alarms = result.error;
+                        else delete next.alarms;
+                        return next;
+                      });
+                      if (!result.error) change(withKey(spec, "alarms", result.remove ? undefined : result.value));
+                    }}
                   />
-                  <p className="muted">Choose Save to apply the alarm changes.</p>
-                </fieldset>
+                </details>
               ) : null}
               {jsonKeys.map((key) => (
                 <JsonField
@@ -476,3 +498,27 @@ function AccessEditor({ name, raw, onChange }: { name: string; raw: unknown; onC
   );
 }
 
+/**
+ * Value-category properties that only mean something for some tag types (UI audit): an OPC/device tag shows its device
+ * and address, an expression tag its expression, and so on. A property that already has a value is always shown.
+ */
+const TYPE_KEYS: Record<string, readonly string[]> = {
+  value: ["memory"],
+  expression: ["expression"],
+  sourcePath: ["derived", "reference"],
+  readExpression: ["derived"],
+  writeExpression: ["derived"],
+  typeId: ["udt"],
+  parameters: ["udt"],
+  opcServer: ["opc"],
+  opcItemPath: ["opc"],
+  scanPeriodMillis: ["opc"],
+  commsTimeoutMillis: ["opc"],
+  commsLoss: ["opc"],
+};
+
+export function relevantFor(type: string, key: string, spec: Record<string, unknown>): boolean {
+  const types = TYPE_KEYS[key];
+  if (!types || !type) return true;
+  return types.includes(type) || spec[key] !== undefined;
+}

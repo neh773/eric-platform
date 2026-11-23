@@ -207,7 +207,7 @@ class ProjectCrudApiTest {
         val steps = (setup["steps"] as List<*>).map { it as Map<*, *> }
         assertEquals(listOf("system-name", "users", "plc-resources", "project"), steps.map { it["id"] })
         assertTrue(steps.none { it["done"] == true })
-        assertEquals(listOf("admin", "designer", "hmi"), (fresh.json["links"] as List<*>).map { (it as Map<*, *>)["id"] })
+        assertEquals(listOf("admin", "designer", "hmi", "manual"), (fresh.json["links"] as List<*>).map { (it as Map<*, *>)["id"] })
 
         assertEquals(201, create("plant", "\"title\":\"Plant floor\"").status)
         assertEquals(201, create("base", "\"inheritable\":true,\"runnable\":false").status)
@@ -231,7 +231,7 @@ class ProjectCrudApiTest {
         val op = Http(gw.port()).also { assertEquals(200, it.login("op", TEST_PASSWORD).status) }
         val opHome = op.get("/api/v1/home").json
         assertNull(opHome["setup"])
-        assertEquals(listOf("admin", "hmi"), (opHome["links"] as List<*>).map { (it as Map<*, *>)["id"] })
+        assertEquals(listOf("admin", "hmi", "manual"), (opHome["links"] as List<*>).map { (it as Map<*, *>)["id"] })
         assertNull(((opHome["projects"] as List<*>).single() as Map<*, *>)["designer"])
         assertEquals(403, op.put("/api/v1/home/setup", """{"complete":false}""").status)
 

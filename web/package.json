@@ -8,7 +8,9 @@
     "node": ">=22"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["esbuild"]
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
   },
   "scripts": {
     "dev": "pnpm --filter @oip/designer dev",
@@ -16,7 +18,8 @@
     "typecheck": "tsc -p hmi-runtime --noEmit && tsc -p components --noEmit && tsc -p designer --noEmit && tsc -p admin --noEmit && tsc -p perf --noEmit && tsc -p manual --noEmit",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "licenses": "python3 scripts/check_npm_licenses.py"
+    "licenses": "python3 scripts/check_npm_licenses.py",
+    "test:ui": "playwright test -c playwright.ui.config.ts"
   },
   "devDependencies": {
     "@eslint/js": "9.39.1",

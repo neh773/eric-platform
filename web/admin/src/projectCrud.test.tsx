@@ -247,9 +247,11 @@ describe("home page", () => {
     const steps = await screen.findByTestId("first-run");
     expect(within(steps).getByText("Name this gateway").closest("li")).toHaveAttribute("data-done", "yes");
     expect(within(steps).getByText("Create a project").closest("li")).toHaveAttribute("data-done", "no");
-    expect(screen.queryByTestId("launch")).toBeNull();
+    // Launch links show during setup too, so a new user can open Control Canvas at once.
+    expect(await screen.findByTestId("launch")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Finish setup" }));
+    await waitFor(() => expect(screen.queryByTestId("first-run")).toBeNull());
     const launch = await screen.findByTestId("launch");
     expect(within(launch).getByRole("link", { name: "Designer" })).toHaveAttribute("href", "/studio");
     expect(within(launch).getByRole("link", { name: "HMI sessions" })).toHaveAttribute("href", "/hmi/");

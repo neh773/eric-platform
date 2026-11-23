@@ -31,7 +31,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ["admin/e2e/**/*.mjs"],
+    files: ["admin/e2e/**/*.mjs", "e2e-ui/**/*.mjs"],
     languageOptions: {
       globals: {
         process: "readonly",
