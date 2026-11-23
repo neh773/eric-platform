@@ -31,4 +31,4 @@ If you or your agents bring a patent claim alleging that the project or a contri
 
 Open a pull request and check the Contributor License Agreement box in the pull request template. That checkbox is your acceptance of this agreement for the commits in that pull request.
 
-A GitHub Action may also record the acceptance. The checkbox is enough when the action is not installed.
+The checkbox is enough. There is nothing else to sign or send.

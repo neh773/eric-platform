@@ -1,29 +1,86 @@
 # Contributing to ERIC
 
-Thank you for wanting to improve **ERIC** (Engineered Runtime Interface & Control). This guide covers the fork and pull request flow, the Developer Certificate of Origin, and how to add a protocol driver without changing the gateway core.
+Thanks for wanting to help build **ERIC** (Engineered Runtime Interface & Control) and Control Canvas. Pick something from the wishlist, build it, and send it back.
 
-Longer product and project context lives in [GOALS.md](GOALS.md), [GOVERNANCE.md](GOVERNANCE.md), and [docs/governance/ARCHITECTURE.md](docs/governance/ARCHITECTURE.md).
+Two things to know first:
 
-## Before you start
+- **ERIC is a hobby project.** Nick Hepburn maintains it in his spare time. There is no guaranteed support, review time, or release schedule. Reviews happen when they happen.
+- **ERIC is beta software.** Use it only with hardware for testing, under safe conditions. Never on live production, life-safety, or equipment-protection systems. See [Safety](docs/manual/safety.md).
 
-Read [GOALS.md](GOALS.md). Work that does not fit the project's goals will be labeled for a human maintainer and is unlikely to land.
+The manual is online at <https://neh773.github.io/eric-platform/>.
 
-If you are proposing a large feature, open an issue first. Wishlist items and the funding plan are in [docs/wishlist.md](docs/wishlist.md) and [docs/funding-model.md](docs/funding-model.md).
+## The path, start to finish
 
-Maintainers run the test suites on their own machine before a change is merged. Automated checks run when a `v*` release tag is pushed, and when a maintainer starts a workflow by hand. A normal push or pull request does not start them.
+### 1. Pick or open an issue
 
-## Fork, branch, and pull request
+- Browse the [wishlist](docs/wishlist.md) or the issues labeled [`good first issue`](https://github.com/neh773/eric-platform/labels/good%20first%20issue).
+- If there is an issue, comment "I'd like to take this" so nobody doubles up.
+- If there is no issue, open one with the **Feature request** template and say which wishlist row it is. For anything large (a new subsystem, a driver that writes to controllers), wait for a reply on the issue before you write a lot of code.
 
-1. Fork the repository and clone your fork.
-2. Create a branch from `main` with a short, descriptive name (`driver-ads`, `fix-alarm-ack`, `docs-redundancy`).
-3. Keep the change focused. Prefer a small stack of pull requests over one large one.
-4. Add or update tests for the behavior you changed. Do not loosen an existing test, threshold, or timeout to make a run pass.
-5. Sign off every commit (see [Developer Certificate of Origin](#developer-certificate-of-origin) below).
-6. Open a pull request against `main` and fill in the pull request template.
-7. A review agent runs automatically on the `pull_request` event, in an isolated sandbox, with no repository secrets. It checks safety, license and dependency issues, secret leakage, fit with `GOALS.md`, and tests. It may propose or push small integration fixes on branches it is allowed to write to, and it will label the pull request when it thinks the change is ready.
-8. Nick Hepburn is the maintainer. He decides what merges. A review agent checks safety and fit with the project first. Safety-critical areas — including drivers that write to controllers, and anything in security, secrets, identity, or release signing — always need his approval.
+### 2. Fork and branch
 
-Do not submit generated secrets, plant data, or live credentials. Use clearly fake values in fixtures and examples.
+Fork the repository on GitHub, then:
+
+```bash
+git clone https://github.com/<you>/eric-platform.git
+cd eric-platform
+git remote add upstream https://github.com/neh773/eric-platform.git
+git switch -c feature/<issue-number>-short-name     # for example feature/42-postgres-form
+```
+
+Use `fix/<issue>-short-name` for bug fixes and `docs/<issue>-short-name` for manual-only changes. Keep one feature per branch.
+
+### 3. Set up your machine
+
+| Tool | Version | Used for |
+| --- | --- | --- |
+| JDK | 21 (Temurin or similar) | Gateway, modules, tools (Gradle wrapper is included) |
+| Node and pnpm | Node 22+, pnpm 10 | Control Canvas, HMI, admin (`web/`), manual site (`docs-site/`) |
+| Docker | any recent | Some gateway and MQTT tests start containers |
+| Python | 3.10+ with `pip install pyyaml==6.0.2` | Repository checks |
+| Rust | stable, plus a C compiler | PLC engine (`plc/eric-plc`), Linux only |
+
+To try a change, build the gateway with `./gradlew :gateway:server:installDist`, start it as the [install page](docs/manual/install.md) describes for a checkout, and open `http://127.0.0.1:8090/admin`. Control Canvas development builds come from `web/` (`pnpm install`, then `pnpm dev`).
+
+### 4. Build it, then run the local check
+
+Add or update tests for what you changed, and a manual page in `docs/manual/` if a user will see it. Then run the same build, lint, and tests CI runs:
+
+```bash
+scripts/check.sh            # Linux, macOS, or WSL
+pwsh scripts/check.ps1      # Windows (the PLC group needs Linux or WSL)
+```
+
+You can run only the parts you touched, for example `scripts/check.sh web docs`. Before you open the pull request, run the full check once. It ends with a short summary table. Paste that into the pull request. Do not loosen a test, threshold, or timeout to make it pass.
+
+CI does not run on pull requests. It only runs on release tags and when the maintainer starts it by hand. Your local check is the evidence.
+
+### 5. Open a pull request
+
+```bash
+git commit -s -m "Add a Postgres connection form (#42)"   # -s adds the sign-off line
+git push origin feature/42-postgres-form
+```
+
+Open a pull request against `main` and fill in the template:
+
+- Link the issue (`Closes #42`).
+- Paste the `scripts/check.sh` summary.
+- Add screenshots or a short clip for anything on screen.
+- Tick the CLA box. That is how you accept the [Contributor License Agreement](CLA.md).
+
+### 6. Review and merge
+
+Nick reviews when he can and may ask for changes. Push more commits to the same branch to update the pull request. Only Nick merges to `main`. Changes that write to controllers or touch security, secrets, identity, or release signing get extra care.
+
+Keep your fork current with `git fetch upstream && git rebase upstream/main`.
+
+## Ground rules
+
+- Read [GOALS.md](GOALS.md). Work that does not fit the goals is unlikely to land.
+- No passwords, keys, tokens, plant data, or real addresses in code, tests, screenshots, or logs. Use clearly fake values.
+- Do not name other companies' products in the software or the manual. Describe what a feature does instead.
+- Be kind. See [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
 
 ## Developer Certificate of Origin
 

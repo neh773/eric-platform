@@ -13,4 +13,4 @@
 
 ## Restore
 
-Choose **Restore <name>**, enter the **Restore passphrase** and confirm. Backups need the administrator role. For command-line backups, restore on first boot in containers, and what the file contains, see [docs/ops.md](../ops.md#backups) and [docs/ops/container-recipes.md](../ops/container-recipes.md).
+Choose **Restore <name>**, enter the **Restore passphrase** and confirm. Backups need the administrator role. For command-line backups, restore on first boot in containers, and what the file contains, see [docs/ops.md](../../ops.md#backups) and [docs/ops/container-recipes.md](../../ops/container-recipes.md).

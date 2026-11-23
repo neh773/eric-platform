@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Manual
+    url: https://neh773.github.io/eric-platform/
+    about: Read how a feature works before you report it.
+  - name: How to contribute
+    url: https://github.com/neh773/eric-platform/blob/main/CONTRIBUTING.md
+    about: Pick a wishlist item, fork, run scripts/check.sh, open a pull request.

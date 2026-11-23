@@ -1,5 +1,7 @@
 # ERIC
 
+**[Manual](https://neh773.github.io/eric-platform/)** · **[PDF manual](https://neh773.github.io/eric-platform/downloads/ERIC-Manual-0.1.0-beta.pdf)** · **[Download](https://github.com/neh773/eric-platform/releases)** · **[Contributing](CONTRIBUTING.md)** · **[Wishlist](docs/wishlist.md)** · **[Good first issues](https://github.com/neh773/eric-platform/labels/good%20first%20issue)**
+
 **ERIC v0.1.0 is BETA software and must only be used with hardware for testing purposes under safe conditions — not for live production, life-safety, or equipment-protection use. It is provided AS IS with no warranty (AGPL-3.0).** See [docs/manual/safety.md](docs/manual/safety.md).
 
 ERIC (Engineered Runtime Interface & Control) connects to devices, holds tags, history and alarms, and serves operator screens. Control Canvas is the designer.
@@ -8,7 +10,9 @@ Gateway backup and restore, including the warning that a backup holds `secrets.k
 
 Licensed under the GNU Affero General Public License v3.0 or later — see [LICENSE](LICENSE) — with an additional permission to link Eclipse Public License libraries. See [LICENSE-EXCEPTION.md](LICENSE-EXCEPTION.md). The SPDX expression is `AGPL-3.0-or-later WITH LicenseRef-ERIC-EPL-Linking-Exception`. Copyright (C) 2026 Nick Hepburn, the sole maintainer ([MAINTAINERS.md](MAINTAINERS.md)). The names ERIC and Control Canvas are trademarks; see [TRADEMARKS.md](TRADEMARKS.md). Third-party notices are in [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md). Contributions need the agreement in [CLA.md](CLA.md), and that agreement applies the same linking permission to contributed code.
 
-Testers: [TESTING.md](TESTING.md) and [docs/manual/getting-started-testers.md](docs/manual/getting-started-testers.md). The manual is also served at `/docs` on a running gateway.
+Want to add a feature? Pick a wishlist item, fork, run `scripts/check.sh`, and open a pull request. The steps are in [CONTRIBUTING.md](CONTRIBUTING.md). ERIC is a hobby project: there is no guaranteed support or timeline, and only Nick Hepburn merges to `main`.
+
+Testers: [TESTING.md](TESTING.md) and [docs/manual/getting-started-testers.md](docs/manual/getting-started-testers.md). The manual is online at <https://neh773.github.io/eric-platform/> and is also served at `/docs` on a running gateway.
 
 How the project plans to pay for development and support, after the beta, is in [docs/funding-model.md](docs/funding-model.md). The wishlist is [docs/wishlist.md](docs/wishlist.md).
 

@@ -1,8 +1,17 @@
 name: Feature request
 description: Something the beta does not do yet.
 title: "[feature] "
-labels: []
+labels: ["enhancement"]
 body:
+  - type: markdown
+    attributes:
+      value: |
+        Want to build it yourself? Say so below, then follow CONTRIBUTING.md. ERIC is a hobby project: there is no promised timeline for requests.
+  - type: input
+    id: wishlist
+    attributes:
+      label: Wishlist row
+      description: If this is on docs/wishlist.md, paste the row name. Leave empty if it is new.
   - type: textarea
     id: need
     attributes:
@@ -29,3 +38,9 @@ body:
         - Installer
     validations:
       required: true
+  - type: checkboxes
+    id: build
+    attributes:
+      label: Building it
+      options:
+        - label: I would like to build this myself and send a pull request.
