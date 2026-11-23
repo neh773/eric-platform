@@ -163,9 +163,9 @@ function Invoke-St {
         $base = "http://127.0.0.1:8090/api/v1"
         $bytes = New-Object byte[] 18
         [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes)
-        $secret = "Smoke-" + [Convert]::ToBase64String($bytes)
+        $secret = "Pw-" + [Convert]::ToBase64String($bytes)
         $setup = Invoke-WebRequest -Uri "$base/setup/admin" -Method Post -ContentType "application/json" -SessionVariable web -UseBasicParsing `
-            -Body (@{ username = "smoke"; password = $secret } | ConvertTo-Json)
+            -Body (@{ username = "ciadmin"; password = $secret } | ConvertTo-Json)
         $csrf = ($setup.Content | ConvertFrom-Json).csrfToken
         if (-not $csrf) { throw "first-run admin did not return a session" }
         $headers = @{ "X-CSRF-Token" = $csrf }
