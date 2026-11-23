@@ -54,7 +54,8 @@ test("logs in, visits every section, searches, and logs out", async ({ page }) =
   await page.getByRole("button", { name: "Sign in" }).click();
   await expect(page.getByRole("navigation", { name: "Gateway sections" })).toBeVisible();
   await expect(page.getByTestId("status-banners")).toContainText("UP");
-  await expect(page.getByTestId("status-banners")).toContainText("plain HTTP");
+  // 0.1.1: a browser on the gateway machine gets no plain-HTTP warning on a new install.
+  await expect(page.getByTestId("status-banners")).not.toContainText("plain HTTP");
 
   const nav = page.getByRole("navigation", { name: "Gateway sections" });
   for (const name of SECTIONS) {

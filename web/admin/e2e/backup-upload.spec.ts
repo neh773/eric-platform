@@ -46,7 +46,7 @@ test("a fresh gateway restores a backup file made on another gateway", async ({ 
     await openSection(other, "Backups");
     const upload = other.getByRole("form", { name: "Restore from a backup file" });
     await expect(upload.getByRole("button", { name: "Restore from file" })).toBeDisabled();
-    await upload.getByLabel("Backup file").setInputFiles(file);
+    await upload.getByLabel("Backup file", { exact: true }).setInputFiles(file);
 
     // A wrong passphrase is refused and changes nothing.
     await upload.getByLabel("Passphrase for the backup file").fill("not the passphrase");

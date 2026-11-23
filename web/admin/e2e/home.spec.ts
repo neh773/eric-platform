@@ -26,7 +26,8 @@ test("first-run steps, then launch links that open the designer and the HMI", as
   const steps = page.getByTestId("first-run");
   await expect(steps).toBeVisible();
   await expect(steps.locator('[data-step="project"]')).toHaveAttribute("data-done", "yes");
-  await expect(page.getByTestId("launch")).toHaveCount(0);
+  // Launch links show during setup too (0.1.1), so a new user can open the designer before finishing.
+  await expect(page.getByTestId("launch")).toBeVisible();
 
   await page.getByRole("button", { name: "Finish setup" }).click();
   const launch = page.getByTestId("launch");

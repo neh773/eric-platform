@@ -103,7 +103,7 @@ test.describe.serial("lifecycle", () => {
     await freshInstall();
     await login(page);
     await section(page, "Backups");
-    await main(page).getByLabel("Backup file").setInputFiles(file!);
+    await main(page).getByLabel("Backup file", { exact: true }).setInputFiles(file!);
     await main(page).getByLabel("Passphrase for the backup file").fill(BACKUP_PASSPHRASE);
     await main(page).getByRole("button", { name: "Restore from file" }).click();
     const confirm = main(page).getByRole("button", { name: /^Restore( now)?$/ });
