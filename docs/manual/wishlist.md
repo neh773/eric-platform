@@ -120,6 +120,21 @@ Present today: pump, valve, tank, vessel, motor, and sensor symbols; pipes with 
 | Pipe elbows and reducers as their own symbols | The pipe component bends in the route. Fittings would still help a crowded drawing. | Small | Not started |
 | ISA symbol library, complete | The current set covers the example, not the whole standard. | Large | Partial |
 
+## Deferred from 0.1.1-beta
+
+Found in the 0.1.1 new-user audit. None of them stops a fresh install from working; each has a workaround.
+
+| Item | Why it matters | Effort | Status |
+| --- | --- | --- | --- |
+| PLC program resumes after a gateway restart | A program that was running comes back stopped after a restart. Workaround: choose **Compile and deploy** again. | Small | Not started |
+| Drivers start at once after a backup restore | After a restore some devices and connections showed **Not Started** until the gateway restarted. A test at the current build did not reproduce it; confirm in the clean-machine audit. Workaround: restart the gateway after a restore. | Small | Needs a repro |
+| Force values inside function block instances in online mode | Online mode forces mapped I/O only. Forcing a member of a function block instance (for example a timer input) needs engine support and a Logic editor control. | Medium | Not started |
+| Show view updates the browser address | Switching views leaves the old view in the address bar, so a reload or a shared link opens the wrong view. | Small | Not started |
+| History queries leave out empty minutes | Minutes before recording started show as blank rows with 0 samples. They should be left out or marked as no data. | Small | Not started |
+| Stray "Diagnostics" word on UDT member rows | Cosmetic: the UDT instance member list shows an extra label. | Small | Not started |
+| Reliable timing in two tests | The gateway EAM test under heavy load and one Control Canvas checkbox browser test sometimes fail on timing. | Small | Not started |
+| Browser test for the HMI reacting to a forced value | Test coverage: a forced PLC output should show on an HMI screen. | Small | Not started |
+
 ## Tests that need a bigger machine
 
 These are not failed tests. They were not run because a laptop cannot host them.
