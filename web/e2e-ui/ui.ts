@@ -18,7 +18,10 @@ export async function login(page: Page, username = "admin", password: string = A
   await page.goto("/admin/login");
   // Fresh install: the first visit asks for the administrator account instead of a sign-in.
   const firstRun = page.getByRole("form", { name: "Create the administrator" });
-  await expect(firstRun.or(page.getByRole("button", { name: "Sign in", exact: true }))).toBeVisible();
+  const nav = page.getByRole("navigation", { name: "Gateway sections" });
+  await expect(firstRun.or(page.getByRole("button", { name: "Sign in", exact: true })).or(nav).first()).toBeVisible();
+  // Already signed in (for example the same browser right after a restore): nothing to do.
+  if (await nav.count()) return;
   if (await firstRun.count()) {
     await firstRun.getByLabel("Administrator username").fill(username);
     await firstRun.getByLabel("New password").fill(password);

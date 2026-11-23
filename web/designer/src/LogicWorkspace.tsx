@@ -393,6 +393,7 @@ export function LogicWorkspace({ client }: { client: GatewayClient }) {
                   <option value="out">out</option>
                 </select>
                 <input aria-label={`Safe ${index}`} value={row.safe} onChange={(event) => setRows(edit(rows, index, { safe: event.target.value }))} />
+                <button type="button" aria-label={`Remove mapping ${index}`} onClick={() => setRows(rows.filter((_, other) => other !== index))}>Remove</button>
               </li>
             ))}
           </ul>

@@ -67,6 +67,11 @@ test.describe("Control Canvas features", () => {
     await openStudio(page);
     await page.getByRole("tablist", { name: "Studio panels" }).getByRole("tab", { name: "Pages", exact: true }).click();
     await page.getByRole("button", { name: "Customize pages" }).click();
-    await expect(page.getByRole("tabpanel").last()).toContainText("/station");
+    const pages = page.getByRole("region", { name: "Page configuration" });
+    await expect.poll(() => pages.getByRole("textbox", { name: /^Page \d+ URL$/ }).evaluateAll((inputs) => inputs.map((input) => (input as HTMLInputElement).value))).toContain("/station");
+    await pages.getByRole("combobox", { name: "Home view" }).selectOption("station");
+    await studioSave(page);
+    await page.goto(`/hmi/${PROJECT}`);
+    await expect(page.getByText("Wet well", { exact: true })).toBeVisible();
   });
 });
