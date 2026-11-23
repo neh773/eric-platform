@@ -1449,7 +1449,7 @@ class Gateway(
 
     companion object {
         val LAYOUT = listOf("config", "modules", "db", "logs")
-        val VERSION: String = Gateway::class.java.`package`?.implementationVersion ?: "0.1.0-SNAPSHOT"
+        val VERSION: String = Gateway::class.java.`package`?.implementationVersion ?: "0.1.1-SNAPSHOT"
         /** How often the scheduler applies audit retention (SEC-001). */
         const val AUDIT_RETENTION_PERIOD_MS = 3_600_000L
     }

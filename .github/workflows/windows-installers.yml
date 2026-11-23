@@ -13,6 +13,9 @@ on:
         default: ""
 permissions:
   contents: write
+env:
+  # The build version comes from the tag (v0.1.1-beta -> 0.1.1-beta); untagged manual runs stay SNAPSHOT.
+  ERIC_BUILD_TAG: ${{ inputs.tag != '' && inputs.tag || github.ref_name }}
 
 jobs:
   installers:
