@@ -20,6 +20,9 @@ export const PARAMETER_TYPES = ["String", "Int32", "Double", "Boolean"] as const
 export const ALARM_MODES = ["AboveValue", "BelowValue", "Equality", "Bit", "OutOfEngRange", "OutsideValues"] as const;
 export const ALARM_PRIORITIES = ["Diagnostic", "Low", "Medium", "High", "Critical"] as const;
 
+/** Shown in the definition editor and the instance wizard when a UDT has no members. */
+export const UDT_NO_MEMBERS_MESSAGE = "This UDT has no members. Add members to the definition first.";
+
 /** Returns a copy of [spec] with [patch] applied; an undefined or empty-string value removes the key. */
 export function patchSpec(spec: Spec, patch: Spec): Spec {
   const next: Spec = { ...spec };
@@ -99,6 +102,11 @@ export function definitionProblems(spec: Spec): string[] {
     }
   });
   return problems;
+}
+
+/** Non-blocking notices; a definition with no members can still be saved. */
+export function definitionWarnings(spec: Spec): string[] {
+  return list(spec.members).length === 0 ? [UDT_NO_MEMBERS_MESSAGE] : [];
 }
 
 /** Cleans what the form leaves behind before save: empty alarm/parameter rows and empty nested objects. */

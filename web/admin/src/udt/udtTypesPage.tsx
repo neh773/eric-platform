@@ -10,6 +10,7 @@ import {
   PARAMETER_TYPES,
   cleanDefinition,
   definitionProblems,
+  definitionWarnings,
   list,
   memberSummary,
   numText,
@@ -203,6 +204,7 @@ export function UdtEditor({
   const params = list(spec.parameters);
   const members = list(spec.members);
   const problems = definitionProblems(spec);
+  const warnings = definitionWarnings(spec);
   const name = nameTouched ? resourceName : resourceNameForType(str(spec.path));
 
   function setParams(next: Spec[]) {
@@ -419,6 +421,11 @@ export function UdtEditor({
 
       {error ? <p role="alert">{error}</p> : null}
       {problems.length && !error ? <p className="muted">To save: {problems[0]}</p> : null}
+      {warnings.length && !problems.length ? (
+        <p role="status" data-testid="udt-no-members-warning">
+          {warnings[0]}
+        </p>
+      ) : null}
       <p>
         <button type="submit" disabled={pending}>
           {existing ? "Save definition" : "Create definition"}

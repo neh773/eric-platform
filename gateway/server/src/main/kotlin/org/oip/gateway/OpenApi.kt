@@ -1603,6 +1603,7 @@ object OpenApi {
                     "types" to mapOf("type" to "array", "items" to mapOf("type" to "object", "properties" to mapOf(
                         "path" to mapOf("type" to "string"),
                         "error" to mapOf("type" to "string"),
+                        "memberCount" to mapOf("type" to "integer", "description" to "Members after parent inheritance"),
                         "parameters" to mapOf("type" to "array", "items" to mapOf("type" to "object", "properties" to mapOf(
                             "name" to mapOf("type" to "string"), "dataType" to mapOf("type" to "string"),
                             "default" to mapOf("description" to "Default value, or null when the instance must supply one"))))))))),

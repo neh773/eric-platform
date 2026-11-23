@@ -83,8 +83,13 @@ describe("SvgImportPanel", () => {
   it("previews the parts and what was removed, then adds the component", () => {
     const onAdd = vi.fn();
     render(<SvgImportPanel onAdd={onAdd} />);
-    expect(screen.getByRole("button", { name: "Add SVG component" })).toBeDisabled();
+    const add = screen.getByRole("button", { name: "Add SVG component" });
+    expect(add).toBeDisabled();
+    expect(screen.getByTestId("svg-import-hint")).toHaveTextContent("Choose an SVG file or paste SVG markup first.");
+    expect(add).toHaveAttribute("title", "Choose an SVG file or paste SVG markup first.");
     fireEvent.change(screen.getByLabelText("SVG markup"), { target: { value: SVG } });
+    expect(screen.queryByTestId("svg-import-hint")).toBeNull();
+    expect(add).not.toHaveAttribute("title");
     const status = screen.getByRole("status");
     expect(status).toHaveTextContent("3 parts found: 1 groups, 1 shapes, 1 texts.");
     expect(status).toHaveTextContent("Removed for safety: script, onclick");

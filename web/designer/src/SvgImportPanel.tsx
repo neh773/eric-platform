@@ -64,7 +64,17 @@ export function SvgImportPanel({ onAdd }: { onAdd: (imported: Extract<SvgImport,
           {result.removed.length > 0 ? <p className="oip-binding-muted">Removed for safety: {[...new Set(result.removed)].join(", ")}.</p> : null}
         </div>
       ) : null}
-      <button type="button" disabled={!result?.ok} onClick={() => result?.ok && onAdd(result, name.trim() || "SVG component")}>
+      {!result && !fileError ? (
+        <p className="oip-binding-muted" data-testid="svg-import-hint">
+          Choose an SVG file or paste SVG markup first.
+        </p>
+      ) : null}
+      <button
+        type="button"
+        disabled={!result?.ok}
+        title={!result?.ok ? (result && !result.ok ? result.reason : "Choose an SVG file or paste SVG markup first.") : undefined}
+        onClick={() => result?.ok && onAdd(result, name.trim() || "SVG component")}
+      >
         Add SVG component
       </button>
     </section>

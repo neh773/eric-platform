@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { parseJdbcUrl } from "../databasesPage";
-import { cleanDefinition, definitionProblems, resourceNameForType } from "./udtModel";
+import { cleanDefinition, definitionProblems, definitionWarnings, resourceNameForType, UDT_NO_MEMBERS_MESSAGE } from "./udtModel";
 
 describe("database connection form", () => {
   it("round-trips the URLs it builds", () => {
@@ -34,5 +34,12 @@ describe("UDT definition model", () => {
     const first = (clean.members as Record<string, unknown>[])[0]!;
     expect(first.scaling).toBeUndefined();
     expect(first.alarms).toBeUndefined();
+  });
+
+  it("warns when a definition has no members, without blocking save", () => {
+    const empty = { path: "Types/Empty", members: [] };
+    expect(definitionWarnings(empty)).toEqual([UDT_NO_MEMBERS_MESSAGE]);
+    expect(definitionProblems(empty)).toEqual([]);
+    expect(definitionWarnings({ path: "Types/Pump", members: [{ name: "Level", type: "memory" }] })).toEqual([]);
   });
 });

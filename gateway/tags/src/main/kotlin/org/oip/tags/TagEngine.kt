@@ -1638,7 +1638,7 @@ class StandardTagProvider(
 
     private fun typeView(def: UdtDefinition): UdtTypeView {
         val flat = flatten(def.path, emptySet())
-        return UdtTypeView(def.path, flat.parameters, flat.error)
+        return UdtTypeView(def.path, flat.parameters, flat.error, if (flat.error != null) 0 else flat.members.size)
     }
 
     /**

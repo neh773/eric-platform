@@ -332,6 +332,8 @@ export interface UdtParameterInfo {
 export interface UdtTypeInfo {
   path: string;
   parameters: UdtParameterInfo[];
+  /** Members after parent inheritance. Absent when an older gateway omitted it. */
+  memberCount?: number;
   error?: string;
 }
 
@@ -2116,6 +2118,7 @@ function parseUdtType(value: unknown): UdtTypeInfo {
       };
     }),
   };
+  if (typeof body.memberCount === "number" && Number.isFinite(body.memberCount)) info.memberCount = body.memberCount;
   if (typeof body.error === "string") info.error = body.error;
   return info;
 }

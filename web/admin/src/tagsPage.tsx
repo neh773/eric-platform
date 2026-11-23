@@ -17,6 +17,7 @@ import {
   type NamePattern,
   type ParameterRow,
 } from "./udtWizard";
+import { UDT_NO_MEMBERS_MESSAGE } from "./udt/udtModel";
 
 /**
  * Tags area: the UDT multi-instance wizard (TAG-024) and tag configuration export and import (TAG-005).
@@ -86,10 +87,20 @@ export function TagsPage({ section, client, session, search }: AdminPageProps) {
   });
   const key = requestKey(body);
   const previewIsCurrent = plan !== null && plan.ok && previewedKey === key;
-  const ready = canWrite && !!selected && !selected.error && names.length > 0 && problems.length === 0 && rowProblems.size === 0;
+  const noMembers = !!selected && !selected.error && selected.memberCount === 0;
+  const ready = canWrite && !!selected && !selected.error && names.length > 0 && problems.length === 0 && rowProblems.size === 0 && !noMembers;
 
   async function submit(dryRun: boolean) {
-    if (!client || pending || !ready) return;
+    if (!client || pending) return;
+    if (!ready) {
+      setPlan(null);
+      setError(
+        noMembers
+          ? UDT_NO_MEMBERS_MESSAGE
+          : problems[0] ?? [...rowProblems.values()][0] ?? (names.length === 0 ? "Enter at least one instance name." : "Could not preview the instances"),
+      );
+      return;
+    }
     setPending(true);
     setError(null);
     setNotice(null);
@@ -239,6 +250,12 @@ export function TagsPage({ section, client, session, search }: AdminPageProps) {
                 ))}
               </tbody>
             </table>
+          ) : null}
+          {noMembers ? (
+            <p role="alert" data-testid="udt-no-members">
+              {UDT_NO_MEMBERS_MESSAGE}{" "}
+              <a href={`${sectionPath("udt-types")}${typeId ? `?type=${encodeURIComponent(typeId)}` : ""}`}>Open the definition</a>
+            </p>
           ) : null}
           {canWrite ? (
             <div className="inline-form">
