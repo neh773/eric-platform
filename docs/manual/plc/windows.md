@@ -4,7 +4,7 @@ On Windows, `eric-plc` is a normal process. It shares the PC with Windows. The s
 
 ## The banner
 
-While the gateway process is running on Windows, Logic, the PLC status, and the resource page show a banner. It cannot be dismissed. It says this PLC is on a Windows PC, that scan timing is not guaranteed, and that it is for development, testing, training, and non-critical slow process control only. It also says scan times under 100 mS are difficult to execute, and that for higher performance, use on Linux.
+While the gateway process is running on Windows, Logic, the PLC status, and the resource page show a banner. It cannot be dismissed. It says this PLC is on a Windows PC, that scan timing is not guaranteed, and that it is for development, testing, training, and non-critical slow process control only. It also says scan times under 100 mS are difficult to execute, and that for higher performance, use on Linux. A faster scan can trip the overrun watchdog when Windows jitters; see [Known bugs](../known-bugs.md).
 
 A Linux gateway does not show that banner. Linux can get closer to a fixed scan when the kernel is real-time and a core is isolated. That setup is not what the Windows installer gives you.
 

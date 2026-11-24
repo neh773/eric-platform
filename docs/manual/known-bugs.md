@@ -1,0 +1,28 @@
+# Known bugs (0.1.1-beta)
+
+This is the list of open defects found while testing ERIC 0.1.1-beta. It is not a promise that any item will be fixed in a particular release. Features that were never started are on [Future features and wishlist](wishlist.md), not here.
+
+Check this list before you open a bug report. If the problem is already listed, you do not need a new issue unless you have new information (for example a different operating system or a clearer way to reproduce it). To report a new bug, go to **Issues** → **New issue** → **Bug report** on the [public repository](https://github.com/neh773/eric-platform/issues/new?template=bug_report.yml). Remove passwords and plant addresses from logs and screenshots.
+
+| Title | Area | What happens | Workaround | Status |
+| --- | --- | --- | --- | --- |
+| UDT member initial value coerces on each keystroke | Gateway admin | Typing an **Initial value** for a UDT member is converted to the member's data type after every keystroke. For a Boolean, `true` becomes false; only `1` is accepted. For a decimal, a value such as `95.5` becomes `955`. | For a Boolean, enter `1` or `0`. There is no reliable way to type a fractional value in that field. | Open |
+| Expression binding without the gateway name is empty | Control Canvas designer | A binding written as `{[default]path}` resolves to null. | Write `{[gw][default]path}`, with the gateway name in front. | Open |
+| No control for a view's width or height | Control Canvas designer | A view is fixed at 680×360. There is no form to change the size. | Use percent mode so components scale with the session. | Open |
+| Style CSS rejects custom properties | Control Canvas designer | A style that uses CSS custom properties is rejected. | Use ordinary CSS properties. | Open |
+| Indicator has no blink or flash option | Control Canvas designer | The indicator component cannot be set to blink or flash. | None. | Open |
+| Logic editor right pane overflows and clips values | Logic/PLC | In the Logic editor right pane, the UDT members table overflows and scrolls horizontally; watch table rows are about 70 px tall and values are cut off; the Programs panel inputs overflow; and inline online values are clipped at narrow widths. | Widen the pane where you can. | Open |
+| Online values show only the first variable of a multi-variable declaration | Logic/PLC | In Logic online mode, a declaration with several variables on one line shows the live value for the first variable only. | Declare one variable per line. | Open |
+| Expression label shows Uncertain for an empty string | HMI runtime | An expression label whose value is an empty string shows an **Uncertain: initial value** overlay. | Turn the overlay off (opt out). | Open |
+| Alarm status table filters take most of the height | Alarms | Filter controls on the alarm status table use most of the table height, leaving little room for rows. | None. | Open |
+| Alarm display path is long | Alarms | The alarm display path includes the member and the alarm name, so the path is long. | None. | Open |
+| Windows PLC scan jitter can latch the overrun watchdog | Logic/PLC | On Windows, scan jitter of about 50 ms has been seen on a virtual machine. At a fast scan rate this can trip the overrun watchdog and latch the program. New programs default to a 100 ms period and 10 consecutive overruns. | Use a 100 ms scan period (the default), or run the PLC on Linux. Scan times under 100 ms are difficult on Windows. | Open |
+| PLC program does not resume after a gateway restart | Logic/PLC | A program that was running comes back stopped after the gateway restarts. | Choose **Compile and deploy** again. | Open |
+| Drivers may stay Not Started after a backup restore | Devices | After a restore, some devices and connections have shown **Not Started** until the gateway was restarted. A later test did not reproduce it. | Restart the gateway after a restore. | Open |
+| No force inside function block instances in online mode | Logic/PLC | Online mode can force mapped I/O only. You cannot force a member of a function block instance, for example a timer input. | Force the mapped I/O instead, when that is enough. | Open |
+| Show view does not update the browser address | Control Canvas designer | Switching views leaves the previous view in the address bar, so a reload or a shared link opens the wrong view. | After a reload, open the view you want again. | Open |
+| History queries show empty minutes as blank rows | Historian | Minutes before recording started appear as blank rows with 0 samples, instead of being left out or marked as no data. | Ignore rows with 0 samples, or start the query after recording began. | Open |
+| Stray Diagnostics label on UDT member rows | Gateway admin | The UDT instance member list shows an extra **Diagnostics** label on member rows. Cosmetic only. | None needed. | Open |
+| No in-app gateway restart | Gateway admin | This beta has no Restart button on the admin page. A launcher-started gateway that was stopped from the UI did not come back. | Stop ERIC and start it again: the Windows service, or the Linux launcher. | Open |
+| Windows: HTTPS certificate file can stay locked | Gateway admin | After the TLS listener stops, `https/server.crt` can stay locked on Windows. A backup restore or wipe that replaces `https/` can fail until the gateway restarts. | Restart the gateway, then retry the restore or wipe. | Open |
+| Large tag imports are slow | Gateway admin | Writing 100,000 tags in one batch took about 75 seconds on a 4-core test laptop, against a 20-second target. | Import in smaller batches, or allow more time. | Open |

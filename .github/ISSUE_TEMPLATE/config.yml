@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Known bugs (0.1.1-beta)
+    url: https://neh773.github.io/eric-platform/manual/known-bugs/
+    about: Check this list first. If the problem is already listed, you do not need a new issue unless you have new information.

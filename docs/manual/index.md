@@ -17,6 +17,7 @@ All three share one sign-in (the gateway's user accounts and roles).
 - [Support and maintenance](support-and-maintenance.md)
 - [Contributing features](contributing-features.md)
 - [Future features and wishlist](wishlist.md)
+- [Known bugs (0.1.1-beta)](known-bugs.md)
 - [Funding and support](funding.md)
 - [Release process (proposal)](release-process.md)
 - [Feature coverage](feature-coverage.md)

@@ -12,6 +12,12 @@ If you are proposing a large feature, open an issue first. Wishlist items and th
 
 Maintainers run the test suites on their own machine before a change is merged. Automated checks run when a `v*` release tag is pushed, and when a maintainer starts a workflow by hand. A normal push or pull request does not start them.
 
+## Reporting a bug
+
+First check the [known bugs](docs/manual/known-bugs.md) list (also on the [public manual](https://neh773.github.io/eric-platform/manual/known-bugs/)). If the problem is already listed, you do not need a new issue unless you have new information, such as a different operating system or a clearer way to reproduce it.
+
+To report a new bug, choose **Issues** → **New issue** → **Bug report**. Fill in the ERIC version, operating system, install type, area, the steps to reproduce, what you expected, what you saw, and logs or screenshots. Remove passwords and plant addresses from anything you attach.
+
 ## Before you push
 
 Follow the [release test plan](docs/testing/release-test-plan.md): the automated gates below, plus the hands-on

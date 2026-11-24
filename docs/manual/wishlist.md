@@ -122,7 +122,7 @@ Present today: pump, valve, tank, vessel, motor, and sensor symbols; pipes with 
 
 ## Deferred from 0.1.1-beta
 
-Found in the 0.1.1 new-user audit. None of them stops a fresh install from working; each has a workaround.
+Found in the 0.1.1 new-user audit. None of them stops a fresh install from working; each has a workaround. Open product defects from this audit, and defects found later, are also listed on [Known bugs (0.1.1-beta)](known-bugs.md).
 
 | Item | Why it matters | Effort | Status |
 | --- | --- | --- | --- |
