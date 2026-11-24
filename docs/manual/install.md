@@ -48,7 +48,7 @@ PLC deploy needs nothing extra: the archive includes the Structured Text compile
 
 Data is kept in `~/.local/share/eric/data` (or `$XDG_DATA_HOME/eric/data`). Control Canvas is `"./image/Control Canvas/bin/Control Canvas"`, and it is also served by the gateway at `http://127.0.0.1:8090/designer`. Stop the gateway with Ctrl+C. To restart it, stop it and run the launcher again; the admin page has no Restart button in this beta. Devices, tags, UDT definitions, connections and history settings are kept when it restarts.
 
-You can also build from a checkout with JDK 21: `./gradlew :gateway:server:installDist` after `pnpm build` in `web/`. A checkout build looks for `web/admin/dist`, `web/designer/dist` and `docs/manual` through `ERIC_ADMIN_DIST`, `ERIC_WEB_DIST` and `ERIC_DOCS_DIR` when they are not next to the jar.
+You can also build from a checkout with JDK 21: `./gradlew :gateway:server:installDist` after `pnpm build` in `web/`. A checkout build looks for `web/admin/dist`, `web/designer/dist` and `docs/manual` through `ERIC_ADMIN_DIST`, `ERIC_WEB_DIST` and `ERIC_DOCS_DIR` when they are not next to the jar. Building the PLC bundle needs a stable Rust toolchain with edition 2024 support (1.85 or later). Rust 1.83 fails.
 
 ## Uninstall on Linux
 

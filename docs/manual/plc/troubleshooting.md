@@ -37,4 +37,4 @@ The page asked the gateway which operating system it is on, and the gateway is n
 
 ## Linux apply says a reboot is required
 
-The core split changes the boot line. Until the reboot, the engine is still on the old cores. Preview first if you only wanted to read the command.
+The core split changes the boot line. Until the reboot, the engine is still on the old cores. Preview first if you only wanted to read the command. If **Preview** leaves a pending `isolcpus` change that will not clear, or **Revert** says the root helper is not configured, see [Known bugs](../known-bugs.md).
