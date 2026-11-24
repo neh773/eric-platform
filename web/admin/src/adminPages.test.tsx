@@ -237,7 +237,7 @@ describe("backups page", () => {
     restoreStatus = 200;
     fireEvent.change(screen.getByLabelText("Restore passphrase"), { target: { value: "long enough phrase" } });
     fireEvent.click(screen.getByRole("button", { name: "Confirm restore" }));
-    expect(await screen.findByText("Restored 20260101-000000-000.oipbk.")).toBeInTheDocument();
+    expect(await screen.findByText(/^Restored 20260101-000000-000\.oipbk\. Tags, projects, users and PLC programs are back now/)).toBeInTheDocument();
     const restores = calls.filter((c) => c.url.endsWith("/restore")).map((c) => c.body);
     expect(restores).toEqual([{ passphrase: "not it" }, { passphrase: "long enough phrase" }]);
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());

@@ -80,7 +80,9 @@ import org.oip.redundancy.RedundancySettings
 import org.oip.tags.MemoryTagPersistence
 import org.oip.tags.TagCaller
 import org.oip.tags.TagConfigBinding
+import org.oip.tags.StandardTagProvider
 import org.oip.tags.TagEngine
+import org.oip.tags.TagPath
 import org.oip.tags.query.QueryTagRuntime
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
@@ -170,6 +172,9 @@ data class GatewaySettings(
         distinctIpCap = lockoutDistinctIps,
         maxFailureRows = authFailureRowCap,
     )
+
+    /** Plain HTTP with no HTTPS and no proxy: the normal state of a new install. Not shown to a browser on this machine. */
+    fun plainHttpOnly(): Boolean = !secureCookiesEffective && !(secureCookies == false && (httpsEnabled || trustedProxies.isNotEmpty()))
 
     fun insecureCookieWarning(): String? = when {
         secureCookiesEffective -> null
@@ -381,6 +386,8 @@ class Gateway(
     /** Built `web/designer` bundle served at `/hmi` and `/studio` ([WebUi]); `OIP_WEB_DIST` by default. */
     webDist: Path? = WebUi.locate(),
 ) : AutoCloseable {
+    /** Environment for the managed scan engine (ERIC_* copied onto OIP_*). */
+    private val engineEnv: Map<String, String> = LegacyEnv.normalize(env, warn = false)
     val settings: GatewaySettings
     val sessionPolicy: SessionPolicy
     val insecureCookieWarning: String?
@@ -441,6 +448,7 @@ class Gateway(
     val diskCacheArchives: org.oip.historian.DiskCacheArchives
     private val historyProviderBinding: HistoryProviderBinding
     private val historyBinding: HistoryConfigBinding
+    private val udtMemberHistory: org.oip.historian.UdtMemberHistory
     private var historyRunner: HistoryRunner? = null
     val redundancy: RedundancyRuntime
     val edgeSync: EdgeSyncRuntime
@@ -506,7 +514,27 @@ class Gateway(
     private val tagBinding: TagConfigBinding
     @Volatile private var drivers: TagDriverBridge? = null
     private var plcBridge: PlcBridge? = null
-    val logic: LogicService = LogicService(dataDir.resolve("logic"), engine = PlcControl.fromEnvironment())
+    val logic: LogicService = LogicService(
+        dataDir.resolve("logic"),
+        compiler = PlcCompiler(engineEnv["OIP_PLC_COMPILER"]?.takeIf { it.isNotBlank() } ?: PlcCompiler.bundledCompiler()),
+        engine = PlcControl.fromEnvironment(),
+        udts = { udtCatalog() },
+    )
+
+    /** Gateway UDTs as Structured Text structures, from the default tag provider (0.1.1). */
+    private fun udtCatalog(): org.oip.plc.UdtCatalog {
+        val provider = tags.provider("default") as? StandardTagProvider ?: return org.oip.plc.UdtCatalog.EMPTY
+        return object : org.oip.plc.UdtCatalog {
+            override fun types() = provider.udtTypes().filter { it.error == null }.map { it.path }
+            override fun members(typeId: String) = provider.udtMembers(typeId)
+            override fun instanceType(path: String): String? {
+                val parsed = runCatching { TagPath.parse(path, "default") }.getOrNull() ?: return null
+                val owner = tags.provider(parsed.provider ?: "default") as? StandardTagProvider ?: return null
+                return owner.udtInstanceType(parsed)
+            }
+            override fun instances() = provider.udtInstances()
+        }
+    }
     val plcResources: PlcResourceService = PlcResourceService(dataDir.resolve("plc-resources"))
     private val builtIns = BuiltInModules(dataDir.resolve("modules"), dataDir.resolve(BuiltInModules.REMOVED_FILE))
 
@@ -577,7 +605,11 @@ class Gateway(
         settings = GatewaySettings.load(gy).let { if (port != null) it.copy(port = port) else it }
         sessionPolicy = sessionPolicyOverride ?: SessionPolicy(settings.sessionAbsolute())
         insecureCookieWarning = settings.insecureCookieWarning()
-        insecureCookieWarning?.let { LoggerFactory.getLogger(Gateway::class.java).warn(it) }
+        insecureCookieWarning?.let { msg ->
+            val log = LoggerFactory.getLogger(Gateway::class.java)
+            // Plain HTTP on a new install is expected; Main prints a calm note. Other cases stay a warning.
+            if (settings.plainHttpOnly()) log.info(msg) else log.warn(msg)
+        }
         val schemas = SchemaRegistry()
         store = FileConfigStore(dataDir.resolve("config"), schemas, clock)
         tags = TagEngine(clock)
@@ -877,6 +909,7 @@ class Gateway(
         ).also { it.attach() }
         historyCollector = HistoryCollector(tags, historyRouter, clock, queueCapacity = storeAndForwardSettings.memoryBufferSize, divert = historyRouter::divert)
         historyBinding = HistoryConfigBinding(historyCollector, store, schemas, historyRouter).also { it.attach() }
+        udtMemberHistory = org.oip.historian.UdtMemberHistory(tags, historyCollector, historyRouter, historyBinding).also { it.attach() }
         reports = ReportService(
             store,
             ReportEngine(DatabaseQueries(databases), RouterHistoryAccess(historyCollector, historyRouter), { c, p -> reportTagCheck.canRead(c, p) }, clock, AlarmJournalReports(alarms.journal)),
@@ -886,6 +919,17 @@ class Gateway(
         followActiveNode()
         hmiScripts = HmiScriptRunner(store, HmiScripts(scripts), { scripts.limits }, projects = projectService)
         sessions = SessionHost(tags, clock, hmiAccess(), scripts = hmiScripts, trustedProxies = { settings.trustedProxies })
+        sessions.onRefusedWrite = { user, host, path ->
+            if (security.auditProfile.get().enabled) {
+                security.audit.append(
+                    org.oip.security.AuditDraft(
+                        timestampMillis = clock.millis(), actor = user, action = "tag.write",
+                        status = org.oip.security.AuditStatus.FAILURE, actorHost = host, target = path,
+                        detail = "HMI write refused: the user's role has no tags.write", context = "hmi",
+                    ),
+                )
+            }
+        }
         hmiProjects = HmiProjectApi(store, projectService) { ref -> security.secrets.getText(SecretReferences.parse(ref)) }
         app = Javalin.create { cfg ->
             cfg.showJavalinBanner = false
@@ -999,6 +1043,9 @@ class Gateway(
      * Sparkplug edge nodes get their tag feed here as well.
      */
     private fun wireDriverSecrets() {
+        (host.instance(org.oip.opcua.OpcUaClientModule.MODULE_ID) as? org.oip.opcua.OpcUaClientModule)?.secretSource = { reference ->
+            security.secrets.getText(SecretReferences.parse(reference))
+        }
         val mqtt = host.instance(MqttDriverModule.MODULE_ID) as? MqttDriverModule ?: return
         mqtt.secretSource = SecretSource { reference ->
             security.secrets.getText(SecretReferences.parse(reference))
@@ -1013,6 +1060,13 @@ class Gateway(
         security.users.create(CreateUser("admin", pw.toCharArray(), setOf(DefaultRoles.ADMINISTRATOR)), actor = "system")
     }
 
+    /** Optional parts of startup that failed; shown as health warnings and in logs/startup.log. */
+    val startupProblems: MutableList<String> = java.util.Collections.synchronizedList(mutableListOf())
+
+    private fun startupWarning(text: String) {
+        logs.log(LogLevel.WARN, "org.oip.gateway", text, mapOf("startupLog" to (StartupLog.path()?.toString() ?: "")))
+    }
+
     fun start(): Gateway {
         if (!control.tryAcquire()) {
             throw IllegalStateException("gateway is already running for ${dataDir.toAbsolutePath()}")
@@ -1021,6 +1075,7 @@ class Gateway(
         startedAt = clock.instant()
         WindowsFirewall.allowGatewayPortLater(settings.port)
         try {
+            StartupLog.stage("security and modules")
             // SEC-022: outbound TLS clients (drivers, scripts, mail, identity providers) trust this gateway's store.
             outboundTlsHandle = org.oip.config.OutboundTls.install { client -> outboundTrust.sslContext(client) }
             val registry = dataDir.resolve("installed-modules.tsv")
@@ -1028,6 +1083,7 @@ class Gateway(
             host.installAll()
             // Container recipes: restore a backup into a fresh data directory after module packages are installed and before any module starts (GAT-009).
             FirstBootRestore(dataDir, store, backups, processEnv, { security.users.list().map { it.username } }) { message, fields -> logs.log(LogLevel.INFO, "org.oip.backup", message, fields) }.run()
+            StartupLog.stage("devices")
             prepareDrivers()
             host.startAll()
             followActiveEdgeNodes()
@@ -1043,39 +1099,55 @@ class Gateway(
                 settings = { storeAndForwardSettings },
                 maintenance = { historyStore.maintain() },
             ).start()
-            if (settings.opcua.enabled && opcUa == null) {
-                val server = OpcUaTagServer(
-                    settings.opcua,
-                    dataDir.resolve("opcua"),
-                    tags,
-                    // Each session acts as its user: roles from the directory, zone from the client address (TAG-013).
-                    OpcUaUserAuthenticator { user, password, client, secure ->
-                        when (val result = security.users.authenticate(user, password, host = "opcua")) {
-                            is AuthenticationResult.Success -> {
-                                val connection = ConnectionContext(client, hostName = null, gatewayName = null,
-                                    secure = secure, direct = true, scope = RequestScope.GATEWAY)
-                                // tags.write is taken at activation, like the roles: a session of a user without it writes nothing.
-                                val tagWrite = security.authorization.authorize(result.subject, Permissions.TAGS_WRITE, connection).allowed
-                                TagCaller.of(result.subject, security.zones.match(connection), client?.hostAddress ?: "", tagWrite = tagWrite)
+            startOptional("OPC UA server", startupProblems, ::startupWarning) {
+                if (settings.opcua.enabled && opcUa == null) {
+                    val server = OpcUaTagServer(
+                        settings.opcua,
+                        dataDir.resolve("opcua"),
+                        tags,
+                        // Each session acts as its user: roles from the directory, zone from the client address (TAG-013).
+                        OpcUaUserAuthenticator { user, password, client, secure ->
+                            when (val result = security.users.authenticate(user, password, host = "opcua")) {
+                                is AuthenticationResult.Success -> {
+                                    val connection = ConnectionContext(client, hostName = null, gatewayName = null,
+                                        secure = secure, direct = true, scope = RequestScope.GATEWAY)
+                                    // tags.write is taken at activation, like the roles: a session of a user without it writes nothing.
+                                    val tagWrite = security.authorization.authorize(result.subject, Permissions.TAGS_WRITE, connection).allowed
+                                    TagCaller.of(result.subject, security.zones.match(connection), client?.hostAddress ?: "", tagWrite = tagWrite)
+                                }
+                                else -> null
                             }
-                            else -> null
-                        }
-                    },
-                    VERSION,
-                    opcUaTrust,
-                    GatewayDeviceCatalog(this),
-                )
-                server.start()
-                opcUa = server
+                        },
+                        VERSION,
+                        opcUaTrust,
+                        GatewayDeviceCatalog(this),
+                    )
+                    server.start()
+                    opcUa = server
+                }
             }
-            databases.start()
-            queryTags?.start()
-            systemTags = SystemTags(this).also { it.start() }
-            scripts.start()
-            charts.start()
-            followActiveCharts()
-            events.start()
-            reportScheduler = ReportScheduler(reports, clock, { def, result -> reportSink.deliver(def, result) }).start()
+            startOptional("database connections", startupProblems, ::startupWarning) {
+                databases.start()
+            }
+            startOptional("query tags", startupProblems, ::startupWarning) {
+                queryTags?.start()
+            }
+            startOptional("system tags", startupProblems, ::startupWarning) {
+                systemTags = SystemTags(this).also { it.start() }
+            }
+            startOptional("gateway scripts", startupProblems, ::startupWarning) {
+                scripts.start()
+            }
+            startOptional("charts", startupProblems, ::startupWarning) {
+                charts.start()
+                followActiveCharts()
+            }
+            startOptional("event streams", startupProblems, ::startupWarning) {
+                events.start()
+            }
+            startOptional("report scheduler", startupProblems, ::startupWarning) {
+                reportScheduler = ReportScheduler(reports, clock, { def, result -> reportSink.deliver(def, result) }).start()
+            }
             diagnostics.clockDrift.start()
             registerMetrics()
             val task = diagnostics.tasks.register("diagnostics-sampler", 5_000)
@@ -1085,21 +1157,41 @@ class Gateway(
             // Audit retention (SEC-001): remove rows older than the audit profile's retention, at start and hourly.
             val retention = diagnostics.tasks.register("audit-retention", AUDIT_RETENTION_PERIOD_MS)
             scheduler?.scheduleWithFixedDelay({ enforceAuditRetention(retention) }, 0, AUDIT_RETENTION_PERIOD_MS, TimeUnit.MILLISECONDS)
-            network.start()
-            redundancy.start()
-            edgeSync.start()
-            eam.start()
+            startOptional("gateway network", startupProblems, ::startupWarning) {
+                network.start()
+            }
+            startOptional("redundancy", startupProblems, ::startupWarning) {
+                redundancy.start()
+            }
+            startOptional("edge sync", startupProblems, ::startupWarning) {
+                edgeSync.start()
+            }
+            startOptional("enterprise admin", startupProblems, ::startupWarning) {
+                eam.start()
+            }
             alarmScheduler = Executors.newSingleThreadScheduledExecutor { r -> Thread(r, "alarm-eval").apply { isDaemon = true } }
                 .also { it.scheduleWithFixedDelay({ runCatching { alarms.poll(); notifications.poll() } }, 200, 200, TimeUnit.MILLISECONDS) }
-            if (settings.plc.enabled) {
-                plcBridge = PlcBridge.open(tags, settings.plc) { message ->
-                    logs.log(LogLevel.WARN, "org.oip.plc", message, emptyMap())
-                }.also { it.start() }
+            startOptional("PLC bridge", startupProblems, ::startupWarning) {
+                if (settings.plc.enabled) {
+                    plcBridge = PlcBridge.open(tags, settings.plc) { message ->
+                        logs.log(LogLevel.WARN, "org.oip.plc", message, emptyMap())
+                    }.also { it.start() }
+                }
             }
+            logic.writeTag = { tag, value ->
+                val result = tags.write(tag, value)
+                if (!result.ok) throw IllegalArgumentException("writing $tag was refused: ${result.quality}")
+            }
+            startOptional("PLC", startupProblems, ::startupWarning) {
+                startManagedPlc()
+            }
+            StartupLog.stage("web server on port ${settings.port}")
             https.prepare()
+            https.server = { runCatching { app.jettyServer().server() }.getOrNull() }
             app.start(settings.host, settings.port)
             https.watchIncoming()
             control.publish(clientUrl())
+            StartupLog.stage("started, listening on ${clientUrl()}" + if (startupProblems.isEmpty()) "" else " with ${startupProblems.size} problem(s)")
             logs.log(LogLevel.INFO, "org.oip.gateway", "gateway started", mapOf(
                 "profile" to settings.profile,
                 "port" to port(),
@@ -1321,7 +1413,25 @@ class Gateway(
         return redundancy.statusDocument()
     }
 
+    /**
+     * Without an external engine (gateway.yaml `plc`, or ERIC_PLC_SOCKET) the gateway runs the bundled `eric-plc`
+     * itself, so a deploy from Control Canvas really scans (0.1.1). The last deployed program starts again here.
+     */
+    private fun startManagedPlc() {
+        if (settings.plc.enabled || !engineEnv["OIP_PLC_SOCKET"].isNullOrEmpty()) return
+        val binary = ManagedPlc.findEngine(engineEnv) ?: return
+        val supervisor = ManagedPlc(dataDir.resolve("logic/run"), binary, tags) { message ->
+            logs.log(LogLevel.WARN, "org.oip.plc", message, emptyMap())
+        }
+        logic.managed = supervisor
+        Thread({
+            supervisor.resume()?.let { logs.log(LogLevel.WARN, "org.oip.plc", "the deployed PLC program did not start again", mapOf("error" to it)) }
+            supervisor.deployed()?.let { runCatching { logic.resumed(it) } }
+        }, "eric-plc-resume").apply { isDaemon = true }.start()
+    }
+
     override fun close() {
+        runCatching { logic.managed?.close() }
         if (started) {
             runCatching { plcBridge?.close() }
             plcBridge = null
@@ -1363,6 +1473,7 @@ class Gateway(
             runCatching { hmiProjects.close() }
             runCatching { hmiScripts.close() }
             runCatching { reports.close() }
+            runCatching { udtMemberHistory.close() }
             runCatching { historyBinding.close() }
             runCatching { historyProviderBinding.close() }
             runCatching { historyCollector.close() }
@@ -1388,11 +1499,13 @@ class Gateway(
             runCatching { runtime.close() }
             store.close()
         }
+        // After the listener is down. The service stop waits long enough for this delete.
+        runCatching { WindowsFirewall.removeOpenedRule() }
     }
 
     companion object {
         val LAYOUT = listOf("config", "modules", "db", "logs")
-        val VERSION: String = Gateway::class.java.`package`?.implementationVersion ?: "0.1.0-SNAPSHOT"
+        val VERSION: String = Gateway::class.java.`package`?.implementationVersion ?: "0.1.1-SNAPSHOT"
         /** How often the scheduler applies audit retention (SEC-001). */
         const val AUDIT_RETENTION_PERIOD_MS = 3_600_000L
     }

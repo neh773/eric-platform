@@ -1,6 +1,6 @@
 # What ERIC is and what it can do
 
-**ERIC v0.1.0 is BETA software and must only be used with hardware for testing purposes under safe conditions — not for live production, life-safety, or equipment-protection use. It is provided AS IS with no warranty (AGPL-3.0).**
+**ERIC v0.1.1 is BETA software and must only be used with hardware for testing purposes under safe conditions — not for live production, life-safety, or equipment-protection use. It is provided AS IS with no warranty (AGPL-3.0).**
 
 ERIC (Engineered Runtime Interface & Control) is one gateway process. It talks to plant devices, holds tags, history and alarms, and serves operator screens in a browser. Control Canvas is the designer. The same sign-in covers admin, design and runtime.
 

@@ -26,13 +26,14 @@ test("first-run steps, then launch links that open the designer and the HMI", as
   const steps = page.getByTestId("first-run");
   await expect(steps).toBeVisible();
   await expect(steps.locator('[data-step="project"]')).toHaveAttribute("data-done", "yes");
-  await expect(page.getByTestId("launch")).toHaveCount(0);
+  // Launch links show during setup too (0.1.1), so a new user can open the designer before finishing.
+  await expect(page.getByTestId("launch")).toBeVisible();
 
   await page.getByRole("button", { name: "Finish setup" }).click();
   const launch = page.getByTestId("launch");
   await expect(launch).toBeVisible();
   await expect(steps).toHaveCount(0);
-  await expect(launch.getByRole("link", { name: "Designer", exact: true })).toHaveAttribute("href", "/studio");
+  await expect(launch.getByRole("link", { name: "Control Canvas", exact: true })).toHaveAttribute("href", "/studio/");
   await expect(launch.getByRole("link", { name: "HMI sessions", exact: true })).toHaveAttribute("href", "/hmi/");
   await expect(launch.getByRole("link", { name: `Open ${hidden} session` })).toHaveCount(0);
 
@@ -58,7 +59,7 @@ test("a read-only role sees projects and the HMI link, but no designer link or s
     await expect(launch).toBeVisible();
     await expect(reader.getByTestId("first-run")).toHaveCount(0);
     await expect(launch.getByRole("link", { name: "HMI sessions", exact: true })).toBeVisible();
-    await expect(launch.getByRole("link", { name: "Designer", exact: true })).toHaveCount(0);
+    await expect(launch.getByRole("link", { name: "Control Canvas", exact: true })).toHaveCount(0);
     await expect(launch.getByRole("link", { name: /in Control Canvas/ })).toHaveCount(0);
   });
   await page.request.put("/api/v1/home/setup", { data: { complete: true }, headers: { "X-CSRF-Token": token } });

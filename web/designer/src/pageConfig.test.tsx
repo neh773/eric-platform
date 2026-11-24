@@ -48,3 +48,13 @@ describe("page configuration", () => {
     expect(within(panel).getByRole("textbox", { name: "Page 1 URL" })).toHaveValue("/");
   });
 });
+
+describe("home view", () => {
+  it("puts / first and replaces an old / page", async () => {
+    const { withHomeView } = await import("./PageConfigPanel");
+    expect(withHomeView([{ url: "/alarms", primaryView: "alarms" }, { url: "/", primaryView: "alarms" }], "overview")).toEqual([
+      { url: "/", title: "Home", primaryView: "overview", name: "home" },
+      { url: "/alarms", primaryView: "alarms" },
+    ]);
+  });
+});

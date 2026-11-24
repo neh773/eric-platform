@@ -102,17 +102,19 @@ enum class TimescaleMode(val wire: String) {
 }
 
 /**
- * SQL history provider for PostgreSQL and TimescaleDB over JDBC, our counterpart of the reference platform 8.3's SQL
+ * SQL history provider over JDBC, our counterpart of the reference platform 8.3's SQL
  * Historian: tag history kept in an external database, chosen by a "Data Source" setting that names the
  * database connection, and always written through store-and-forward
  * (-
  * -). The table layout is ours
  * (the reference platform's `sqlth_*` tables are not reproduced; DIFFERENCES: no wire/format compatibility).
  *
- * One table [table]: `ts timestamptz`, tag path, typed value (`value_kind` + `value_text`, plus `value_num`
+ * One table [table]: `ts` (`timestamptz` on PostgreSQL, epoch milliseconds as `bigint` on SQLite and other
+ * dialects), tag path, typed value (`value_kind` + `value_text`, plus `value_num`
  * for numbers and booleans so SQL users can aggregate), quality, and (`source_id`, `seq`) with a unique index
- * so inserts are idempotent (`ON CONFLICT DO NOTHING`). When the `timescaledb` extension is installed and
- * [timescale] is not OFF, the table becomes a hypertable on `ts` ([hypertable] tells which).
+ * so inserts are idempotent (`ON CONFLICT DO NOTHING`). On PostgreSQL, when the `timescaledb` extension is
+ * installed and [timescale] is not OFF, the table becomes a hypertable on `ts` ([hypertable] tells which).
+ * The extension check and `create_hypertable` run only on PostgreSQL; they are skipped on SQLite and other dialects.
  *
  * A PostgreSQL connection writes with COPY (https://www.postgresql.org/docs/current/sql-copy.html). COPY
  * rejects a batch that is already stored, and that batch is written again with `INSERT … ON CONFLICT DO NOTHING`,
@@ -141,6 +143,8 @@ class SqlHistoryProvider(
     }
 
     @Volatile private var schemaReady = false
+    /** True after [ensureSchema] when the connection is PostgreSQL (Timescale, COPY, timestamptz). */
+    @Volatile private var postgres = false
     @Volatile var hypertable: Boolean = false
         private set
 
@@ -233,7 +237,7 @@ class SqlHistoryProvider(
         ).use { ps ->
             for (r in records) {
                 val s = r.sample
-                ps.setObject(1, toTimestamp(s.timestampMillis))
+                bindTimestamp(ps, 1, s.timestampMillis)
                 ps.setString(2, s.tagPath)
                 val (kind, text) = ValueCodec.encode(s.value)
                 ps.setString(3, kind)
@@ -256,8 +260,8 @@ class SqlHistoryProvider(
             "SELECT $COLUMNS FROM $table WHERE lower(tag_path) = lower(?) AND ts >= ? AND ts <= ? ORDER BY ts, source_id, seq LIMIT ?"
         ).use { ps ->
             ps.setString(1, query.tagPath)
-            ps.setObject(2, clampTimestamp(query.fromMillis))
-            ps.setObject(3, clampTimestamp(query.toMillis))
+            bindTimestamp(ps, 2, query.fromMillis)
+            bindTimestamp(ps, 3, query.toMillis)
             ps.setInt(4, query.limit)
             ps.executeQuery().use { rs ->
                 val out = ArrayList<HistorySample>()
@@ -276,8 +280,8 @@ class SqlHistoryProvider(
             ).use { ps ->
                 ps.fetchSize = 5_000
                 ps.setString(1, tagPath)
-                ps.setObject(2, clampTimestamp(fromMillis))
-                ps.setObject(3, clampTimestamp(toMillis))
+                bindTimestamp(ps, 2, fromMillis)
+                bindTimestamp(ps, 3, toMillis)
                 ps.executeQuery().use { rs -> while (rs.next()) each(readRow(rs)) }
             }
             c.commit()
@@ -294,7 +298,7 @@ class SqlHistoryProvider(
             "SELECT $COLUMNS FROM $table WHERE lower(tag_path) = lower(?) AND ts < ? ORDER BY ts DESC, source_id DESC, seq DESC LIMIT 1"
         ).use { ps ->
             ps.setString(1, tagPath)
-            ps.setObject(2, clampTimestamp(beforeMillis))
+            bindTimestamp(ps, 2, beforeMillis)
             ps.executeQuery().use { rs -> if (rs.next()) readRow(rs) else null }
         }
     }
@@ -353,11 +357,13 @@ class SqlHistoryProvider(
     }
 
     private fun ensureSchema(c: Connection) {
+        postgres = isPostgreSQL(c)
         c.createStatement().use { st ->
+            val tsType = if (postgres) "TIMESTAMPTZ" else "BIGINT"
             st.execute(
                 """
                 CREATE TABLE IF NOT EXISTS $table (
-                  ts TIMESTAMPTZ NOT NULL,
+                  ts $tsType NOT NULL,
                   tag_path TEXT NOT NULL,
                   value_kind TEXT NOT NULL,
                   value_text TEXT,
@@ -369,7 +375,12 @@ class SqlHistoryProvider(
                 )
                 """.trimIndent()
             )
-            val hasExtension = st.executeQuery("SELECT 1 FROM pg_extension WHERE extname = 'timescaledb'").use { it.next() }
+            // pg_extension and create_hypertable exist only on PostgreSQL.
+            val hasExtension = if (postgres) {
+                st.executeQuery("SELECT 1 FROM pg_extension WHERE extname = 'timescaledb'").use { it.next() }
+            } else {
+                false
+            }
             if (timescale == TimescaleMode.REQUIRED && !hasExtension) {
                 throw HistoryWriteException("timescale is required but the timescaledb extension is not installed", permanent = false)
             }
@@ -389,6 +400,21 @@ class SqlHistoryProvider(
         schemaReady = true
     }
 
+    private fun bindTimestamp(ps: java.sql.PreparedStatement, index: Int, millis: Long) {
+        if (postgres) ps.setObject(index, clampTimestamp(millis)) else ps.setLong(index, millis)
+    }
+
+    private fun readRow(rs: java.sql.ResultSet) = HistorySample(
+        tagPath = rs.getString("tag_path"),
+        timestampMillis = if (postgres) {
+            rs.getObject("ts", OffsetDateTime::class.java).toInstant().toEpochMilli()
+        } else {
+            rs.getLong("ts")
+        },
+        value = ValueCodec.decode(rs.getString("value_kind"), rs.getString("value_text")),
+        quality = ValueCodec.quality(rs.getString("quality"), rs.getString("quality_diagnostic")),
+    )
+
     companion object {
         /** Batches at least this large and a pool that can lend two connections are copied on two lanes. */
         const val PARALLEL_AT = 2_000
@@ -403,6 +429,10 @@ class SqlHistoryProvider(
         private fun copyManager(c: Connection): CopyManager? = runCatching {
             if (c.isWrapperFor(BaseConnection::class.java)) CopyManager(c.unwrap(BaseConnection::class.java)) else null
         }.getOrNull()
+
+        private fun isPostgreSQL(c: Connection): Boolean =
+            runCatching { c.metaData.databaseProductName }.getOrNull()
+                ?.contains("postgres", ignoreCase = true) == true
 
         /** PostgreSQL text COPY. Null is `\N`; backslash, tab, and newlines are escaped. */
         private fun copyPayload(records: List<ForwardRecord>): ByteArray {
@@ -475,11 +505,5 @@ class SqlHistoryProvider(
         /** Query bounds are clamped into the database range, so `from=0&to=Long.MAX_VALUE` works. */
         private fun clampTimestamp(millis: Long) = toTimestamp(millis.coerceIn(MIN_QUERY, MAX_QUERY))
 
-        private fun readRow(rs: java.sql.ResultSet) = HistorySample(
-            tagPath = rs.getString("tag_path"),
-            timestampMillis = rs.getObject("ts", OffsetDateTime::class.java).toInstant().toEpochMilli(),
-            value = ValueCodec.decode(rs.getString("value_kind"), rs.getString("value_text")),
-            quality = ValueCodec.quality(rs.getString("quality"), rs.getString("quality_diagnostic")),
-        )
     }
 }

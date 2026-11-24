@@ -1,24 +1,29 @@
 name: Bug report
-description: Something in ERIC 0.1.0-beta failed on the bench.
+description: Something in ERIC 0.1.x beta failed on the bench.
 title: "[bug] "
-labels: []
+labels: [bug]
 body:
   - type: markdown
     attributes:
       value: |
-        ERIC v0.1.0 is BETA software. Use it only on hardware set up for testing. Remove passwords and plant addresses from logs before you attach them.
-  - type: textarea
-    id: what
+        ERIC v0.1.1 is BETA software. Use it only on hardware set up for testing, under safe conditions.
+
+        Check the [known bugs](https://neh773.github.io/eric-platform/manual/known-bugs/) list first. If the problem is already listed, you do not need a new issue unless you have new information.
+
+        Remove passwords and plant addresses from logs and screenshots before you attach them.
+  - type: checkboxes
+    id: checked
     attributes:
-      label: What happened
-      description: What you did, what you expected, and what you saw.
-    validations:
-      required: true
+      label: Before you open this issue
+      options:
+        - label: I read the [known bugs](https://neh773.github.io/eric-platform/manual/known-bugs/) list, and this is not already listed (or I am adding new information).
+          required: true
   - type: input
     id: version
     attributes:
-      label: Version
-      placeholder: 0.1.0-beta
+      label: ERIC version
+      description: The version shown on the gateway, or the installer or archive name.
+      placeholder: 0.1.1-beta
     validations:
       required: true
   - type: dropdown
@@ -26,14 +31,65 @@ body:
     attributes:
       label: Operating system
       options:
-        - Windows
         - Linux
+        - Windows
+    validations:
+      required: true
+  - type: dropdown
+    id: install
+    attributes:
+      label: Install type
+      options:
+        - Windows installer
+        - Linux app images (archive)
+        - Built from a checkout
+        - Container or other
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Gateway admin
+        - Control Canvas designer
+        - HMI runtime
+        - Logic/PLC
+        - Devices
+        - Historian
+        - Alarms
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: What you did, in order, so someone else can try it.
+      placeholder: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected
+      description: What you thought would happen.
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual
+      description: What you saw instead.
     validations:
       required: true
   - type: textarea
     id: logs
     attributes:
-      label: Logs
-      description: Gateway log with secrets removed. On Windows the service writes under C:\ProgramData\ERIC\gateway.
+      label: Logs and screenshots
+      description: Gateway log with secrets removed, and any screenshots. Drag files into this box. On Windows the service writes under C:\ProgramData\ERIC\gateway.
     validations:
-      required: true
+      required: false

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { errorMessage } from "./access";
-import type { ApiClient, ResourceDocument } from "./api";
+import { ApiError, type ApiClient, type ResourceDocument } from "./api";
 import {
   DEVICE_TYPES,
   deviceProblem,
@@ -38,17 +38,24 @@ export function DeviceWizard({ client, canWrite }: { client: ApiClient; canWrite
   const [failure, setFailure] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  const [listProblems, setListProblems] = useState<string[]>([]);
 
   const reload = useCallback(async () => {
+    const problems: string[] = [];
     const lists = await Promise.all(DEVICE_TYPES.map(async (type) => {
       try {
         const items = await client.listResources(type.module, "gateway", type.resourceKind);
         return items.map((resource) => ({ kind: type.kind, resource }));
-      } catch {
+      } catch (err) {
+        // 404: that driver is not installed, so it has no devices. Anything else is a real failure to show.
+        if (!(err instanceof ApiError && err.status === 404)) problems.push(`${type.label}: ${errorMessage(err, "could not be listed")}`);
         return [] as StoredDevice[];
       }
     }));
     setDevices(lists.flat());
+    setListProblems(problems);
+    setLoaded(true);
   }, [client]);
 
   useEffect(() => {
@@ -75,6 +82,8 @@ export function DeviceWizard({ client, canWrite }: { client: ApiClient; canWrite
   }
 
   function openNew() {
+    setFailure(null);
+    setNotice(null);
     const draft = emptyDevice();
     setEditing({ name: "", version: null, draft, jsonText: pretty(specFromDraft(draft)), mode: "form" });
   }
@@ -99,6 +108,19 @@ export function DeviceWizard({ client, canWrite }: { client: ApiClient; canWrite
       const problem = deviceProblem(editing.name.trim(), draft, editing.version == null);
       if (problem) throw new Error(problem);
       const type = deviceType(draft.kind);
+      if (draft.kind === "mqtt" && editing.mode === "form") {
+        const name = editing.name.trim();
+        if (draft.username.trim()) {
+          spec.username = (await client.saveSecret(`mqtt-${name}-user`, draft.username.trim(), `Username for MQTT device ${name}`)).reference;
+        }
+        if (draft.newPassword) {
+          spec.password = (await client.saveSecret(`mqtt-${name}-password`, draft.newPassword, `Password for MQTT device ${name}`)).reference;
+        }
+      }
+      if (draft.kind === "opcua" && draft.newPassword && editing.mode === "form") {
+        const secret = await client.saveSecret(`opcua-${editing.name.trim()}`, draft.newPassword, `Password for OPC UA device ${editing.name.trim()}`);
+        spec.password = secret.reference;
+      }
       const saved = editing.version == null
         ? await client.createResource(type.module, "gateway", type.resourceKind, editing.name.trim(), spec)
         : await client.putResource(type.module, "gateway", type.resourceKind, editing.name, {
@@ -136,7 +158,10 @@ export function DeviceWizard({ client, canWrite }: { client: ApiClient; canWrite
       </p>
       {failure ? <p role="alert">{failure}</p> : null}
       {notice ? <p role="status">{notice}</p> : null}
-      {devices.length === 0 ? <p>No device connections yet.</p> : (
+      {listProblems.length ? (
+        <p role="alert">Some devices could not be listed, so this list may be incomplete. {listProblems.join("; ")}</p>
+      ) : null}
+      {!loaded ? <p role="status">Loading devices.</p> : devices.length === 0 ? <p>No device connections yet.</p> : (
         <table className="data-table" aria-label="Device connections">
           <thead>
             <tr><th>Name</th><th>Type</th><th>Address</th><th></th></tr>
@@ -157,7 +182,7 @@ export function DeviceWizard({ client, canWrite }: { client: ApiClient; canWrite
           </tbody>
         </table>
       )}
-      {canWrite && !editing ? <p><button type="button" onClick={openNew}>New device</button></p> : null}
+      {canWrite ? <p><button type="button" onClick={openNew}>New device</button></p> : null}
       {editing ? (
         <form className="stack-form" aria-label={editing.version == null ? "New device" : `Device ${editing.name}`} onSubmit={save}>
           <h3>{editing.version == null ? "New device" : editing.name}</h3>
@@ -194,6 +219,7 @@ export function DeviceWizard({ client, canWrite }: { client: ApiClient; canWrite
               name={editing.name}
               creating={editing.version == null}
               draft={editing.draft}
+              localDevices={devices.filter((item) => item.kind === "bacnet-local").map((item) => item.resource.metadata.name)}
               onName={(name) => setEditing({ ...editing, name })}
               onChange={(draft) => setEditing({ ...editing, draft })}
             />
@@ -214,12 +240,14 @@ function DeviceFields({
   name,
   creating,
   draft,
+  localDevices,
   onName,
   onChange,
 }: {
   name: string;
   creating: boolean;
   draft: DeviceDraft;
+  localDevices: string[];
   onName: (name: string) => void;
   onChange: (draft: DeviceDraft) => void;
 }) {
@@ -263,6 +291,16 @@ function DeviceFields({
               {["NONE", "SIGN", "SIGN_AND_ENCRYPT"].map((item) => <option key={item}>{item}</option>)}
             </select>
           </label>
+          <label>
+            Trust the server certificate
+            <input type="checkbox" aria-label="Trust the server certificate" checked={draft.trustServerCertificate} onChange={(event) => set("trustServerCertificate", event.target.checked)} />
+          </label>
+          <label>Username<input aria-label="Username" value={draft.username} onChange={(event) => set("username", event.target.value)} placeholder="Blank signs in anonymously" autoComplete="off" /></label>
+          <label>
+            Password
+            <input aria-label="Password" type="password" value={draft.newPassword} onChange={(event) => set("newPassword", event.target.value)} placeholder={draft.passwordRef ? "Saved. Type to replace it." : ""} autoComplete="new-password" />
+          </label>
+          <p className="hint">The password is kept in the gateway's encrypted secret store. A secure policy needs the server certificate trusted.</p>
         </>
       ) : null}
       {draft.kind === "simulator" ? (
@@ -286,6 +324,29 @@ function DeviceFields({
           <label>Ports<input aria-label="Ports" value={draft.ports} onChange={(event) => set("ports", event.target.value)} placeholder="9100" /></label>
         </>
       ) : null}
+      {draft.kind === "mqtt" ? (
+        <>
+          <label>
+            MQTT version
+            <select aria-label="MQTT version" value={draft.mqttProtocol} onChange={(event) => set("mqttProtocol", event.target.value)}>
+              <option value="MQTT_3_1_1">3.1.1</option>
+              <option value="MQTT_5">5</option>
+            </select>
+          </label>
+          <label>Client ID<input aria-label="Client ID" value={draft.clientId} onChange={(event) => set("clientId", event.target.value)} placeholder="Blank picks one" /></label>
+          <label>
+            Use TLS
+            <input type="checkbox" aria-label="Use TLS" checked={draft.tls} onChange={(event) => set("tls", event.target.checked)} />
+          </label>
+          <label>Sparkplug host ID<input aria-label="Sparkplug host ID" value={draft.sparkplugHostId} onChange={(event) => set("sparkplugHostId", event.target.value)} placeholder="Blank: not a Sparkplug primary host" /></label>
+          <label>Username<input aria-label="Username" value={draft.username} onChange={(event) => set("username", event.target.value)} placeholder={draft.usernameRef ? "Saved. Type to replace it." : "Blank: no sign-in"} autoComplete="off" /></label>
+          <label>
+            Password
+            <input aria-label="Password" type="password" value={draft.newPassword} onChange={(event) => set("newPassword", event.target.value)} placeholder={draft.passwordRef ? "Saved. Type to replace it." : ""} autoComplete="new-password" />
+          </label>
+          <p className="hint">The username and password are kept in the gateway's encrypted secret store.</p>
+        </>
+      ) : null}
       {draft.kind === "bacnet-local" ? (
         <>
           <label>Device name<input aria-label="BACnet device name" value={draft.deviceName} onChange={(event) => set("deviceName", event.target.value)} /></label>
@@ -294,11 +355,20 @@ function DeviceFields({
       ) : null}
       {draft.kind === "bacnet-remote" ? (
         <>
-          <label>Local device<input aria-label="Local device" value={draft.localDevice} onChange={(event) => set("localDevice", event.target.value)} /></label>
+          <label>
+            Local device
+            <input aria-label="Local device" list="bacnet-local-devices" value={draft.localDevice} onChange={(event) => set("localDevice", event.target.value)} autoComplete="off" />
+            <datalist id="bacnet-local-devices">{localDevices.map((local) => <option key={local} value={local} />)}</datalist>
+          </label>
+          {localDevices.length === 0 ? (
+            <p className="hint">A remote device is reached through a BACnet local device on this gateway. Create a "BACnet local device" first.</p>
+          ) : draft.localDevice.trim() && !localDevices.includes(draft.localDevice.trim()) ? (
+            <p className="hint">No BACnet local device is named {draft.localDevice.trim()}. Local devices: {localDevices.join(", ")}.</p>
+          ) : null}
           <label>Device instance<input aria-label="Device instance" inputMode="numeric" value={draft.deviceInstance} onChange={(event) => set("deviceInstance", event.target.value)} /></label>
         </>
       ) : null}
-      {draft.kind === "modbus" || draft.kind === "logix" || draft.kind === "s7" || draft.kind === "dnp3" || draft.kind === "bacnet-remote" ? (
+      {draft.kind === "modbus" || draft.kind === "logix" || draft.kind === "s7" || draft.kind === "dnp3" || draft.kind === "bacnet-remote" || draft.kind === "mqtt" ? (
         <label>Host<input aria-label="Host" value={draft.host} onChange={(event) => set("host", event.target.value)} placeholder="10.1.1.20" /></label>
       ) : null}
       {draft.kind !== "simulator" && draft.kind !== "opcua" && draft.kind !== "udp" ? (

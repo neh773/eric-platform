@@ -55,7 +55,10 @@ class AdminUiTest {
             val health = http.get("/api/v1/health")
             assertEquals(200, health.status, health.body)
             val warnings = health.json["warnings"] as List<*>
-            assertTrue(warnings.any { it.toString().contains("plain HTTP") }, warnings.toString())
+            // 0.1.1: plain HTTP seen from this machine is not a warning; through a proxy header it still is.
+            assertFalse(warnings.any { it.toString().contains("plain HTTP") }, warnings.toString())
+            val proxied = http.send("GET", "/api/v1/health", headers = mapOf("X-Forwarded-For" to "203.0.113.5"))
+            assertTrue((proxied.json["warnings"] as List<*>).any { it.toString().contains("not encrypted") }, proxied.body)
         }
     }
 

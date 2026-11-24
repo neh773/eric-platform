@@ -206,7 +206,8 @@ async function open(client: GatewayClient, project: string, starter: ViewDocumen
     views: loaded.views,
     drafts: loaded.views.length === 0 && loaded.errors.length === 0 ? starter : [],
     styleClasses,
-    styleClassesDraft: empty ? starterStyleClasses : null,
+    // An empty starter set is no change to save: a new blank project opens with nothing unsaved.
+    styleClassesDraft: empty && Object.keys(starterStyleClasses).length > 0 ? starterStyleClasses : null,
     scriptHooks,
     pageConfig,
     loadErrors: errors,

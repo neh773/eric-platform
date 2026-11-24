@@ -27,7 +27,7 @@ async function putMemoryTag(request: APIRequestContext, csrf: string, path: stri
 test.describe("designer persistence", () => {
   test("creates a view, saves it to the gateway, and finds it after a reload", async ({ page }) => {
     const project = uniqueProject("persist");
-    await page.goto(`/?project=${project}`);
+    await page.goto(`/?project=${project}&starter=sample`);
 
     // Not signed in: the Studio asks for gateway credentials first.
     const form = page.getByRole("form", { name: "Sign in to the gateway" });

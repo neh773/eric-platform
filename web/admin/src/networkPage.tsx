@@ -95,6 +95,12 @@ export function NetworkPage({ section, client, session }: AdminPageProps) {
             : "HTTPS is off. Plain HTTP stays available."
           : "Loading HTTPS status."}
       </p>
+      {status && !status.listening ? (
+        <p className="muted" data-testid="plain-http-note">
+          Plain HTTP is fine for a browser on this computer. Before people sign in from other computers, turn on HTTPS
+          below so passwords and session cookies are encrypted on the network.
+        </p>
+      ) : null}
       {error ? <p role="alert">{error}</p> : null}
       {notice ? <p role="status">{notice}</p> : null}
       {status ? (
@@ -315,8 +321,12 @@ function WebServerSettings({ extras, canWrite, send }: { extras: HttpsExtras; ca
     setError(null);
     setNotice(null);
     try {
-      await send("PUT", "/api/v1/https/settings", body);
-      setNotice("Saved to gateway.yaml. Restart the gateway to use the new ports, address, and redirect.");
+      const result = (await send("PUT", "/api/v1/https/settings", body)) as { savedSettings?: { appliedNow?: boolean } } | undefined;
+      if (result?.savedSettings?.appliedNow) {
+        setNotice(httpsEnabled ? `Saved. HTTPS is on now at port ${body.httpsPort ?? 8043}.` : "Saved. HTTPS is off now.");
+      } else {
+        setNotice("Saved to gateway.yaml. Restart the gateway to use the new ports, address, and redirect.");
+      }
     } catch (err) {
       setError(message(err, "Could not save the web server settings"));
     } finally {
@@ -327,7 +337,7 @@ function WebServerSettings({ extras, canWrite, send }: { extras: HttpsExtras; ca
   return (
     <section data-testid="web-server-settings">
       <h2>Web server</h2>
-      {saved ? <p data-testid="settings-restart">Saved changes are waiting for a gateway restart.</p> : null}
+      {saved && saved.restartRequired !== false ? <p data-testid="settings-restart">Saved changes are waiting for a gateway restart.</p> : null}
       {overridden.length > 0 ? (
         <p data-testid="settings-overridden">Environment variables override: {overridden.join(", ")}.</p>
       ) : null}
@@ -786,9 +796,10 @@ function GatewayNetworkSection({
         {status
           ? status.listening
             ? `Listening on port ${status.port ?? ""}. Incoming connections stay pending until approved.`
-            : "Gateway network is off."
+            : status.listenError ? "Gateway network is not listening." : "Gateway network is off."
           : "Loading peer network status."}
       </p>
+      {status?.listenError ? <p role="alert">{status.listenError}</p> : null}
       {error ? <p role="alert">{error}</p> : null}
       {incoming.length === 0 ? <p>No incoming connections.</p> : null}
       {incoming.map((peer) => {

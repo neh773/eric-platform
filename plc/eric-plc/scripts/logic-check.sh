@@ -3,9 +3,13 @@
 # RuSTy binary when ERIC_PLC_COMPILER points at it. This script only rejects
 # the token not_a_keyword, in the same diagnostic shape RuSTy prints.
 set -euo pipefail
+# The program is the first .st argument; `-i <glob>` include paths (the process library) are skipped.
 file=""
+skip=0
 for arg in "$@"; do
-  if [[ "$arg" == *.st ]]; then file="$arg"; fi
+  if [[ $skip -eq 1 ]]; then skip=0; continue; fi
+  if [[ "$arg" == "-i" ]]; then skip=1; continue; fi
+  if [[ -z "$file" && "$arg" == *.st ]]; then file="$arg"; fi
 done
 if [[ -n "$file" ]] && grep -n 'not_a_keyword' "$file" >/dev/null; then
   line="$(grep -n 'not_a_keyword' "$file" | head -1 | cut -d: -f1)"

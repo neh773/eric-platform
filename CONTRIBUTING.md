@@ -12,16 +12,49 @@ If you are proposing a large feature, open an issue first. Wishlist items and th
 
 Maintainers run the test suites on their own machine before a change is merged. Automated checks run when a `v*` release tag is pushed, and when a maintainer starts a workflow by hand. A normal push or pull request does not start them.
 
+## Reporting a bug
+
+First check the [known bugs](docs/manual/known-bugs.md) list (also on the [public manual](https://neh773.github.io/eric-platform/manual/known-bugs/)). If the problem is already listed, you do not need a new issue unless you have new information, such as a different operating system or a clearer way to reproduce it.
+
+To report a new bug, choose **Issues** → **New issue** → **Bug report**. Fill in the ERIC version, operating system, install type, area, the steps to reproduce, what you expected, what you saw, and logs or screenshots. Remove passwords and plant addresses from anything you attach.
+
+## Before you push
+
+Follow the [release test plan](docs/testing/release-test-plan.md): the automated gates below, plus the hands-on
+new-user pass on fresh Linux and Windows installs for releases and for changes to user-facing features.
+
+Run the full local check and push only when it passes:
+
+```
+scripts/check.sh          # Linux
+scripts\check.ps1         # Windows, from an elevated PowerShell
+```
+
+It runs the Gradle build and every JVM test, the repository checks, the `eric-plc` tests, web lint, typecheck, unit
+and browser tests, then builds the installable package and tests it as a new user would:
+
+- **Fresh install.** On Linux, `packaging/linux/fresh-install-test.sh` extracts the app image into an empty folder,
+  starts it with a clean environment, creates the first administrator in the first-run form, opens the admin page,
+  Control Canvas and the manual, and deploys a Structured Text program with the bundled compiler and scan engine.
+  On Windows, `packaging/windows/smoke.ps1` installs, runs, upgrades and uninstalls the service.
+- **Every feature through the UI.** `web/e2e-ui` (`pnpm test:ui`) drives every feature through the admin page and
+  Control Canvas forms only: devices, tags, UDTs, alarms, historian, security, every admin page, the canvas
+  palette, `/hmi`, Structured Text logic, then restart, kill, backup restore and reinstall.
+
+A pull request description lists the check result. A feature is not done until a person can reach it from the
+admin page or a Control Canvas form, and a test in `web/e2e-ui` or `web/admin/e2e` does it that way.
+
 ## Fork, branch, and pull request
 
 1. Fork the repository and clone your fork.
 2. Create a branch from `main` with a short, descriptive name (`driver-ads`, `fix-alarm-ack`, `docs-redundancy`).
 3. Keep the change focused. Prefer a small stack of pull requests over one large one.
 4. Add or update tests for the behavior you changed. Do not loosen an existing test, threshold, or timeout to make a run pass.
-5. Sign off every commit (see [Developer Certificate of Origin](#developer-certificate-of-origin) below).
-6. Open a pull request against `main` and fill in the pull request template.
-7. A review agent runs automatically on the `pull_request` event, in an isolated sandbox, with no repository secrets. It checks safety, license and dependency issues, secret leakage, fit with `GOALS.md`, and tests. It may propose or push small integration fixes on branches it is allowed to write to, and it will label the pull request when it thinks the change is ready.
-8. Nick Hepburn is the maintainer. He decides what merges. A review agent checks safety and fit with the project first. Safety-critical areas — including drivers that write to controllers, and anything in security, secrets, identity, or release signing — always need his approval.
+5. Run `scripts/check.sh` (or `scripts\check.ps1`) and push only when it passes. See [Before you push](#before-you-push).
+6. Sign off every commit (see [Developer Certificate of Origin](#developer-certificate-of-origin) below).
+7. Open a pull request against `main` and fill in the pull request template.
+8. A review agent runs automatically on the `pull_request` event, in an isolated sandbox, with no repository secrets. It checks safety, license and dependency issues, secret leakage, fit with `GOALS.md`, and tests. It may propose or push small integration fixes on branches it is allowed to write to, and it will label the pull request when it thinks the change is ready.
+9. Nick Hepburn is the maintainer. He decides what merges. A review agent checks safety and fit with the project first. Safety-critical areas — including drivers that write to controllers, and anything in security, secrets, identity, or release signing — always need his approval.
 
 Do not submit generated secrets, plant data, or live credentials. Use clearly fake values in fixtures and examples.
 

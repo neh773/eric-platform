@@ -17,6 +17,7 @@ import { EmailProfilesPage } from "./emailProfilesPage";
 import { OAuth2ClientsPage } from "./oauth2ClientsPage";
 import type { AdminSection } from "./sections";
 import { TagsSection } from "./tags/TagsSection";
+import { UdtTypesPage } from "./udt/udtTypesPage";
 import { UsersPage } from "./usersPage";
 import { DiagnosticsPage } from "./diagnosticsPage";
 import { MetricsPage } from "./metricsPage";
@@ -25,6 +26,7 @@ import { OverviewPage } from "./overviewPage";
 import { ProjectsPage } from "./projectsPage";
 import { HomePage } from "./homePage";
 import { GatewaySettingsPage } from "./gatewaySettingsPage";
+import { GatewayScriptsPage } from "./gatewayScriptsPage";
 import { PlcResourcesPage } from "./plcResourcesPage";
 import { SecuritySettingsPage } from "./securitySettingsPage";
 import { ZonesPage } from "./zonesPage";
@@ -72,6 +74,7 @@ export function resetAdminPages(): void {
 export function installAdminPages(): void {
   registerAdminPage("config", ConfigPage);
   registerAdminPage("tags", TagsSection);
+  registerAdminPage("udt-types", UdtTypesPage);
   registerAdminPage("modules", ModulesPage);
   registerAdminPage("users", UsersPage);
   registerAdminPage("api-keys", ApiKeysPage);
@@ -122,6 +125,7 @@ export function installAdminPages(): void {
   // Services group (GAT-036): historian and alarming resources.
   registerAdminPage("historian", HistoryPage);
   registerAdminPage("alarming", AlarmEditorPage);
+  registerAdminPage("gateway-scripts", GatewayScriptsPage);
   // MES-002..MES-009, SCR-011: event streams and Kafka connections.
   registerAdminPage("event-streams", EventStreamsPage);
   registerAdminPage("charts", ChartsPage);

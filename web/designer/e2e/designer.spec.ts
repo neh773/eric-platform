@@ -88,6 +88,8 @@ test.describe("studio shell", () => {
 
     // The second pane (a nested flex container) is select-only.
     const pane = canvasNode(page, `${split}-1`);
+    // New components land on a free spot, which can be below the visible part of the canvas.
+    await pane.scrollIntoViewIfNeeded();
     const paneBox = await pane.boundingBox();
     if (!paneBox) throw new Error("second pane is not visible");
     await page.mouse.click(paneBox.x + paneBox.width / 2, paneBox.y + paneBox.height / 2);
@@ -96,6 +98,7 @@ test.describe("studio shell", () => {
     await expect(page.getByRole("button", { name: /^Resize / })).toHaveCount(0);
 
     // The divider belongs to the split container itself, not to either pane.
+    await canvasNode(page, split).locator(".oip-split-bar").scrollIntoViewIfNeeded();
     const bar = await canvasNode(page, split).locator(".oip-split-bar").boundingBox();
     if (!bar) throw new Error("split divider is not visible");
     await page.mouse.click(bar.x + bar.width / 2, bar.y + bar.height / 2);

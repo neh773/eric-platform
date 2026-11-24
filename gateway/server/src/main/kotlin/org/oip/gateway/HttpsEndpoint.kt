@@ -63,11 +63,21 @@ class HttpsEndpoint(
     @Volatile private var material: TlsMaterial? = null
     @Volatile private var source: String = "stored"
     private var ssl: SslContextFactory.Server? = null
+    /** The listener's factory while [releaseFiles] has it stopped for a restore; [reloadStored] starts it again. */
+    private var released: SslContextFactory.Server? = null
+    private var wasWatching = false
     private var tls: ServerConnector? = null
     private var watcher: java.util.concurrent.ScheduledExecutorService? = null
     private var pending: Map<String, Long>? = null
     private var failed: Map<String, Long>? = null
     var replaced: ((actor: String, fingerprint: String, source: String) -> Unit)? = null
+    /** The running Jetty server, once started; lets [updateSettings] turn the HTTPS listener on, off, or move it. */
+    var server: (() -> Server?)? = null
+    /** HTTPS on or off as applied to the running listener since start; null until the Network page changes it. */
+    @Volatile private var liveEnabled: Boolean? = null
+    @Volatile private var livePort: Int? = null
+
+    private fun enabledNow(): Boolean = liveEnabled ?: settings.httpsEnabled
 
     fun prepare() {
         synchronized(lock) {
@@ -113,7 +123,7 @@ class HttpsEndpoint(
     fun listenPort(): Int? = tls?.localPort?.takeIf { it > 0 }
 
     fun redirectTarget(scheme: String, hostHeader: String?, path: String, query: String?): String? {
-        if (!settings.httpsEnabled || !settings.forceHttpsRedirect) return null
+        if (!enabledNow() || listenPort() == null || !settings.forceHttpsRedirect) return null
         if (scheme.equals("https", ignoreCase = true)) return null
         return HttpsRedirect.url(
             settings.publicAddress,
@@ -129,10 +139,10 @@ class HttpsEndpoint(
     fun status(): Map<String, Any?> {
         val current = material
         return linkedMapOf(
-            "enabled" to settings.httpsEnabled,
+            "enabled" to enabledNow(),
             "listening" to (listenPort() != null),
             "httpPort" to httpPort(),
-            "httpsPort" to settings.httpsPort,
+            "httpsPort" to (livePort ?: settings.httpsPort),
             "httpsListenPort" to listenPort(),
             "publicAddress" to settings.publicAddress,
             "publicHttpsPort" to settings.publicHttpsPort,
@@ -258,11 +268,76 @@ class HttpsEndpoint(
             }
             val saved = linkedMapOf<String, Any?>()
             for ((field, key) in SETTINGS_KEYS) saved[field] = http[key]
-            saved["overriddenByEnvironment"] = SETTINGS_KEYS.keys.filter { !env[SETTINGS_ENV.getValue(it)].isNullOrBlank() }
-            saved["restartRequired"] = true
+            val overridden = SETTINGS_KEYS.keys.filter { !env[SETTINGS_ENV.getValue(it)].isNullOrBlank() }
+            saved["overriddenByEnvironment"] = overridden
+            // HTTPS on/off and its port apply to the running gateway now; the HTTP port, address and redirect
+            // still wait for the next start.
+            val running = mapOf<String, Any?>(
+                "httpPort" to settings.port, "publicAddress" to settings.publicAddress,
+                "publicHttpsPort" to settings.publicHttpsPort, "forceHttpsRedirect" to settings.forceHttpsRedirect,
+            )
+            fun same(a: Any?, b: Any?) = if (a is Number && b is Number) a.toLong() == b.toLong() else a == b
+            val needsStart = body.filter { (k, v) -> k in running && v != null && !(v is String && v.isBlank()) && !same(v, running[k]) && !(k == "httpPort" && same(v, httpPort())) }.keys
+            val listenerOnly = needsStart.isEmpty() && "httpsEnabled" !in overridden && "httpsPort" !in overridden
+            val wantEnabled = (http["https"] as? Boolean) ?: false
+            val wantPort = (http["httpsPort"] as? Number)?.toInt() ?: 8043
+            val applied = listenerOnly && applyListener(wantEnabled, wantPort)
+            saved["appliedNow"] = applied
+            saved["restartRequired"] = !applied
             savedSettings = saved
         }
         return status()
+    }
+
+    /**
+     * Turns the running HTTPS listener on or off, or moves it to [port]. False when the gateway is not running yet
+     * (the saved settings then apply at start). A port that cannot be opened is an [IllegalArgumentException] and
+     * leaves the listener as it was.
+     */
+    private fun applyListener(enabled: Boolean, port: Int): Boolean {
+        val running = server?.invoke() ?: return false
+        if (!running.isStarted) return false
+        val current = tls
+        if (current != null && enabled && current.port == port) {
+            liveEnabled = true
+            livePort = port
+            return true
+        }
+        if (enabled) {
+            if (material == null) {
+                val resolved = resolveForListener()
+                material = resolved.first
+                source = resolved.second
+            }
+            val base = running.connectors.filterIsInstance<ServerConnector>()
+                .firstNotNullOfOrNull { it.getConnectionFactory(HttpConnectionFactory::class.java)?.httpConfiguration }
+                ?: HttpConfiguration()
+            val previousSsl = ssl
+            val next = tlsConnector(running, base)
+            next.port = port
+            try {
+                running.addConnector(next)
+                next.start()
+            } catch (e: Exception) {
+                runCatching { next.stop() }
+                running.removeConnector(next)
+                tls = current
+                ssl = previousSsl
+                throw IllegalArgumentException("HTTPS could not listen on port $port: ${e.message ?: e.javaClass.simpleName}")
+            }
+            if (current != null) {
+                runCatching { current.stop() }
+                running.removeConnector(current)
+            }
+        } else if (current != null) {
+            runCatching { current.stop() }
+            running.removeConnector(current)
+            tls = null
+            ssl = null
+        }
+        liveEnabled = enabled
+        livePort = port
+        return true
     }
 
     /**
@@ -271,6 +346,14 @@ class HttpsEndpoint(
      */
     fun reloadStored() {
         synchronized(lock) {
+            // A restore stopped the listener's factory to free `https/` (Windows). Start that same factory again,
+            // so the running HTTPS connector keeps answering without a gateway restart.
+            released?.let { factory ->
+                released = null
+                ssl = factory
+                runCatching { factory.start() }
+                if (wasWatching) runCatching { watchIncoming() }
+            }
             policy = readPolicy()
             val loaded = if (certFile.exists() && keyFile.exists()) readActive() else null
             if (loaded != null) {
@@ -335,11 +418,15 @@ class HttpsEndpoint(
 
     /** Stop the drop watcher and the TLS factory so Windows can rename or delete `https/`. */
     fun releaseFiles() {
+        wasWatching = watcher != null
         watcher?.shutdownNow()
         watcher = null
         val factory = ssl
         ssl = null
-        if (factory != null) runCatching { factory.stop() }
+        if (factory != null) {
+            released = factory
+            runCatching { factory.stop() }
+        }
     }
 
     private fun resolveForListener(): Pair<TlsMaterial, String> {

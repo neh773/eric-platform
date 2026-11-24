@@ -13,7 +13,7 @@ import { ZonesPage } from "./zonesPage";
  * settings page (GAT-035).
  */
 
-const ADMIN_PERMISSIONS = ["users.admin", "roles.admin", "apikeys.admin", "modules.admin", "backups.admin", "gateway.write", "gateway.read", "audit.read"];
+const ADMIN_PERMISSIONS = ["users.admin", "roles.admin", "apikeys.admin", "modules.admin", "backups.admin", "gateway.write", "gateway.read", "audit.read", "tags.read", "tags.write", "secrets.admin"];
 
 const admin: SessionState = { username: "admin", roles: ["administrator"], permissions: ADMIN_PERMISSIONS, csrfToken: "csrf-1" };
 const operator: SessionState = { username: "op", roles: ["operator"], permissions: ["gateway.read", "tags.read", "tags.write"], csrfToken: "csrf-1" };

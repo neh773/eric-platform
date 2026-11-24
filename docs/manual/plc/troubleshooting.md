@@ -8,6 +8,17 @@ The compiler rejected that line. The message names the token it did not expect. 
 
 The running program is unchanged. Read the problem list. Deploy again after the source checks clean. If the list is empty and deploy still fails, the engine did not accept the compiled file. Read the gateway log for `eric-plc`.
 
+## Deploy says the PLC linker is missing
+
+ERIC links the compiled program with the LLVM linker it ships (`plc/llvm/ld.lld` on Linux, `plc\llvm\lld-link.exe` on
+Windows). If deploy says that file is missing, the install is incomplete: reinstall ERIC, then deploy again. Check
+program does not need it.
+
+## A UDT member never changes
+
+Open the **UDT instances** section in Logic. The variable must have an instance picked, and the member's direction
+must not be **none**. A member the program writes is an output, so a value typed on the tag is overwritten each scan.
+
 ## The value in the program never changes
 
 The tag map address and the `AT` address disagree, the direction is `out` when you meant `in`, or the gateway tag is bad quality. Open the tag in the admin tag browser. A bad quality tag supplies the safe value from the map, not a live reading.
@@ -26,4 +37,4 @@ The page asked the gateway which operating system it is on, and the gateway is n
 
 ## Linux apply says a reboot is required
 
-The core split changes the boot line. Until the reboot, the engine is still on the old cores. Preview first if you only wanted to read the command.
+The core split changes the boot line. Until the reboot, the engine is still on the old cores. Preview first if you only wanted to read the command. If **Preview** leaves a pending `isolcpus` change that will not clear, or **Revert** says the root helper is not configured, see [Known bugs](../known-bugs.md).

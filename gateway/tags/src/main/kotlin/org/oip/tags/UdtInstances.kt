@@ -13,7 +13,10 @@ import java.util.HexFormat
 const val FOLDER_EXISTS = "a folder already exists at this path"
 
 /** UDT parameters after `parent` inheritance. [error] is an inheritance error, such as a cycle. */
-data class UdtTypeView(val path: String, val parameters: List<UdtParameter>, val error: String?)
+/** One member of a flattened UDT; [nestedType] is set for a nested UDT member. */
+data class UdtMemberShape(val name: String, val dataType: DataType, val nestedType: String?)
+
+data class UdtTypeView(val path: String, val parameters: List<UdtParameter>, val error: String?, val memberCount: Int = 0)
 
 /**
  * What to do when a requested instance path already exists, or repeats an earlier row of the same request.

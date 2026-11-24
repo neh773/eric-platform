@@ -2,6 +2,9 @@ package org.oip.gateway
 
 import io.javalin.Javalin
 import io.javalin.http.Context
+import org.oip.security.AuditContext
+import org.oip.security.AuditDraft
+import org.oip.security.AuditStatus
 
 /** Programs, mapping, compile, deploy, and forces for the Logic editor. */
 class LogicApi(private val gw: Gateway) {
@@ -32,18 +35,26 @@ class LogicApi(private val gw: Gateway) {
             val diagnostics = attempt { gw.logic.check(ctx.pathParam("name")) }
             json(ctx, mapOf("diagnostics" to diagnostics.map { it.toMap() }))
         }
+        app.get("/api/v1/logic/programs/{name}/udts") { ctx -> json(ctx, attempt { gw.logic.udtView(ctx.pathParam("name")) }) }
         app.get("/api/v1/logic/mapping") { ctx -> json(ctx, gw.logic.mapping()) }
         app.put("/api/v1/logic/mapping") { ctx ->
             attempt { gw.logic.saveMapping(body(ctx)) }
             json(ctx, gw.logic.mapping())
         }
-        app.post("/api/v1/logic/deploy") { ctx -> json(ctx, attempt { gw.logic.deploy(text(ctx, "program")) }) }
+        app.post("/api/v1/logic/deploy") { ctx ->
+            val released = gw.logic.forcedNames()
+            val result = attempt { gw.logic.deploy(text(ctx, "program")) }
+            if (released.isNotEmpty()) audit("plc.force.release", released.joinToString(","), "released on deploy")
+            json(ctx, result)
+        }
         app.post("/api/v1/logic/start") { ctx ->
             attempt { gw.logic.start() }
             json(ctx, gw.logic.status())
         }
         app.post("/api/v1/logic/stop") { ctx ->
+            val released = gw.logic.forcedNames()
             gw.logic.stop()
+            if (released.isNotEmpty()) audit("plc.force.release", released.joinToString(","), "released on stop")
             json(ctx, gw.logic.status())
         }
         app.get("/api/v1/logic/status") { ctx -> json(ctx, gw.logic.status()) }
@@ -51,13 +62,46 @@ class LogicApi(private val gw: Gateway) {
         app.post("/api/v1/logic/forces") { ctx ->
             val map = body(ctx)
             val name = map["name"] as? String ?: throw Problems.unprocessable("name is required")
-            gw.logic.force(name, map["value"], map["output"] as? Boolean ?: true)
+            attempt { gw.logic.force(name, map["value"], map["output"] as? Boolean ?: true) }
+            audit("plc.force", name, "forced to ${map["value"]}")
+            json(ctx, gw.logic.watch())
+        }
+        app.delete("/api/v1/logic/forces") { ctx ->
+            val released = gw.logic.releaseAll()
+            if (released.isNotEmpty()) audit("plc.force.release", released.joinToString(","), "release all")
             json(ctx, gw.logic.watch())
         }
         app.delete("/api/v1/logic/forces/{name}") { ctx ->
-            gw.logic.unforce(ctx.pathParam("name"))
+            val name = ctx.pathParam("name")
+            attempt { gw.logic.unforce(name) }
+            audit("plc.force.release", name, "released")
             json(ctx, gw.logic.watch())
         }
+        app.post("/api/v1/logic/write") { ctx ->
+            val map = body(ctx)
+            val name = map["name"] as? String ?: throw Problems.unprocessable("name is required")
+            attempt { gw.logic.writeOnce(name, map["value"]) }
+            audit("plc.write", name, "wrote ${map["value"]} once")
+            json(ctx, gw.logic.watch())
+        }
+    }
+
+    /** Forces, releases and one-off writes go in the audit log with the signed-in user. */
+    private fun audit(action: String, name: String, detail: String) {
+        if (!gw.security.auditProfile.get().enabled) return
+        val context = AuditContext.current()
+        gw.security.audit.append(
+            AuditDraft(
+                timestampMillis = gw.clock.millis(),
+                actor = context?.actor ?: "api",
+                action = action,
+                status = AuditStatus.SUCCESS,
+                actorHost = context?.host ?: "",
+                target = "plc/$name",
+                detail = detail.take(500),
+                context = "gateway-http",
+            ),
+        )
     }
 
     private fun <T> attempt(block: () -> T): T = try {

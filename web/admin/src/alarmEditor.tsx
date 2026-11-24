@@ -13,6 +13,7 @@ import {
 } from "./alarmModel";
 import type { AdminPageProps } from "./pages";
 import { PipelineStatusPanel } from "./pipelineStatus";
+import { ActiveAlarmsPanel } from "./activeAlarms";
 
 /**
  * Rosters, pipelines, schedules, and contacts as forms. Edit as JSON keeps the other settings.
@@ -38,6 +39,7 @@ export function AlarmEditorPage({ section, client, session }: AdminPageProps) {
     <article data-section={section.id}>
       <h1>{section.label}</h1>
       <p>Build who is on call, when they are on call, and the pipeline that notifies them. Pipelines already running are listed first.</p>
+      <ActiveAlarmsPanel client={client} canAck={allows(session, "tags.write") || allows(session, "gateway.write")} />
       <PipelineStatusPanel client={client} />
       {client ? <AlarmForms client={client} canWrite={canWrite} /> : null}
     </article>
@@ -179,7 +181,7 @@ function AlarmFields({ editing, onChange }: { editing: Editing; onChange: (editi
   return (
     <div className="stage-grid">
       {editing.version == null ? (
-        <label>Name<input aria-label="Alarm name" value={editing.name} onChange={(event) => onChange({ ...editing, name: event.target.value })} autoComplete="off" /></label>
+        <label>{ALARM_KINDS[draft.kind].label} name<input aria-label={`${ALARM_KINDS[draft.kind].label} name`} value={editing.name} onChange={(event) => onChange({ ...editing, name: event.target.value })} autoComplete="off" /></label>
       ) : null}
       {draft.kind === "roster" ? (
         <label>Users<input aria-label="Roster users" value={draft.users} onChange={(event) => set({ users: event.target.value })} placeholder="ada, bo" /></label>

@@ -76,7 +76,7 @@ Get-ScheduledTask -ErrorAction SilentlyContinue | Where-Object { $_.TaskName -li
 
 & reg.exe delete "HKLM\Software\$Product" /f | Out-Null
 & reg.exe delete "HKLM\SYSTEM\CurrentControlSet\Services\$service" /f | Out-Null
-foreach ($name in @("OIP_ADMIN_DIST", "OIP_WEB_DIST", "ERIC_PLC_RESOURCES")) {
+foreach ($name in @("OIP_ADMIN_DIST", "OIP_WEB_DIST", "OIP_DOCS_DIR", "ERIC_ADMIN_DIST", "ERIC_WEB_DIST", "ERIC_DOCS_DIR", "ERIC_PLC_RESOURCES")) {
     [Environment]::SetEnvironmentVariable($name, $null, "Machine")
 }
 

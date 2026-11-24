@@ -187,6 +187,23 @@ export function OverviewPage({ section, client, session }: AdminPageProps) {
                 : "Loading"}
           </dd>
         </dl>
+        <p data-testid="overview-restart-help">
+          To restart, stop ERIC and start it again. On Windows, open Services and restart the ERIC Gateway service. On
+          Linux, stop the gateway (Ctrl+C in its terminal) and run the launcher again.
+        </p>
+      </section>
+      <section aria-labelledby="overview-about">
+        <h2 id="overview-about">About</h2>
+        <dl className="meta" data-testid="overview-about">
+          <dt>Product</dt>
+          <dd>ERIC (Engineered Runtime Interface &amp; Control), version {health.data?.version ?? "not reported"}, beta</dd>
+          <dt>Licence</dt>
+          <dd>GNU Affero General Public License v3.0 (AGPL-3.0). Provided as is, with no warranty. Test hardware and safe conditions only.</dd>
+          <dt>Source</dt>
+          <dd><a href="https://github.com/neh773/eric-platform" target="_blank" rel="noreferrer">github.com/neh773/eric-platform</a></dd>
+          <dt>Manual</dt>
+          <dd><a href="/manual/" target="_blank" rel="noreferrer">Open the manual</a></dd>
+        </dl>
       </section>
       {canRead ? (
         <section aria-labelledby="overview-deployment">

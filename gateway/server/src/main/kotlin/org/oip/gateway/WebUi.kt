@@ -101,12 +101,13 @@ class WebUi(
         val MOUNTS = listOf(HMI_MOUNT, "/studio", "/designer")
 
         fun locate(
-            env: Map<String, String> = System.getenv(),
+            env: Map<String, String> = LegacyEnv.current,
             property: String? = System.getProperty("oip.web.dist"),
+            bundled: Path? = Bundled.dir("web"),
         ): Path? {
-            val raw = property?.takeIf { it.isNotBlank() } ?: env["OIP_WEB_DIST"]?.takeIf { it.isNotBlank() } ?: return null
+            val raw = property?.takeIf { it.isNotBlank() } ?: env["OIP_WEB_DIST"]?.takeIf { it.isNotBlank() } ?: return bundled
             val path = Path.of(raw).toAbsolutePath().normalize()
-            return if (path.isDirectory()) path else null
+            return if (path.isDirectory()) path else bundled
         }
     }
 }

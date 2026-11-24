@@ -257,8 +257,9 @@ class HomeApi(private val gw: Gateway) {
         val write = may(Permissions.GATEWAY_WRITE)
         val links = buildList {
             if (read) add(link("admin", "Gateway admin", "/admin"))
-            if (write) add(link("designer", "Designer", "/studio"))
+            if (write) add(link("designer", "Control Canvas", "/studio/"))
             if (read) add(link("hmi", "HMI sessions", "/hmi/"))
+            add(link("manual", "User manual", "/manual/"))
         }
         val infos = if (read) gw.projectService.list() else emptyList()
         val projects = infos.filter { it.settings.launchable }.map { info ->

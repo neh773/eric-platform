@@ -2,8 +2,9 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { ApiClient, ApiError, type HealthReport, type LoginProvider, type SessionState } from "./api";
 import { AdminPage, installAdminPages } from "./pages";
 import { matchResources, matchSections } from "./search";
-import { ADMIN_SECTIONS, resourceHref, routeFromPath, sectionPath, sectionsByGroup, type ConfigHit } from "./sections";
+import { ADMIN_SECTIONS, resourceHref, routeFromPath, sectionPath, sectionsByGroup, sectionVisible, type ConfigHit } from "./sections";
 import { BetaNotice } from "./betaNotice";
+import { RESTORED_KEY } from "./restoredNotice";
 
 const APPEARANCE_KEY = "oip-appearance";
 
@@ -145,6 +146,22 @@ export function Login({
   );
   const [pending, setPending] = useState(false);
   const [providers, setProviders] = useState<LoginProvider[]>([]);
+  const [setup, setSetup] = useState<{ needsAdmin: boolean; fromThisMachine: boolean } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    client
+      .setupStatus()
+      .then((next) => {
+        if (!cancelled) setSetup(next);
+      })
+      .catch(() => {
+        if (!cancelled) setSetup(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [client]);
 
   useEffect(() => {
     let cancelled = false;
@@ -161,6 +178,16 @@ export function Login({
     };
   }, [client]);
 
+  const [restored] = useState<string | null>(() => {
+    try {
+      const name = window.sessionStorage.getItem(RESTORED_KEY);
+      if (name) window.sessionStorage.removeItem(RESTORED_KEY);
+      return name;
+    } catch {
+      return null;
+    }
+  });
+
   async function submit(event: FormEvent) {
     event.preventDefault();
     setPending(true);
@@ -176,6 +203,10 @@ export function Login({
     }
   }
 
+  if (setup?.needsAdmin) {
+    return <FirstRun client={client} fromThisMachine={setup.fromThisMachine} onSignedIn={onSignedIn} />;
+  }
+
   return (
     <div className="gate">
       <Banners client={client} />
@@ -184,6 +215,7 @@ export function Login({
         <ThemeSwitcher />
         <h1>Sign in</h1>
         <p className="lede">Gateway administration. The session cookie stays on the gateway; this page does not store the password.</p>
+        {restored ? <p role="status">Restored {restored}. Sign in with an account from the backup, then stop ERIC and start it again to start the restored devices, historian and MQTT connections.</p> : null}
         <label>
           Username
           <input name="username" autoComplete="username" value={username} onChange={(event) => setUsername(event.target.value)} required />
@@ -216,6 +248,97 @@ export function Login({
             ))}
           </nav>
         ) : null}
+      </form>
+    </div>
+  );
+}
+
+/**
+ * First run (0.1.1): a gateway with no users asks for the administrator account here instead of showing a sign-in
+ * that nobody can pass. The gateway accepts it only from a browser on the gateway machine, and only once.
+ */
+export function FirstRun({
+  client,
+  fromThisMachine,
+  onSignedIn,
+}: {
+  client: ApiClient;
+  fromThisMachine: boolean;
+  onSignedIn: (session: SessionState) => void;
+}) {
+  const [username, setUsername] = useState("admin");
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+
+  async function submit(event: FormEvent) {
+    event.preventDefault();
+    if (password !== confirm) {
+      setError("The two passwords do not match.");
+      return;
+    }
+    setPending(true);
+    setError(null);
+    try {
+      await client.createFirstAdmin(username.trim(), password);
+      onSignedIn(await client.session());
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "The administrator was not created");
+    } finally {
+      setPassword("");
+      setConfirm("");
+      setPending(false);
+    }
+  }
+
+  return (
+    <div className="gate">
+      <Banners client={client} />
+      <form className="gate-card" onSubmit={submit} aria-label="Create the administrator">
+        <p className="mark">ERIC</p>
+        <ThemeSwitcher />
+        <h1>Create administrator account</h1>
+        <p className="lede">
+          This gateway has no users yet. Create the administrator account. You will be signed in as this user, and you can add
+          more users later under Users and roles.
+        </p>
+        {fromThisMachine ? null : (
+          <p role="alert">
+            Open this page in a browser on the gateway machine (http://127.0.0.1:8090/admin) to create the administrator, or set
+            ERIC_ADMIN_PASSWORD before the first start.
+          </p>
+        )}
+        <label>
+          Administrator username
+          <input name="username" autoComplete="username" value={username} onChange={(event) => setUsername(event.target.value)} required />
+        </label>
+        <label>
+          New password
+          <input
+            name="new-password"
+            type="password"
+            autoComplete="new-password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            required
+          />
+        </label>
+        <label>
+          Confirm password
+          <input
+            name="confirm-password"
+            type="password"
+            autoComplete="new-password"
+            value={confirm}
+            onChange={(event) => setConfirm(event.target.value)}
+            required
+          />
+        </label>
+        {error ? <p role="alert">{error}</p> : null}
+        <button type="submit" disabled={pending || !fromThisMachine}>
+          Create administrator
+        </button>
       </form>
     </div>
   );
@@ -258,7 +381,7 @@ function Shell({
       <aside>
         <p className="mark">ERIC <span>Gateway</span></p>
         <nav aria-label="Gateway sections">
-          {sectionsByGroup().map(({ group, sections }) => (
+          {sectionsByGroup(ADMIN_SECTIONS.filter((item) => sectionVisible(item.id, session.permissions))).map(({ group, sections }) => (
             <div role="group" aria-labelledby={`nav-group-${group.id}`} className="nav-group" key={group.id} data-group={group.id}>
               <p className="nav-group-label" id={`nav-group-${group.id}`}>
                 {group.label}

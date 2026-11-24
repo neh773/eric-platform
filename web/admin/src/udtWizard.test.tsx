@@ -174,4 +174,46 @@ describe("tags page", () => {
     expect(screen.getByTestId("udt-wizard-readonly")).toHaveTextContent("tags.write");
     expect(screen.queryByRole("button", { name: "Preview" })).toBeNull();
   });
+
+  it("explains when the selected UDT has no members and does not call preview", async () => {
+    let posted = 0;
+    const client = new ApiClient({
+      fetch: async (input) => {
+        const url = String(input);
+        if (url.includes("/tags/udts")) {
+          return json(200, { provider: "default", types: [{ path: "Types/Empty", parameters: [], memberCount: 0 }] });
+        }
+        posted += 1;
+        return json(500, { detail: "should not be called" });
+      },
+    });
+    render(<TagsPage section={ADMIN_SECTIONS.find((item) => item.id === "tags")!} client={client} session={operator} />);
+    await screen.findByRole("option", { name: "Types/Empty" });
+    expect(screen.getByTestId("udt-no-members")).toHaveTextContent("This UDT has no members. Add members to the definition first.");
+    expect(screen.getByRole("button", { name: "Preview" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /^Create/ })).toBeDisabled();
+    expect(screen.queryByTestId("udt-plan")).toBeNull();
+    expect(posted).toBe(0);
+  });
+
+  it("shows an error when preview fails without a plan", async () => {
+    const client = new ApiClient({
+      fetch: async (input, init) => {
+        const url = String(input);
+        if (url.endsWith("/auth/session")) return json(200, { principal: "op", roles: ["operator"], permissions: [], csrfToken: "csrf-1" });
+        if (url.includes("/tags/udts")) {
+          return json(200, { provider: "default", types: [{ path: "Types/Pump", parameters: [], memberCount: 1 }] });
+        }
+        if (init?.method === "POST") return json(500, { detail: "gateway is unavailable" });
+        return json(404, {});
+      },
+    });
+    await client.session();
+    render(<TagsPage section={ADMIN_SECTIONS.find((item) => item.id === "tags")!} client={client} session={operator} />);
+    await screen.findByRole("option", { name: "Types/Pump" });
+    fireEvent.click(screen.getByRole("button", { name: "Preview" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("gateway is unavailable");
+    expect(screen.queryByTestId("udt-plan")).toBeNull();
+    expect(screen.getByRole("button", { name: /^Create/ })).toBeDisabled();
+  });
 });

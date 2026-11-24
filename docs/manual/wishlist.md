@@ -12,8 +12,8 @@ Nothing here is promised. How an item gets paid for is described in [Funding and
 | Item | Why it matters | Effort | Status |
 | --- | --- | --- | --- |
 | Direct I/O on the PLC engine: EtherCAT, and Modbus from the engine rather than the gateway | A soft-PLC that only sees gateway tags cannot close a fast loop on a local rack. | Large | Not started |
-| FINS driver | Omron controllers are common on existing plants. | Medium | Not started |
-| MC protocol driver | Mitsubishi controllers, same reason. | Medium | Not started |
+| FINS protocol driver | Many controllers on existing plants speak only the FINS protocol. | Medium | Not started |
+| MC protocol driver | Many controllers on existing plants speak only the MC protocol. | Medium | Not started |
 | Gateway-to-gateway proxy and store-and-forward across several hops | A remote station should keep history when the path to the central gateway drops, then forward it. | Large | Not started |
 
 ## Historian and databases
@@ -35,7 +35,7 @@ Nothing here is promised. How an item gets paid for is described in [Funding and
 | Full IEC 61131-3 function and function-block set | Programs ported from another controller expect the standard blocks. | Large | Partial: ST, a PID, and a small process library |
 | Timers, counters, rising and falling edge | Everyday ladder habits in ST form. | Medium | Partial |
 | String and time functions | Recipes and schedules need them. | Medium | Not started |
-| Arrays and structures as first-class ST types | A lift station is a structure, not forty loose tags. | Medium | Partial, through gateway UDTs rather than ST structs |
+| Arrays and structures as first-class ST types | A lift station is a structure, not forty loose tags. | Medium | Structures are in (gateway UDTs as ST types, `STRUCT`, `VAR_IN_OUT`); arrays are not |
 | Object-oriented extensions (methods, interfaces) | Large libraries stay maintainable. | Large | Not started |
 | Retain and persistent variables | A setpoint should survive a restart. | Medium | Not started |
 | Online monitoring and forcing | Commissioning without a second tool. | Large | Not started |
@@ -65,13 +65,15 @@ See the same table in the repository wishlist. This copy matches it.
 | `PROGRAM`, `FUNCTION_BLOCK` | Supported |
 | `FUNCTION` as its own callable unit, methods, interfaces | Not supported |
 | `VAR`, `VAR_INPUT`, `VAR_OUTPUT` | Supported |
-| `VAR_IN_OUT`, `VAR_TEMP`, `VAR_GLOBAL`, `VAR_EXTERNAL`, `VAR_ACCESS` | Not a documented path |
+| `VAR_IN_OUT` | Supported, including structure parameters |
+| `VAR_TEMP`, `VAR_GLOBAL`, `VAR_EXTERNAL`, `VAR_ACCESS` | Not a documented path |
 | `BOOL`, `INT`, `DINT`, `REAL`, `LREAL` | Supported |
 | `SINT`, `USINT`, `UINT`, `UDINT`, `LINT`, `ULINT`, `BYTE`, `WORD`, `DWORD`, `LWORD` | Not in the editor completion |
 | `TIME` literals such as `T#200ms` on standard timers | Supported for the timer blocks |
 | `DATE`, `TIME_OF_DAY`, `DATE_AND_TIME`, `STRING`, `WSTRING` | Not started |
 | Arrays as a general program feature | Not a documented editor feature. Two process blocks use a fixed internal array. |
-| `STRUCT`, enumerations | Not supported. Gateway user-defined types are not ST structures. |
+| `STRUCT` | Supported. Gateway UDTs are available as ST types and bind to UDT instances. |
+| Enumerations | Not supported |
 | `TON`, `TOF`, `TP` | Supported, standard library |
 | `CTU`, `CTD`, `CTUD` | Supported, standard library |
 | `R_TRIG`, `F_TRIG`, `SR`, `RS` | Supported, standard library |
@@ -117,6 +119,22 @@ Present today: pump, valve, tank, vessel, motor, and sensor symbols; pipes with 
 | Tank farm | Many tanks from one symbol and a list. | Small | Not started |
 | Pipe elbows and reducers as their own symbols | The pipe component bends in the route. Fittings would still help a crowded drawing. | Small | Not started |
 | ISA symbol library, complete | The current set covers the example, not the whole standard. | Large | Partial |
+
+## Deferred from 0.1.1-beta
+
+Found in the 0.1.1 new-user audit. None of them stops a fresh install from working; each has a workaround. Open product defects from this audit, and defects found later, are also listed on [Known bugs (0.1.1-beta)](known-bugs.md).
+
+| Item | Why it matters | Effort | Status |
+| --- | --- | --- | --- |
+| PLC program resumes after a gateway restart | A program that was running comes back stopped after a restart. Workaround: choose **Compile and deploy** again. | Small | Not started |
+| Drivers start at once after a backup restore | After a restore some devices and connections showed **Not Started** until the gateway restarted. A test at the current build did not reproduce it; confirm in the clean-machine audit. Workaround: restart the gateway after a restore. | Small | Needs a repro |
+| Force values inside function block instances in online mode | Online mode forces mapped I/O only. Forcing a member of a function block instance (for example a timer input) needs engine support and a Logic editor control. | Medium | Not started |
+| Show view updates the browser address | Switching views leaves the old view in the address bar, so a reload or a shared link opens the wrong view. | Small | Not started |
+| History queries leave out empty minutes | Minutes before recording started show as blank rows with 0 samples. They should be left out or marked as no data. | Small | Not started |
+| Stray "Diagnostics" word on UDT member rows | Cosmetic: the UDT instance member list shows an extra label. | Small | Not started |
+| Reliable timing in two tests | The gateway EAM test under heavy load and one Control Canvas checkbox browser test sometimes fail on timing. | Small | Not started |
+| In-app gateway restart | The admin page had a Restart button, but a gateway started from the Linux archive launcher stopped and never came back, because nothing restarts it. It was removed; to restart, stop ERIC and start it again. A safe in-app restart needs a supervisor on every install type. | Medium | Not started |
+| Browser test for the HMI reacting to a forced value | Test coverage: a forced PLC output should show on an HMI screen. | Small | Not started |
 
 ## Tests that need a bigger machine
 

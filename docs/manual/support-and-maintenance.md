@@ -1,6 +1,6 @@
 # Support and maintenance
 
-**ERIC v0.1.0 is BETA software.** The release process below is a proposal. It is not a promise that a stable channel exists yet. Comment in the "Release process proposal" discussion.
+**ERIC v0.1.1 is BETA software.** The release process below is a proposal. It is not a promise that a stable channel exists yet. Comment in the "Release process proposal" discussion.
 
 ## Channels
 

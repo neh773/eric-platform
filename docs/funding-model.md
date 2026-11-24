@@ -2,7 +2,7 @@
 
 This is the plan for how ERIC (Engineered Runtime Interface & Control) and Control Canvas pay for themselves. It is not built yet. It is planned for after the 0.1.0 beta. Comments belong in Discussions.
 
-**ERIC v0.1.0 is BETA software and must only be used with hardware for testing purposes under safe conditions — not for live production, life-safety, or equipment-protection use. It is provided AS IS with no warranty (AGPL-3.0).**
+**ERIC v0.1.1 is BETA software and must only be used with hardware for testing purposes under safe conditions — not for live production, life-safety, or equipment-protection use. It is provided AS IS with no warranty (AGPL-3.0).**
 
 ## The goal
 

@@ -50,6 +50,10 @@ class HistoryConfigBinding(
     @Synchronized
     fun problems(): List<String> = problems.toList()
 
+    /** True when a [HISTORY_SETTINGS_KIND] resource is collecting [tagPath] now. */
+    @Synchronized
+    fun owns(tagPath: String): Boolean = applied.containsKey(normalizeTagPath(tagPath).lowercase())
+
     fun attach() {
         registerHistorySchemas(registry)
         store.revalidate(HISTORIAN_MODULE)

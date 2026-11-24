@@ -41,6 +41,7 @@ fun main(args: Array<String>) {
                 "missing ${resourceDir.resolve("service-installer.exe")} (NSSM, public domain)"
             }
             resourceDir.resolve("${layout.gatewayName}-service-config.wxi").writeText(layout.serviceConfigWxi())
+            resourceDir.resolve("admin-launcher.properties").writeText(layout.adminLauncherProperties())
             File(need("layout-file")).apply { parentFile.mkdirs(); writeText(layout.layoutProperties(version)) }
             jpackage(
                 layout.gatewayExeArgs(

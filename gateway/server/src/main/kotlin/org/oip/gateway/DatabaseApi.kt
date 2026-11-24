@@ -37,7 +37,7 @@ class DatabaseApi(private val gw: Gateway) {
     fun register(app: Javalin) {
         app.get("/api/v1/db/connections") { ctx -> json(ctx, 200, mapOf("items" to db.connections())) }
         app.post("/api/v1/db/connections") { ctx -> createConnection(ctx) }
-        app.get("/api/v1/db/connections/{name}") { ctx -> json(ctx, 200, db.connection(ctx.pathParam("name"))) }
+        app.get("/api/v1/db/connections/{name}") { ctx -> json(ctx, 200, guardResult { db.connection(ctx.pathParam("name")) }) }
         app.put("/api/v1/db/connections/{name}") { ctx -> updateConnection(ctx) }
         app.delete("/api/v1/db/connections/{name}") { ctx ->
             guard { db.deleteConnection(ctx.pathParam("name"), ifMatch(ctx)) }
@@ -84,7 +84,7 @@ class DatabaseApi(private val gw: Gateway) {
         app.get("/api/v1/db/queries") { ctx -> json(ctx, 200, mapOf("items" to db.queries())) }
         app.post("/api/v1/db/queries") { ctx -> createQuery(ctx) }
         app.post("/api/v1/db/queries/convert") { ctx -> convertQuery(ctx) }
-        app.get("/api/v1/db/queries/{name}") { ctx -> json(ctx, 200, db.query(ctx.pathParam("name"))) }
+        app.get("/api/v1/db/queries/{name}") { ctx -> json(ctx, 200, guardResult { db.query(ctx.pathParam("name")) }) }
         app.put("/api/v1/db/queries/{name}") { ctx -> updateQuery(ctx) }
         app.delete("/api/v1/db/queries/{name}") { ctx ->
             guard { db.deleteQuery(ctx.pathParam("name"), ifMatch(ctx)) }

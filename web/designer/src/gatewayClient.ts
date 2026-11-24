@@ -6,6 +6,7 @@
  * X-CSRF-Token on POST, PUT, PATCH, and DELETE.
  */
 
+import type { LogicUdtView, MappingFile } from "./logicModel";
 export interface GatewayLogRecord {
   ts: string;
   level: string;
@@ -512,16 +513,21 @@ export class GatewayClient {
     return body.diagnostics ?? [];
   }
 
-  async logicMapping(): Promise<{ inputs: Array<Record<string, unknown>>; outputs: Array<Record<string, unknown>> }> {
-    return (await this.json(await this.raw("GET", "/api/v1/logic/mapping"))) as { inputs: Array<Record<string, unknown>>; outputs: Array<Record<string, unknown>> };
+  async logicMapping(): Promise<MappingFile> {
+    return (await this.json(await this.raw("GET", "/api/v1/logic/mapping"))) as MappingFile;
   }
 
-  async logicSaveMapping(file: { inputs: unknown[]; outputs: unknown[] }): Promise<{ inputs: Array<Record<string, unknown>>; outputs: Array<Record<string, unknown>> }> {
-    return (await this.json(await this.raw("PUT", "/api/v1/logic/mapping", file))) as { inputs: Array<Record<string, unknown>>; outputs: Array<Record<string, unknown>> };
+  async logicSaveMapping(file: MappingFile): Promise<MappingFile> {
+    return (await this.json(await this.raw("PUT", "/api/v1/logic/mapping", file))) as MappingFile;
   }
 
-  async logicDeploy(program: string): Promise<{ ok?: boolean; state?: string; diagnostics?: Array<{ line: number; column: number; message: string }> }> {
-    return (await this.json(await this.raw("POST", "/api/v1/logic/deploy", { program }))) as { ok?: boolean; state?: string; diagnostics?: Array<{ line: number; column: number; message: string }> };
+  /** Structure variables in [program], the UDT instances they can bind to, and each member's direction (0.1.1). */
+  async logicUdts(program: string): Promise<LogicUdtView> {
+    return (await this.json(await this.raw("GET", `/api/v1/logic/programs/${encodeURIComponent(program)}/udts`))) as LogicUdtView;
+  }
+
+  async logicDeploy(program: string): Promise<{ ok?: boolean; state?: string; message?: string; diagnostics?: Array<{ line: number; column: number; message: string }> }> {
+    return (await this.json(await this.raw("POST", "/api/v1/logic/deploy", { program }))) as { ok?: boolean; state?: string; message?: string; diagnostics?: Array<{ line: number; column: number; message: string }> };
   }
 
   async logicStart(): Promise<void> {
@@ -536,16 +542,26 @@ export class GatewayClient {
     return (await this.json(await this.raw("GET", "/api/v1/platform"))) as { os: string; windowsPlc: boolean; banner: string };
   }
 
-  async logicStatus(): Promise<{ state: string; periodMs: number; jitterP99Ns: number; execP99Ns: number; overruns: number }> {
-    return (await this.json(await this.raw("GET", "/api/v1/logic/status"))) as { state: string; periodMs: number; jitterP99Ns: number; execP99Ns: number; overruns: number };
+  async logicStatus(): Promise<{ state: string; message?: string; fault?: string | null; periodMs: number; jitterP99Ns: number; execP99Ns: number; overruns: number }> {
+    return (await this.json(await this.raw("GET", "/api/v1/logic/status"))) as { state: string; message?: string; fault?: string | null; periodMs: number; jitterP99Ns: number; execP99Ns: number; overruns: number };
   }
 
-  async logicWatch(): Promise<{ state: string; forcesActive: boolean; variables: Array<{ name: string; value: unknown; forced: boolean; output: boolean }> }> {
-    return (await this.json(await this.raw("GET", "/api/v1/logic/watch", undefined, { background: true }))) as { state: string; forcesActive: boolean; variables: Array<{ name: string; value: unknown; forced: boolean; output: boolean }> };
+  async logicWatch(): Promise<{ state: string; message?: string; fault?: string | null; forcesActive: boolean; variables: Array<{ name: string; value: unknown; forced: boolean; output: boolean; udt?: string | null; tag?: string; type?: string | null }> }> {
+    return (await this.json(await this.raw("GET", "/api/v1/logic/watch", undefined, { background: true }))) as { state: string; message?: string; fault?: string | null; forcesActive: boolean; variables: Array<{ name: string; value: unknown; forced: boolean; output: boolean; udt?: string | null; tag?: string; type?: string | null }> };
   }
 
   async logicForce(name: string, value: unknown, output: boolean): Promise<void> {
     await this.json(await this.raw("POST", "/api/v1/logic/forces", { name, value, output }));
+  }
+
+  /** Releases every force (the online banner's Release all). */
+  async logicReleaseAll(): Promise<void> {
+    await this.json(await this.raw("DELETE", "/api/v1/logic/forces"));
+  }
+
+  /** Writes a mapped variable's tag once, without forcing it. */
+  async logicWrite(name: string, value: unknown): Promise<void> {
+    await this.json(await this.raw("POST", "/api/v1/logic/write", { name, value }));
   }
 
   async logicUnforce(name: string): Promise<void> {

@@ -6,7 +6,8 @@ ERIC talks to controllers and can write setpoints. Treat a gateway as a plant sy
 
 | Version | Status |
 | --- | --- |
-| 0.1.0-beta | The soft-release line. Fixes land on `release/soft-0.1`. |
+| 0.1.1-beta | The soft-release line. Fixes land on `release/soft-0.1`. |
+| 0.1.0-beta | Superseded by 0.1.1-beta. |
 
 ## Reporting a vulnerability
 

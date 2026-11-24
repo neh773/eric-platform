@@ -67,3 +67,31 @@
 .oip-logic [data-forced="yes"] {
   outline: 1px solid var(--oip-alarm, #c4554e);
 }
+
+.oip-logic-forced-banner {
+  display: flex;
+  gap: var(--oip-space-2, 8px);
+  align-items: center;
+  padding: 6px 10px;
+  margin: 4px 0;
+  border: 1px solid #e8710a;
+  border-left: 6px solid #e8710a;
+  background: color-mix(in srgb, #e8710a 12%, transparent);
+}
+.oip-logic-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 200px;
+  padding: 8px;
+  border: 1px solid var(--oip-line);
+  border-radius: 6px;
+  background: var(--oip-surface-1);
+  box-shadow: 0 6px 20px rgb(0 0 0 / 30%);
+}
+.oip-logic-menu button { text-align: left; }
+.oip-logic-menu-title { margin: 0 0 4px; font-family: var(--oip-font-mono); font-weight: 600; }
+.oip-logic-online-on { background: #1f8f3a; color: #fff; }
+.oip-logic-f { color: #e8710a; }
+.oip-logic-watch { width: 100%; border-collapse: collapse; font-family: var(--oip-font-mono); }
+.oip-logic-watch td, .oip-logic-watch th { padding: 2px 4px; border-bottom: 1px solid var(--oip-line); text-align: left; }

@@ -59,6 +59,15 @@ export function TagsSection(props: AdminPageProps) {
       >
         UDT instances
       </a>
+      <a
+        href={sectionPath("udt-types")}
+        onClick={(event) => {
+          event.preventDefault();
+          go(sectionPath("udt-types"));
+        }}
+      >
+        UDT definitions
+      </a>
     </nav>
   );
   if (tab === "udt") {
@@ -73,12 +82,16 @@ export function TagsSection(props: AdminPageProps) {
     <article data-section={section.id}>
       <h1>{section.label}</h1>
       {tabs}
-      <TagBrowserView {...props} onOpenUdt={(typeId) => go(`${sectionPath("tags")}?tab=udt&type=${encodeURIComponent(typeId)}`)} />
+      <TagBrowserView
+        {...props}
+        onOpenUdt={(typeId) => go(`${sectionPath("tags")}?tab=udt&type=${encodeURIComponent(typeId)}`)}
+        onEditUdt={(typeId) => go(`${sectionPath("udt-types")}?type=${encodeURIComponent(typeId)}`)}
+      />
     </article>
   );
 }
 
-function TagBrowserView({ client, session, onOpenUdt }: AdminPageProps & { onOpenUdt: (typeId: string) => void }) {
+function TagBrowserView({ client, session, onOpenUdt, onEditUdt }: AdminPageProps & { onOpenUdt: (typeId: string) => void; onEditUdt: (typeId: string) => void }) {
   const canReadConfig = allows(session, "gateway.read");
   const canCreate = allows(session, "gateway.write");
   const [providers, setProviders] = useState<string[]>([]);
@@ -165,10 +178,15 @@ function TagBrowserView({ client, session, onOpenUdt }: AdminPageProps & { onOpe
     detail = (
       <section className="stack-form" aria-label="UDT definition">
         <h2>{selection.path}</h2>
-        <p>UDT definitions are edited in Config (module tags, kind Udt).</p>
-        <button type="button" onClick={() => onOpenUdt(typeId)}>
-          Create instances of this UDT
-        </button>
+        <p>Change its parameters, members, alarms and history on the UDT Definitions page.</p>
+        <p className="row-actions">
+          <button type="button" onClick={() => onEditUdt(typeId)}>
+            Edit this UDT definition
+          </button>
+          <button type="button" onClick={() => onOpenUdt(typeId)}>
+            Create instances of this UDT
+          </button>
+        </p>
       </section>
     );
   } else if (selection && selection.kind !== null && selection.kind !== "folder" && selection.resource && schema) {

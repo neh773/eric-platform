@@ -1,6 +1,6 @@
 # Getting started
 
-**ERIC v0.1.0 is BETA software and must only be used with hardware for testing purposes under safe conditions — not for live production, life-safety, or equipment-protection use. It is provided AS IS with no warranty (AGPL-3.0).** The same warning is on the [safety page](safety.md), on the installer license screen, and on the admin and Control Canvas banners.
+**ERIC v0.1.1 is BETA software and must only be used with hardware for testing purposes under safe conditions — not for live production, life-safety, or equipment-protection use. It is provided AS IS with no warranty (AGPL-3.0).** The same warning is on the [safety page](safety.md), on the installer license screen, and on the admin and Control Canvas banners.
 
 Testers who want one path from install to a screen should follow [Getting started for testers](getting-started-testers.md).
 

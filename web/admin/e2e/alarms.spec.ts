@@ -13,7 +13,7 @@ test("creates, edits, and deletes an on-call roster", async ({ page }) => {
   const main = page.getByRole("main");
   await main.getByRole("button", { name: "New roster" }).click();
   const form = main.getByRole("form", { name: "New roster" });
-  await form.getByLabel("Alarm name").fill(name);
+  await form.getByLabel("Roster name").fill(name);
   await form.getByLabel("Roster users").fill("ada");
   await form.getByRole("button", { name: "Save" }).click();
   await expect(main.getByRole("status")).toContainText(`Saved ${name}.`);

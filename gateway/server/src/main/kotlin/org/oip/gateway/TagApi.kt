@@ -76,6 +76,7 @@ class TagApi(
             val types = provider.udtTypes().map { t ->
                 linkedMapOf<String, Any?>(
                     "path" to t.path,
+                    "memberCount" to t.memberCount,
                     "parameters" to t.parameters.map { p ->
                         linkedMapOf("name" to p.name, "dataType" to p.dataType.label(), "default" to p.defaultValue)
                     },

@@ -135,6 +135,7 @@ class BackupService(
         if (secretsDump != null) entries += SecuritySnapshot.SECRETS_SQL to secretsDump.toByteArray(Charsets.UTF_8)
         if (keyBytes != null) entries += SecuritySnapshot.SECRETS_KEY to keyBytes
         if (certs.isNotEmpty()) entries += CertificateMaterial.toArchive(certs, sealKey)
+        entries += logicEntries()
         if (bundleModules) entries += bundledPackages(modules.mapNotNull { it["id"] as? String })
         return ZipIo.write(entries)
     }
@@ -204,6 +205,11 @@ class BackupService(
             for ((rel, bytes) in plan.configFiles) place(stagedConfig, rel, bytes)
             plan.gatewayYaml?.let { stage.resolve("gateway.yaml").writeBytes(it) }
             if (plan.registry != null) stage.resolve("installed-modules.tsv").writeBytes(plan.registry)
+            if (plan.logicFiles.isNotEmpty()) {
+                val stagedLogic = stage.resolve("logic").also { it.createDirectories() }
+                for ((rel, bytes) in plan.logicFiles) place(stagedLogic, rel, bytes)
+                stagedLogic.resolve("programs").createDirectories()
+            }
             if (plan.bundled) {
                 val stagedModules = stage.resolve("modules").also { it.createDirectories() }
                 for ((rel, bytes) in plan.moduleFiles) place(stagedModules, rel, bytes)
@@ -240,6 +246,12 @@ class BackupService(
                     if (plan.gatewayYaml != null) swapIn(gatewayYaml, stage.resolve("gateway.yaml"), saved)
                     swapIn(registryFile, if (plan.registry != null) stage.resolve("installed-modules.tsv") else null, saved)
                     if (plan.bundled) swapIn(modulesDir, stage.resolve("modules"), saved)
+                    if (plan.logicFiles.isNotEmpty()) {
+                        logicDir.createDirectories()
+                        swapIn(logicDir.resolve("programs"), stage.resolve("logic/programs"), saved)
+                        val mapping = stage.resolve("logic/mapping.json")
+                        swapIn(logicDir.resolve("mapping.json"), if (mapping.exists()) mapping else null, saved)
+                    }
                     if (plan.auditDump != null) swapDatabase(auditDb, stage.resolve("audit.sqlite"), saved)
                     if (plan.secretsDump != null) swapDatabase(secretsDb, stage.resolve("secrets.sqlite"), saved)
                     if (plan.auditAnchor != null) swapIn(auditAnchor, stage.resolve("audit.anchor"), saved)
@@ -284,6 +296,7 @@ class BackupService(
         val secretsDump: String?,
         val secretsKey: ByteArray?,
         val certificates: List<CertificateMaterial.Entry>,
+        val logicFiles: List<Pair<String, ByteArray>> = emptyList(),
     )
 
     private fun plan(archive: ByteArray): Plan {
@@ -297,7 +310,8 @@ class BackupService(
             it == "oip-backup.json" || it == "db/runtime.sql" || it == "installed-modules.tsv" || it == "gateway.yaml" ||
                 it == SecuritySnapshot.AUDIT_SQL || it == SecuritySnapshot.AUDIT_ANCHOR ||
                 it == SecuritySnapshot.SECRETS_SQL || it == SecuritySnapshot.SECRETS_KEY ||
-                it.startsWith("config/") || it.startsWith("modules/") || CertificateMaterial.owns(it)
+                it.startsWith("config/") || it.startsWith("modules/") || CertificateMaterial.owns(it) ||
+                it == "logic/mapping.json" || (it.startsWith("logic/programs/") && it.endsWith(".st"))
         }
         if (!allowed) throw BackupException("archive contains unexpected entries")
         val dumpText = entries["db/runtime.sql"]?.toString(Charsets.UTF_8) ?: throw BackupException("archive has no runtime dump")
@@ -346,6 +360,11 @@ class BackupService(
             registry?.takeIf { it.isNotEmpty() }, bundled, moduleFiles,
             auditDump, entries[SecuritySnapshot.AUDIT_ANCHOR], secretsDump, entries[SecuritySnapshot.SECRETS_KEY],
             certificates,
+            entries.filterKeys { it.startsWith("logic/") }.map { (name, bytes) ->
+                val rel = name.removePrefix("logic/")
+                if (rel.split('/').any { it == ".." || it.isEmpty() }) throw BackupException("logic path escapes the data directory")
+                rel to bytes
+            },
         )
     }
 
@@ -394,6 +413,21 @@ class BackupService(
         }
         if (problems.isNotEmpty())
             throw BackupException("restore refused: module packages missing or version mismatch: ${problems.joinToString("; ")}")
+    }
+
+    private val logicDir: Path get() = dataDir.resolve("logic")
+
+    /** PLC programs (the .st files in `logic/programs`) and the tag map (`logic/mapping.json`); build output is left out. */
+    private fun logicEntries(): List<Pair<String, ByteArray>> {
+        val out = mutableListOf<Pair<String, ByteArray>>()
+        val programs = logicDir.resolve("programs")
+        if (programs.isDirectory()) {
+            for (file in programs.listDirectoryEntries("*.st").filter { it.isRegularFile() }.sortedBy { it.name })
+                out += "logic/programs/${file.name}" to file.readBytes()
+        }
+        val mapping = logicDir.resolve("mapping.json")
+        if (mapping.isRegularFile()) out += "logic/mapping.json" to mapping.readBytes()
+        return out
     }
 
     private fun bundledPackages(ids: List<String>): List<Pair<String, ByteArray>> {

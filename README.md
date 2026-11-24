@@ -1,8 +1,17 @@
 # ERIC
 
-**ERIC v0.1.0 is BETA software and must only be used with hardware for testing purposes under safe conditions — not for live production, life-safety, or equipment-protection use. It is provided AS IS with no warranty (AGPL-3.0).** See [docs/manual/safety.md](docs/manual/safety.md).
+**ERIC v0.1.1 is BETA software and must only be used with hardware for testing purposes under safe conditions — not for live production, life-safety, or equipment-protection use. It is provided AS IS with no warranty (AGPL-3.0).** See [docs/manual/safety.md](docs/manual/safety.md).
 
 ERIC (Engineered Runtime Interface & Control) connects to devices, holds tags, history and alarms, and serves operator screens. Control Canvas is the designer.
+
+## Quick start
+
+1. Install ERIC Gateway: see [docs/manual/install.md](docs/manual/install.md) (Windows installer, Linux package).
+2. On the gateway computer, open **http://localhost:8090/admin**. The Windows installer opens it when it finishes, and the
+   **ERIC Admin** Start-menu shortcut opens it later. Create the first administrator there.
+3. Ports: **8090** is the web site (admin, Control Canvas, HMI), plain HTTP by default with no certificate warning.
+   8060 is the gateway-to-gateway network port and does not serve web pages. 8043 answers only after you turn on
+   HTTPS on the Network page. Windows problems: [docs/manual/troubleshooting-windows.md](docs/manual/troubleshooting-windows.md).
 
 Gateway backup and restore, including the warning that a backup holds `secrets.key` and the secret store (always encrypted under a passphrase you choose), is in [docs/ops.md](docs/ops.md).
 

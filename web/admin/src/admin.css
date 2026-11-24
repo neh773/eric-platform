@@ -566,3 +566,32 @@ nav.tag-section-tabs a[aria-current="page"] { background: var(--card); color: in
 .service-list { list-style: none; margin: 8px 0 0; padding: 0; }
 .service-list li { display: flex; justify-content: space-between; gap: 8px; min-height: 34px; align-items: center; border-bottom: 1px solid var(--oip-line); font-size: 13px; }
 .service-list li span:first-child { color: var(--oip-ink-2); }
+
+/* UDT definition editor (0.1.1). */
+.udt-editor fieldset {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0.4rem 0;
+  padding: 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+.udt-editor legend { font-weight: 600; padding: 0 0.3rem; }
+.udt-editor tr[aria-selected="true"] td { background: var(--line); }
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  gap: 0.6rem;
+  align-items: end;
+}
+.member-form {
+  display: grid;
+  gap: 0.6rem;
+  margin-top: 0.6rem;
+  padding: 0.8rem;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent, #2f80ed);
+  border-radius: 6px;
+}
+.member-form h3 { margin: 0; }
+.alarm-row { padding-bottom: 0.5rem; border-bottom: 1px dashed var(--line); }

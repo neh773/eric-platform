@@ -2,7 +2,7 @@
 
 ## The task
 
-This build has one cyclic task. The period you should expect is 10 ms unless the engine was started with another period. The runtime pane in Logic shows the period it is actually using, in milliseconds, after you choose **Start** or after a deploy that starts the engine.
+This build has one cyclic task. A new program uses a 100 ms period and allows 10 consecutive overruns before the watchdog latches, which is slow enough for an ordinary Windows or Linux PC. Set **Scan period (ms)** and **Max consecutive overruns** in the Logic runtime pane (save the mapping or deploy) if you need something else. The runtime pane shows the period the engine is actually using after you choose **Start** or after a deploy that starts the engine. If the watchdog latches, the status says **Faulted: watchdog**; if the engine process exits, it says **Stopped:** with the error. **Start** relaunches the program.
 
 The period is the time from the start of one scan to the start of the next. It is not a promise that the scan will finish in that time. If the work takes longer, the overrun count increases. See [Diagnostics](diagnostics.md).
 

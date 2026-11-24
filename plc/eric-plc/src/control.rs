@@ -194,17 +194,49 @@ impl Default for Controls {
     }
 }
 
+/** The names a force can use for one mapped point: its tag or its address, and its safe value. */
+pub struct ForceKey {
+    pub tag: String,
+    pub address: String,
+    pub safe: u64,
+}
+
+pub fn force_keys(points: &[crate::program::Point]) -> Vec<ForceKey> {
+    points.iter().map(|point| ForceKey { tag: point.tag.clone(), address: point.address.clone(), safe: point.safe }).collect()
+}
+
+/// Input forces replace the value read from the tag, every scan, until released. Returns the forced indexes.
+pub fn apply_input_forces(slots: &mut [Slot], keys: &[ForceKey], controls: &Controls) -> Vec<usize> {
+    let mut forced = Vec::new();
+    for (index, key) in keys.iter().enumerate() {
+        if let Some(force) = controls.force_for(&key.tag).or_else(|| controls.force_for(&key.address)) {
+            if !force.output {
+                if let Some(slot) = slots.get_mut(index) {
+                    slot.value = force.bits;
+                    forced.push(index);
+                }
+            }
+        }
+    }
+    forced
+}
+
+/// Output forces replace what the program wrote, every scan, before the outputs reach the image and the tags.
 pub fn apply_output_forces(slots: &mut [Slot], points: &[crate::program::Point], controls: &Controls, hold_safe: bool) {
+    apply_output_force_keys(slots, &force_keys(points), controls, hold_safe);
+}
+
+pub fn apply_output_force_keys(slots: &mut [Slot], keys: &[ForceKey], controls: &Controls, hold_safe: bool) {
     let forces = controls.forces.lock().ok();
     for (index, slot) in slots.iter_mut().enumerate() {
-        let point = match points.get(index) {
-            Some(point) => point,
+        let key = match keys.get(index) {
+            Some(key) => key,
             None => continue,
         };
         let forced = forces.as_ref().and_then(|map| {
-            map.values().find(|force| force.output && (force.name == point.tag || force.name == point.address)).map(|force| force.bits)
+            map.values().find(|force| force.output && (force.name == key.tag || force.name == key.address)).map(|force| force.bits)
         });
-        slot.value = Controls::output_bits(slot.value, forced, point.safe, hold_safe);
+        slot.value = Controls::output_bits(slot.value, forced, key.safe, hold_safe);
         if hold_safe {
             slot.quality = 1;
         }
@@ -356,8 +388,10 @@ fn status_body(controls: &Controls) -> String {
     let period_ms = stats.period_ns / 1_000_000;
     // A stored force is not "active" while outputs are held at the safe value.
     let forces = state == "running" && controls.forces_active();
+    let watchdog = controls.latched();
+    let fault = if watchdog { "\"watchdog\"" } else { "null" };
     format!(
-        "\"state\":\"{state}\",\"forcesActive\":{forces},\"periodMs\":{period_ms},\"jitterP99Ns\":{},\"execP99Ns\":{},\"overruns\":{}",
+        "\"state\":\"{state}\",\"fault\":{fault},\"watchdog\":{watchdog},\"forcesActive\":{forces},\"periodMs\":{period_ms},\"jitterP99Ns\":{},\"execP99Ns\":{},\"overruns\":{}",
         stats.jitter_p99_ns, stats.exec_p99_ns, stats.overruns
     )
 }
@@ -402,6 +436,81 @@ mod tests {
         assert_eq!(Controls::output_bits(7, None, 0, false), 7);
     }
 
+    fn slot(value: u64) -> Slot {
+        Slot { type_code: 1, quality: 0, value, source_ns: 1 }
+    }
+
+    fn key(tag: &str, address: &str) -> ForceKey {
+        ForceKey { tag: tag.into(), address: address.into(), safe: 0 }
+    }
+
+    /// One scan the way scan.rs runs it: read the input tags, apply input forces, run the logic, apply output
+    /// forces, and return what goes to the output tags. Logic here: Out := In; Speed := Level * 2.
+    fn scan(controls: &Controls, tags: &[u64; 2], held_out: &mut [u64; 2]) -> [u64; 2] {
+        let inputs_keys = [key("In", "%IX0.0"), key("Level", "%ID1")];
+        let output_keys = [key("Out", "%QX0.0"), key("Speed", "%QD1")];
+        let mut inputs = [slot(tags[0]), slot(tags[1])];
+        apply_input_forces(&mut inputs, &inputs_keys, controls);
+        held_out[0] = inputs[0].value;
+        held_out[1] = inputs[1].value * 2;
+        let mut outputs = [slot(held_out[0]), slot(held_out[1])];
+        apply_output_force_keys(&mut outputs, &output_keys, controls, false);
+        [outputs[0].value, outputs[1].value]
+    }
+
+    #[test]
+    fn a_forced_input_overrides_the_tag_every_scan_until_released() {
+        let controls = Controls::new();
+        let mut program_out = [0, 0];
+        assert_eq!(scan(&controls, &[1, 10], &mut program_out), [1, 20]);
+        controls.set_force(Force { name: "In".into(), bits: 0, output: false });
+        controls.set_force(Force { name: "%ID1".into(), bits: 7, output: false });
+        for _ in 0..3 {
+            assert_eq!(scan(&controls, &[1, 10], &mut program_out), [0, 14], "the logic sees the forced inputs");
+        }
+        controls.clear_force("In");
+        controls.clear_force("%ID1");
+        assert_eq!(scan(&controls, &[1, 10], &mut program_out), [1, 20], "release brings the real values back");
+    }
+
+    #[test]
+    fn a_forced_output_reaches_the_tag_despite_the_logic() {
+        let controls = Controls::new();
+        let mut program_out = [0, 0];
+        controls.set_force(Force { name: "Out".into(), bits: 1, output: true });
+        for _ in 0..3 {
+            assert_eq!(scan(&controls, &[0, 10], &mut program_out)[0], 1, "held every scan");
+            assert_eq!(program_out[0], 0, "the program itself still computes Out := In");
+        }
+        controls.clear_force("Out");
+        assert_eq!(scan(&controls, &[0, 10], &mut program_out)[0], 0, "release restores the program's value");
+    }
+
+    #[test]
+    fn a_write_is_overwritten_by_the_logic_but_a_force_is_not() {
+        let controls = Controls::new();
+        let mut program_out = [0, 0];
+        // Write once to the output: the next scan's logic replaces it.
+        let mut tags_out = scan(&controls, &[0, 10], &mut program_out);
+        tags_out[0] = 1;
+        assert_eq!(tags_out[0], 1);
+        assert_eq!(scan(&controls, &[0, 10], &mut program_out)[0], 0, "a one-shot write lasts until the next scan");
+        // Force: kept.
+        controls.set_force(Force { name: "Out".into(), bits: 1, output: true });
+        assert_eq!(scan(&controls, &[0, 10], &mut program_out)[0], 1);
+        assert_eq!(scan(&controls, &[0, 10], &mut program_out)[0], 1);
+    }
+
+    #[test]
+    fn a_udt_member_point_is_forced_by_its_tag() {
+        let controls = Controls::new();
+        let keys = [key("[default]MiamiDade/OS-1A/InhibitCmd", "%QX5.0")];
+        let mut outputs = [slot(0)];
+        controls.set_force(Force { name: "[default]MiamiDade/OS-1A/InhibitCmd".into(), bits: 1, output: true });
+        apply_output_force_keys(&mut outputs, &keys, &controls, false);
+        assert_eq!(outputs[0].value, 1);
+    }
+
     #[test]
     fn a_latched_engine_hides_forces() {
         let controls = Controls::new();
@@ -409,6 +518,8 @@ mod tests {
         controls.latch();
         let body = status_body(&controls);
         assert!(body.contains("\"state\":\"faulted\""), "{body}");
+        assert!(body.contains("\"fault\":\"watchdog\""), "{body}");
+        assert!(body.contains("\"watchdog\":true"), "{body}");
         assert!(body.contains("\"forcesActive\":false"), "{body}");
     }
 }

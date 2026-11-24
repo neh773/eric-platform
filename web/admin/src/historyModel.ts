@@ -37,12 +37,12 @@ export interface HistoryTagDraft {
 
 const PROVIDER_OWNED = new Set(["type", "enabled", "connection", "table", "file", "first", "second", "sourceTable", "timestampColumn", "tagColumn", "valueColumn", "storeAndForward"]);
 
-export function emptyProvider(type: ProviderType = "simulator"): ProviderDraft {
+export function emptyProvider(type: ProviderType = "sql"): ProviderDraft {
   return {
     type,
     enabled: true,
     connection: "",
-    table: "sqlth_te",
+    table: "oip_history",
     file: "history.csv",
     first: "",
     second: "",
@@ -61,7 +61,7 @@ export function specFromProvider(draft: ProviderDraft): Record<string, unknown> 
   const spec: Record<string, unknown> = { ...draft.extra, type: draft.type, enabled: draft.enabled };
   if (draft.type === "sql") {
     spec.connection = draft.connection.trim();
-    spec.table = draft.table.trim() || "sqlth_te";
+    spec.table = draft.table.trim() || "oip_history";
   }
   if (draft.type === "csv") spec.file = draft.file.trim();
   if (draft.type === "splitter") {
@@ -145,6 +145,26 @@ export function specFromHistoryTag(draft: HistoryTagDraft): Record<string, unkno
     deadband: { mode: draft.deadbandMode, value: Number(draft.deadbandValue) || 0 },
     maxTimeBetweenSamplesMillis: Number(draft.maxTimeBetweenSamplesMillis) || 0,
     storageProvider: draft.storageProvider.trim() || "local",
+  };
+}
+
+const HISTORY_TAG_OWNED = new Set(["tagPath", "sampleMode", "sampleRateMillis", "deadband", "maxTimeBetweenSamplesMillis", "storageProvider"]);
+
+/** Reads every field the form shows, and keeps the rest in `extra`, so editing a saved entry does not reset it (0.1.1). */
+export function historyTagFromSpec(spec: Record<string, unknown>): HistoryTagDraft {
+  const base = emptyHistoryTag();
+  const deadband = spec.deadband && typeof spec.deadband === "object" ? (spec.deadband as Record<string, unknown>) : {};
+  const mode = deadband.mode;
+  const num = (value: unknown, fallback: string) => (typeof value === "number" && Number.isFinite(value) ? String(value) : fallback);
+  return {
+    tagPath: text(spec.tagPath),
+    sampleMode: spec.sampleMode === "periodic" ? "periodic" : "onChange",
+    sampleRateMillis: num(spec.sampleRateMillis, base.sampleRateMillis),
+    deadbandMode: mode === "absolute" || mode === "percent" ? mode : "off",
+    deadbandValue: num(deadband.value, base.deadbandValue),
+    maxTimeBetweenSamplesMillis: num(spec.maxTimeBetweenSamplesMillis, base.maxTimeBetweenSamplesMillis),
+    storageProvider: text(spec.storageProvider) || "local",
+    extra: Object.fromEntries(Object.entries(spec).filter(([key]) => !HISTORY_TAG_OWNED.has(key))),
   };
 }
 

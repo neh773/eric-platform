@@ -246,6 +246,8 @@ export interface GatewayNetworkStatus {
   enabled: boolean;
   listening: boolean;
   port: number | null;
+  /** Why the listener is not running, for example its port is taken. */
+  listenError?: string | null;
   gatewayName: string;
   protocolVersion: number | null;
   fingerprint: string;
@@ -330,6 +332,8 @@ export interface UdtParameterInfo {
 export interface UdtTypeInfo {
   path: string;
   parameters: UdtParameterInfo[];
+  /** Members after parent inheritance. Absent when an older gateway omitted it. */
+  memberCount?: number;
   error?: string;
 }
 
@@ -410,6 +414,19 @@ export interface DbConnection {
   allowBrowserWrites: boolean;
   /** What uses this connection (DAT-015): the alarm journal, history providers, reports, named queries. */
   usedBy: DbConnectionUse[];
+}
+
+/** The editable fields of a database connection. [password] undefined keeps the stored one. */
+export interface DbConnectionFields {
+  driver: string;
+  url: string;
+  username: string;
+  description: string;
+  enabled: boolean;
+  defaultConnection: boolean;
+  allowBrowserWrites: boolean;
+  validationQuery?: string;
+  password?: string;
 }
 
 /** An uploaded JDBC driver JAR (DAT-016). */
@@ -591,6 +608,26 @@ export class ApiClient {
   }
 
   /** Enabled identity providers for the sign-in page. Needs no session. */
+  /** First-run status (0.1.1): true when the gateway has no users yet and this browser may create the first one. */
+  async setupStatus(): Promise<{ needsAdmin: boolean; fromThisMachine: boolean }> {
+    const res = await this.send("GET", "/api/v1/setup", undefined, "none");
+    if (!res.ok) return { needsAdmin: false, fromThisMachine: false };
+    const body = (await res.json()) as { needsAdmin?: unknown; fromThisMachine?: unknown };
+    return { needsAdmin: body.needsAdmin === true, fromThisMachine: body.fromThisMachine === true };
+  }
+
+  /** Creates the first administrator and signs in as it. Refused once any user exists. */
+  async createFirstAdmin(username: string, password: string): Promise<SessionState> {
+    const res = await this.send("POST", "/api/v1/setup/admin", { username, password }, "none");
+    if (!res.ok) throw new ApiError(await problemDetail(res), res.status);
+    const body = (await res.json()) as { username?: unknown; roles?: unknown; csrfToken?: unknown };
+    const csrf = typeof body.csrfToken === "string" ? body.csrfToken : "";
+    const name = typeof body.username === "string" ? body.username : "";
+    if (!csrf || !name) throw new ApiError("Setup response was incomplete", 500);
+    this.csrf = csrf;
+    return { username: name, roles: stringList(body.roles), permissions: [], csrfToken: csrf };
+  }
+
   async loginProviders(): Promise<LoginProvider[]> {
     const res = await this.send("GET", "/api/v1/auth/providers", undefined, "none");
     if (!res.ok) throw await problemError(res);
@@ -1045,6 +1082,20 @@ export class ApiClient {
     if (!res.ok) throw await problemError(res);
   }
 
+  /**
+   * Restore an archive the user picked from disk (a backup downloaded from this or another gateway), for example onto a
+   * fresh install. Sent as base64 JSON so the passphrase travels in the same request body.
+   */
+  async restoreBackupFile(archive: ArrayBuffer, passphrase?: string): Promise<void> {
+    const bytes = new Uint8Array(archive);
+    let binary = "";
+    for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+    const body: Record<string, string> = { archive: btoa(binary) };
+    if (passphrase) body.passphrase = passphrase;
+    const res = await this.send("POST", "/api/v1/backups/restore", body, "session");
+    if (!res.ok) throw await problemError(res);
+  }
+
   async secrets(): Promise<Array<{ name: string; description: string; reference: string }>> {
     const res = await this.send("GET", "/api/v1/secrets", undefined, "session");
     if (!res.ok) throw await problemError(res);
@@ -1268,6 +1319,25 @@ export class ApiClient {
     const res = await this.send("GET", "/api/v1/db/connections", undefined, "session");
     if (!res.ok) throw await problemError(res);
     return objectList(await res.json(), "items").map(parseDbConnection);
+  }
+
+  /**
+   * Creates (create = true) or updates a database connection. The password is sent only when the form has one:
+   * leaving it out keeps the stored password, an empty string clears it. The gateway never returns it.
+   */
+  async saveDbConnection(name: string, fields: DbConnectionFields, create: boolean): Promise<DbConnection> {
+    const body: Record<string, unknown> = { ...fields };
+    if (body.password === undefined) delete body.password;
+    const res = create
+      ? await this.send("POST", "/api/v1/db/connections", { name, ...body }, "session")
+      : await this.send("PUT", dbConnectionPath(name), { name, ...body }, "session");
+    if (!res.ok) throw await problemError(res);
+    return parseDbConnection(await res.json());
+  }
+
+  async deleteDbConnection(name: string): Promise<void> {
+    const res = await this.send("DELETE", dbConnectionPath(name), undefined, "session");
+    if (!res.ok) throw await problemError(res);
   }
 
   /** Runs the connection's validation query now and returns the new status. */
@@ -1872,6 +1942,7 @@ function parseGatewayNetwork(value: unknown): GatewayNetworkStatus {
     enabled: body.enabled === true,
     listening: body.listening === true,
     port: typeof body.port === "number" ? body.port : null,
+    listenError: typeof body.listenError === "string" ? body.listenError : null,
     gatewayName: typeof body.gatewayName === "string" ? body.gatewayName : "",
     protocolVersion: typeof body.protocolVersion === "number" ? body.protocolVersion : null,
     fingerprint: typeof certificate.sha256Fingerprint === "string" ? certificate.sha256Fingerprint : "",
@@ -2047,6 +2118,7 @@ function parseUdtType(value: unknown): UdtTypeInfo {
       };
     }),
   };
+  if (typeof body.memberCount === "number" && Number.isFinite(body.memberCount)) info.memberCount = body.memberCount;
   if (typeof body.error === "string") info.error = body.error;
   return info;
 }

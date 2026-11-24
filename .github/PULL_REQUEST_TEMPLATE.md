@@ -19,6 +19,8 @@
 
 - [ ] I added or updated tests for this behavior.
 - [ ] I did not loosen an existing test, threshold, or timeout to make a run pass.
+- [ ] `scripts/check.sh` (Linux) or `scripts\check.ps1` (Windows) ends with `check PASSED`.
+- [ ] For user-facing changes: I ran the affected rows of the [release test plan](docs/testing/release-test-plan.md) by hand, forms only, and attached the result matrix below.
 
 ## Safety and secrets
 

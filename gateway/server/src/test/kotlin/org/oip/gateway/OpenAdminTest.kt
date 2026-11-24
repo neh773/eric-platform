@@ -37,4 +37,20 @@ class OpenAdminTest {
             classifyLaunch(arrayOf("open-admin"), mapOf("OIP_ADMIN_URL" to "file:///tmp"))
         }
     }
+
+    @Test fun serviceNotAnsweringNamesTheLogsAndTheCheck() {
+        val text = serviceNotAnswering("C:\\Program Files\\ERIC Gateway\\ERIC Gateway.exe", DEFAULT_ADMIN_URL)
+        assertTrue(text.contains("services.msc"))
+        assertTrue(text.contains("service-stdout.log"))
+        assertTrue(text.contains("check-install.ps1"))
+        assertTrue(text.contains("C:\\ProgramData\\ERIC\\gateway\\logs"))
+    }
+
+    @Test fun portInUseIsSaidPlainly() {
+        val dir = java.nio.file.Path.of("data")
+        val error = IllegalStateException("start failed", java.io.IOException("bind", java.net.BindException("Address already in use")))
+        val text = portInUseMessage(error, dir)
+        assertTrue(text != null && text.contains("already used by another program") && text.contains("gateway.yaml"))
+        assertEquals(null, portInUseMessage(IllegalStateException("other"), dir))
+    }
 }

@@ -1,8 +1,14 @@
 plugins { kotlin("jvm") version "2.0.21" apply false }
+// A release build takes its version from the tag (ERIC_BUILD_TAG=v0.1.1-beta, set by the release workflow) or
+// -Peric.version; any other build is a SNAPSHOT. The gateway reports it on /api/v1/health from the jar manifest.
+val ericVersion: String = providers.gradleProperty("eric.version").orNull
+    ?: providers.environmentVariable("ERIC_BUILD_TAG").orNull?.takeIf { Regex("v[0-9].*").matches(it) }?.removePrefix("v")
+    ?: "0.1.1-SNAPSHOT"
 subprojects {
     apply(plugin = "java-library")
     apply(plugin = "org.jetbrains.kotlin.jvm")
-    group = "org.oip"; version = "0.1.0-SNAPSHOT"
+    group = "org.oip"; version = ericVersion
+    tasks.withType<Jar>().configureEach { manifest { attributes("Implementation-Version" to ericVersion) } }
     repositories { mavenCentral() }
     extensions.configure<org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension> { jvmToolchain(21) }
     dependencies {

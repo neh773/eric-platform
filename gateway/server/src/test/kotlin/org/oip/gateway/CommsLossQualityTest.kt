@@ -91,6 +91,7 @@ class CommsLossQualityTest {
     @Test
     @Timeout(value = 180, unit = TimeUnit.SECONDS)
     fun mqttTagsGoBadOnEachFaultAndRecoverWithoutRestart() {
+        org.junit.jupiter.api.Assumptions.assumeTrue(org.testcontainers.DockerClientFactory.instance().isDockerAvailable(), "Docker is not available; this test needs a container")
         val password = "s3cret-mqtt-gw-7k"
         val records = CopyOnWriteArrayList<String>()
         val handler = object : Handler() {
@@ -327,6 +328,7 @@ class CommsLossQualityTest {
             persistence false
             """.trimIndent() + "\n",
         )
+        org.junit.jupiter.api.Assumptions.assumeTrue(org.testcontainers.DockerClientFactory.instance().isDockerAvailable(), "Docker is not available; this test needs a container")
         val container = GenericContainer(DockerImageName.parse(image))
             .withExposedPorts(1883)
             .withCopyFileToContainer(MountableFile.forHostPath(conf), "/mosquitto/config/mosquitto.conf")

@@ -1,4 +1,5 @@
 import { expect, type Browser, type Page } from "@playwright/test";
+import { ADMIN_SECTIONS, sectionPath } from "../src/sections";
 
 /** Shared test fixture. Matches gateway AuthSupport.TEST_PASSWORD. Not a deployed secret. */
 export const PASSWORD = "Correct-horse-1";
@@ -23,8 +24,22 @@ export function stamp(prefix: string): string {
   return `${prefix}-${Date.now().toString(36)}`;
 }
 
+/**
+ * Opens a section from the nav. The nav lists only sections the signed-in role can use, so when the link is absent
+ * (for example a viewer and API Keys) the page is opened by its address, as a person typing the URL would, and the
+ * page itself shows the denial.
+ */
 export async function openSection(page: Page, name: string) {
-  await page.getByRole("navigation", { name: "Gateway sections" }).getByRole("link", { name, exact: true }).click();
+  const nav = page.getByRole("navigation", { name: "Gateway sections" });
+  await expect(nav.getByRole("link", { name: "Home", exact: true })).toBeVisible();
+  const link = nav.getByRole("link", { name, exact: true });
+  if (await link.count()) {
+    await link.click();
+  } else {
+    const section = ADMIN_SECTIONS.find((item) => item.label === name);
+    if (!section) throw new Error(`no admin section named ${name}`);
+    await page.goto(sectionPath(section.id));
+  }
   await expect(page.getByRole("heading", { level: 1, name, exact: true })).toBeVisible();
 }
 

@@ -51,6 +51,7 @@ class UdtWizardHttpTest {
             assertEquals(200, types.status, types.body)
             val type = (types.json["types"] as List<*>).single() as Map<*, *>
             assertEquals("Types/Pump", type["path"])
+            assertEquals(2, type["memberCount"])
             assertEquals(listOf("Gain", "Device"), (type["parameters"] as List<*>).map { (it as Map<*, *>)["name"] })
             val denied = view.post("/api/v1/tags/udt-instances", "$body}")
             assertEquals(403, denied.status, denied.body)

@@ -365,10 +365,17 @@ class SessionHost(
         }
     }
 
+    /** Called with the user, their host and the tag path when a write is refused for lack of tags.write (audit). */
+    @Volatile var onRefusedWrite: (String, String, String) -> Unit = { _, _, _ -> }
+
     /** Runs on the session's write drainer, one write at a time; device writes may wait on I/O. */
     private fun runWrite(session: HmiSession, job: PendingWrite) {
         val allowed = runCatching { access.mayWrite(job.socket.identity) }.getOrDefault(false)
-        if (!allowed) return job.socket.sendNow(writeResult(job.requestId, false, "${Permissions.TAGS_WRITE} denied"))
+        if (!allowed) {
+            val identity = job.socket.identity
+            runCatching { onRefusedWrite(identity.subject.principal, identity.connection.hostName ?: identity.connection.address?.hostAddress ?: "", job.path) }
+            return job.socket.sendNow(writeResult(job.requestId, false, "your role cannot write tags (${Permissions.TAGS_WRITE} denied)"))
+        }
         val result = engine.write(job.path, job.value, session.caller)
         val error = if (result.ok) null else result.quality.toString()
         job.socket.sendNow(writeResult(job.requestId, result.ok, error))

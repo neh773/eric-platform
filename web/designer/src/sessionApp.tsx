@@ -591,7 +591,7 @@ function ProjectList({ projects }: { projects: string[] }) {
       <h1>Choose a project</h1>
       {runnable.length === 0 ? (
         <p>
-          This gateway has no saved projects yet. Save one from the <a href="/studio">Studio</a>.
+          This gateway has no saved projects yet. Create one in <a href="/studio">Control Canvas</a>.
         </p>
       ) : (
         <ul>

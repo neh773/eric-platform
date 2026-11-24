@@ -132,7 +132,7 @@ Device specs are edited on the Config page from each module's schema. There is n
 
 ## Known incomplete or broken behaviour
 
-These are in the code or the changelog. They are not fixed here.
+These are in the code or the changelog. They are not fixed here. The full open list for this beta is [Known bugs (0.1.1-beta)](known-bugs.md).
 
 - On Windows, `https/server.crt` can stay locked after the TLS listener stops. A backup restore or wipe that replaces `https/` fails until the gateway restarts.
 - Writing 100,000 tags in one batch took about 75 seconds on a 4-core test laptop. The test budget is 20 seconds.

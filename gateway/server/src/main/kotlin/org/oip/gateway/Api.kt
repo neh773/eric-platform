@@ -83,6 +83,7 @@ class Api(private val gw: Gateway) {
         SfcApi(gw).register(app)
         SecretsApi(gw).register(app)
         LogicApi(gw).register(app)
+        RestartApi(gw).register(app)
         PlcResourcesApi(gw).register(app)
         app.get("/api/v1/platform") { ctx -> json(ctx, HostPlatform.body()) }
         EventStreamApi(gw).register(app)
@@ -102,7 +103,17 @@ class Api(private val gw: Gateway) {
                 "profile" to gw.settings.profile,
                 "version" to Gateway.VERSION,
                 "modules" to gw.host.installed().size,
-                "warnings" to listOfNotNull(gw.insecureCookieWarning),
+                // 0.1.1: a plain-HTTP gateway viewed from its own machine is the normal first run, not a problem;
+                // the Network page carries a calm note instead. Other browsers still see the warning.
+                "warnings" to listOfNotNull(
+                    when {
+                        gw.insecureCookieWarning == null -> null
+                        // A new install on plain HTTP: nothing to warn about on this machine, one plain sentence elsewhere.
+                        gw.settings.plainHttpOnly() -> if (fromThisMachine(ctx)) null
+                            else "This connection is not encrypted. Turn on HTTPS in Network before other computers sign in."
+                        else -> gw.insecureCookieWarning
+                    },
+                ) + gw.startupProblems.toList(),
                 "startedAt" to gw.startedAt?.toString(),
             ))
         }
@@ -395,6 +406,11 @@ class Api(private val gw: Gateway) {
      * (review-1 F3). The gateway does not keep the passphrase. A `.zip` left in `backups/` by an older version
      * is plaintext: it is listed with `encrypted: false`, can be restored, and is never served for download.
      */
+    private fun fromThisMachine(ctx: io.javalin.http.Context): Boolean {
+        if (ctx.header("X-Forwarded-For") != null || ctx.header("Forwarded") != null) return false
+        return runCatching { java.net.InetAddress.getByName(ctx.req().remoteAddr).isLoopbackAddress }.getOrDefault(false)
+    }
+
     private fun backupRoutes(app: Javalin) {
         app.post("/api/v1/backups") { ctx ->
             val bundle = when (ctx.queryParam("bundleModules")) {
@@ -462,7 +478,17 @@ class Api(private val gw: Gateway) {
     }
 
     /** A sealed archive needs `passphrase` in [body]; a wrong one fails before anything changes. */
+    /**
+     * Restore, then announce every config change to the running subsystems (tags, devices, alarms, scripts), so
+     * restored tags have values without a gateway restart. Same as the EAM and first-boot restores.
+     */
     private fun restoreArchive(archive: ByteArray, body: Map<String, Any?>?) {
+        val before = gw.store.list().associate { it.id to it.resource }
+        restoreArchiveFiles(archive, body)
+        gw.store.announceReplaced(before)
+    }
+
+    private fun restoreArchiveFiles(archive: ByteArray, body: Map<String, Any?>?) {
         if (!BackupCipher.isEncrypted(archive)) {
             gw.backups.restore(archive)
             return

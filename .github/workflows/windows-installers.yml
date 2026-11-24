@@ -13,6 +13,9 @@ on:
         default: ""
 permissions:
   contents: write
+env:
+  # The build version comes from the tag (v0.1.1-beta -> 0.1.1-beta); untagged manual runs stay SNAPSHOT.
+  ERIC_BUILD_TAG: ${{ inputs.tag != '' && inputs.tag || github.ref_name }}
 
 jobs:
   installers:
@@ -55,6 +58,22 @@ jobs:
       - name: Build gateway and designer installers
         shell: pwsh
         run: .\gradlew.bat :packaging:windowsInstallers --no-daemon
+      - name: Link a PLC program with the bundled LLVM linker (Visual Studio hidden)
+        shell: pwsh
+        env:
+          ERIC_TEST_PLC_DIR: ${{ github.workspace }}\packaging\build\plc-bundle
+        run: |
+          $vswhere = Join-Path ${env:ProgramFiles(x86)} "Microsoft Visual Studio\Installer\vswhere.exe"
+          if (Test-Path $vswhere) { Rename-Item $vswhere "vswhere.exe.eric-hidden" }
+          try {
+            .\gradlew.bat :gateway:server:test --tests org.oip.gateway.WindowsPlcLinkTest --tests org.oip.gateway.PlcCompilerIncludesTest --no-daemon
+            if ($LASTEXITCODE -ne 0) { throw "Windows PLC link tests failed" }
+            $xml = Get-Content gateway\server\build\test-results\test\TEST-org.oip.gateway.WindowsPlcLinkTest.xml -Raw
+            if ($xml -match "<skipped") { throw "WindowsPlcLinkTest was skipped: the PLC bundle was not found" }
+          } finally {
+            $hidden = "$vswhere.eric-hidden"
+            if (Test-Path $hidden) { Rename-Item $hidden "vswhere.exe" }
+          }
       - name: Install, run, uninstall (keep data and delete data)
         shell: pwsh
         run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File packaging\windows\smoke.ps1
@@ -127,7 +146,7 @@ jobs:
           cp "$gateway" "release/ERIC-Gateway-${version}-windows-x64.exe"
           cp "$designer" "release/Control-Canvas-${version}-windows-x64.exe"
           cp dist/linux-app-images/linux-app-images.tar.gz "release/ERIC-${version}-linux-x64-app-images.tar.gz"
-          sed "s/0\.1\.0-beta/${version}/g" .github/release/notes.md > release-notes.md
+          sed "s/{{version}}/${version}/g" .github/release/notes.md > release-notes.md
           ls -l release
       - uses: softprops/action-gh-release@v2
         with:

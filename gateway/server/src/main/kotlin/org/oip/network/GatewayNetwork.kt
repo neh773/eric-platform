@@ -149,9 +149,20 @@ class GatewayNetwork(
         synchronized(lock) {
             if (server != null) return
             val id = ensureIdentity()
-            val built = startServer(id, settings.port)
-            server = built
-            boundPort = built.port
+            // A port another program holds must not stop the gateway: outgoing links still work, and the
+            // Network page says what to change.
+            val built = try {
+                startServer(id, settings.port)
+            } catch (e: java.io.IOException) {
+                listenError = "Port ${settings.port} is in use by another program, so other gateways cannot connect to this one. " +
+                    "Change the gateway network port in gateway.yaml (gatewayNetwork.port) or stop the other program, then restart."
+                null
+            }
+            if (built != null) {
+                listenError = null
+                server = built
+                boundPort = built.port
+            }
         }
         synchronized(outgoing) {
             outgoing.values.forEach { runtime ->
@@ -161,6 +172,8 @@ class GatewayNetwork(
         restoreProviders()
         synchronized(outgoing) { outgoing.values.filter { it.spec.enabled }.forEach { launch(it) } }
     }
+
+    @Volatile private var listenError: String? = null
 
     fun port(): Int = boundPort
 
@@ -336,6 +349,7 @@ class GatewayNetwork(
             "enabled" to settings.enabled,
             "listening" to (server?.isShutdown == false),
             "port" to if (boundPort >= 0) boundPort else null,
+            "listenError" to listenError,
             "gatewayName" to settings.gatewayName,
             "protocolVersion" to PROTOCOL_VERSION,
             "protocols" to TlsCertificates.PROTOCOLS,
